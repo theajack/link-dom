@@ -45,7 +45,8 @@ type INumberStyleEnum = 'paddingTop'| 'paddingBottom'| 'paddingLeft'| 'paddingRi
     // TNumberAutoStyle
     'width'| 'maxWidth'| 'minWidth'| 'height'| 'maxHeight'| 'minHeight'| 'flexBasis'|
     // pure number style
-    'opacity'| 'zIndex'| 'flex'| 'flexGrow'| 'flexShrink'|        // fournumber style
+    'opacity' | 'order' | 'zIndex'| 'flex'| 'flexGrow'| 'flexShrink'|
+    // fournumber style
     'margin'| 'padding' |
     'borderWidth' | 'borderTopWidth' | 'borderBottomWidth' | 'borderLeftWidth' | 'borderRightWidth';
 
@@ -155,10 +156,14 @@ interface IEventAttributes {
 //     [prop in INumberStyleEnum]: string;
 // }
 
+type ICustomStyle = keyof INumberStyle | keyof IOptionStyle;
+
 export type IStyle = Partial<
-    Omit<CSSStyleDeclaration, keyof IOptionStyle & keyof INumberStyleEnum> &
-    IOptionStyle & INumberStyle
+    Omit<CSSStyleDeclaration, ICustomStyle> &
+    IOptionStyle &
+    INumberStyle
 >;
+
 type IGlobalStyle = {
     [prop in string]: IStyle|string|IGlobalStyle;
 }

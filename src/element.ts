@@ -127,7 +127,11 @@ export class Dom {
         const style = this.el.style;
         if (typeof value !== 'undefined') {
             // @ts-ignore
-            useReact(value, (v) => style[name] = v);
+            useReact(value, (v) => {
+                // @ts-ignore
+                const {important, cssValue, cssKey} = formatCssKV(name, v);
+                style.setProperty(cssKey, cssValue, important);
+            });
             return this;
         }
         if (typeof name === 'string') {
@@ -364,11 +368,30 @@ function styleStr (data: Record<string, IStyle|IGlobalStyle>, prefix = ''): stri
             sub.push(styleStr(value as any, `${prefix}${keyStr}`));
             continue;
         } else {
-            cssStr += `${transformCssKey(key)}:${value};`;
+            const {important, cssValue, cssKey} = formatCssKV(key, value);
+            cssStr += `${cssKey}:${cssValue}${important ? `!${important}` : ''};`;
         }
     }
     cssStr += (prefix ? `}` : '');
     return cssStr + sub.join('');
+}
+
+const NumberKeyReg = /(width$)|(height$)|(top$)|(bottom$)|(left$)|(right$)|(^margin)|(^padding)|(font-?size)/i;
+const ImportantReg = /!important$/;
+const NumberReg = /^[0-9]+$/;
+
+function formatCssKV (k: string, v: any) {
+    k = transformCssKey(k);
+    let important = '';
+    if (ImportantReg.test(v)) {
+        important = 'important';
+        v = v.replace(ImportantReg, '');
+    }
+    // 对数字类型错处理
+    if (NumberReg.test(v) && NumberKeyReg.test(k)) {
+        v = `${v}px`;
+    }
+    return {cssKey: k, cssValue: v, important};
 }
 
 // 替换replaceAll
