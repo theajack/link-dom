@@ -8,6 +8,8 @@
 
 Super concise chained call UI library
 
+**[Demo](https://shiyix.cn/jsbox/?github=theajack.link-dom ) | [Versions](https://github.com/theajack/mc-event/blob/main/dev/version.md) | [MessageBoard](https://theajack.github.io/message-board?app=link-dom)**
+
 ## Introduction
 
 Link-dom is an extremely concise imperative UI library with chained call features and no third-party dependencies. Its minimum size is only 7.7kb.
@@ -28,6 +30,13 @@ In tool library projects that require UI development, if native js is used to wr
 ```
 npm i link-dom
 ```
+
+### CDN Usage
+
+<script src="https://cdn.jsdelivr.net/npm/link-dom"></script>
+<script>
+    console.log(window.LinkDom)
+</script>
 
 ## Usage
 
@@ -301,8 +310,23 @@ mount(List(), 'body');
 
 #### Counter
 
+Minimal version
+
 ```js
-import {createStore, react, mount} from 'link-dom';
+import {dom, createStore, react, mount} from 'link-dom';
+
+function Counter () {
+    const store = createStore({ count: 0 });
+    return dom.button.text(react`count is ${store.count}`)
+        .click(() => store.count++);
+}
+mount(Counter(), 'body');
+```
+
+With Subscribe
+
+```js
+import {dom, createStore, react, mount} from 'link-dom';
 function Counter () {
     const store = createStore({
         count: 0,

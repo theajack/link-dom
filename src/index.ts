@@ -4,7 +4,9 @@
  * @Description: Coding something
  */
 export * from './element';
+export * from './dom';
+export * from './text';
 export {createStore} from './reactive/store';
 export * from './type.d';
 
-export {react, raw, type IReactive} from './reactive/reactive';
+export {react, $, raw, type IReactive} from './reactive/reactive';

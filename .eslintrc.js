@@ -61,6 +61,7 @@ module.exports = {
         'prefer-const': ['error', {
             'destructuring': 'any',
             'ignoreReadBeforeAssign': false
-        }]
+        }],
+        '@typescript-eslint/consistent-type-imports': 'error',
     }
 };

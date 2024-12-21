@@ -4,10 +4,17 @@
  * @Description: Coding something
  */
 
+import type {IStore} from './store';
+
 let instance: Target;
 
+export interface IHistoryData {
+    store: IStore<any, any>,
+    attr: string,
+}
+
 class Target {
-    list: {store: any, attr: string}[] = [];
+    list: IHistoryData[] = [];
     private maxSize = 50;
     constructor () {
         if (instance) return instance;
@@ -35,3 +42,5 @@ class Target {
 };
 
 export const GlobalStoreUseHistory = new Target();
+
+// window.GlobalStoreUseHistory = GlobalStoreUseHistory;

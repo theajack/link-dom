@@ -1,0 +1,25 @@
+<!--
+ * @Author: chenzhongsheng
+ * @Date: 2024-12-17 17:20:56
+ * @Description: Coding something
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="../npm/link-dom.iife.min.js"></script>
+    <script>
+        const {dom, createStore, $, mount} = window.LinkDom;
+        function Counter () {
+            const store = createStore({ count: 0 });
+            return dom.button.text($`count is ${store.count}`)
+                .click(() => store.count++);
+        }
+        mount(Counter(), 'body');
+    </script>
+</body>
+</html>

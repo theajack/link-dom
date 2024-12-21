@@ -1,14 +1,16 @@
 {
     "name": "link-dom",
     "ebuild": {
-        "libName": "LinkDOm",
+        "libName": "LinkDom",
         "fileName": "link-dom",
         "publish": {
             "name": "link-dom",
-            "version": "0.0.3",
+            "version": "0.0.4",
             "description": "Super concise chained call UI library",
             "repository": "https://github.com/theajack/link-dom",
-            "keywords": ["UI library"],
+            "keywords": [
+                "UI library"
+            ],
             "author": "theajack",
             "license": "",
             "bugs": {
@@ -36,13 +38,13 @@
         "@typescript-eslint/eslint-plugin": "^5.4.0",
         "@typescript-eslint/parser": "^5.4.0",
         "@vitejs/plugin-legacy": "^4.0.2",
+        "dts-bundle-generator": "^9.5.1",
         "eslint": "^8.2.0",
         "terser": "^5.16.8",
         "typescript": "^4.9.3",
         "typescript-eslint": "0.0.1-alpha.0",
         "up-fs": "^0.0.1",
-        "vite": "^4.2.0",
-        "dts-bundle-generator": "^9.5.1"
+        "vite": "^4.2.0"
     },
     "dependencies": {},
     "description": "",

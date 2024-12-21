@@ -1,23 +1,17 @@
 import {bindStore} from './reactive/store';
-import {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
-import './reactive/reactive';
-import {IReactive, useReact} from './reactive/reactive';
+import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
+import {useReact, type IReactive, isReactHistory, buildReactive, isReactive} from './reactive/reactive';
+import {LinkDomType, formatCssKV, traverseChildren} from './utils';
+import {queryBase} from './dom';
+import type {Frag} from './text';
+import {Text} from './text';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
 
-export function collectRef <T extends string[]> (...list: T): {
-    [k in T[number]]: Dom
-} {
-    const refs: any = {};
-    list.forEach(name => {
-        refs[name] = (ele: Dom) => { refs[name] = ele; };
-    });
-    return refs;
-}
-
-export type IChild = Dom|string|number|HTMLElement|IChild[];
+export type IChild = Dom|Text|Frag|string|number|HTMLElement|IReactive|IChild[];
 
 export class Dom {
+    __ld_type = LinkDomType.Dom;
     el: HTMLElement;
     // eslint-disable-next-line no-undef
     constructor (key: (keyof HTMLElementTagNameMap)|HTMLElement) {
@@ -61,7 +55,28 @@ export class Dom {
     text (): string;
     text (val: string|number|IReactive): this;
     text (val?: string|number|IReactive): string | this {
-        return this._ur('innerText', val);
+        if (typeof val === 'undefined') {
+            return this.el.innerText;
+        }
+        if (isReactive(val)) {
+            const {reacts} = val;
+            let content = '';
+            for (const item of reacts) {
+                if (isReactHistory(item)) {
+                    if (content) {
+                        this.append(new Text(content));
+                        content = '';
+                    }
+                    this.append(new Text(buildReactive(item)));
+                } else {
+                    content += item;
+                }
+            };
+            if (content) {this.append(new Text(content));}
+        } else {
+            this.el.innerText = val as string;
+        }
+        return this;
     }
     // @ts-ignore
     private __mounted?: (el: Dom)=>void;
@@ -157,13 +172,15 @@ export class Dom {
         return this._ur('innerHTML', val);
     }
     outerHtml (): string;
-    outerHtml (val: string|number): this;
-    outerHtml (val?: string|number): string | this {
+    outerHtml (val: string|number|IReactive): this;
+    outerHtml (val?: string|number|IReactive): string | this {
         if (typeof val === 'undefined') {
             return this.el.outerHTML;
         }
-        this.html(val);
-        this.el = this.el.children[0] as HTMLElement;
+        useReact(val, (v) => {
+            this.html(v);
+            this.el = this.el.children[0] as HTMLElement;
+        });
         return this;
     }
     child (i: number) {
@@ -212,24 +229,8 @@ export class Dom {
     }
 
     append (...doms: IChild[]) {
-        doms.forEach(dom => {
-            if (Array.isArray(dom)) {
-                for (const item of dom) {
-                    this.append(item);
-                }
-            } else {
-                let el: any = dom;
-                if (dom instanceof Dom) {
-                    el = dom.el;
-                } else if (!(dom instanceof HTMLElement)) {
-                    // @ts-ignore
-                    el = document.createTextNode(`${dom}`);
-                }
-                // @ts-ignore
-                this.el.appendChild(el);
-                // @ts-ignore
-                dom.__mounted?.(dom);
-            }
+        traverseChildren(doms, (child) => {
+            this.el.appendChild(child);
         });
         return this;
     }
@@ -284,139 +285,4 @@ export class Dom {
         bindStore(this, v);
         return this;
     }
-}
-
-const DomNames = [
-    'a', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'canvas', 'code', 'pre', 'table', 'th', 'td', 'tr', 'video', 'audio',
-    'ol', 'select', 'option', 'p', 'i', 'iframe', 'img', 'input', 'label', 'ul', 'li', 'span', 'textarea', 'form', 'br', 'tbody',
-    'object', 'progress', 'section', 'slot', 'small', 'strong', 'sub', 'summary', 'sup', 'template',
-    'title', 'var', 'style', 'meta', 'head', 'link', 'svg', 'script',
-] as const;
-
-type TDomName = (typeof DomNames)[number];
-
-interface IDom {
-    // eslint-disable-next-line no-undef
-    (name: keyof HTMLElementTagNameMap): Dom;
-    (name: HTMLElement): Dom;
-    (name: TDomName): Dom;
-    (name: string): Dom;
-}
-
-type IDoms = {
-    [tagName in TDomName]: Dom;
-}
-
-
-export function query (selector: string, one: true): Dom;
-export function query (selector: string, one?: false): Dom[];
-export function query (selector: string, one = false): Dom|Dom[] {
-    return queryBase(selector, one, document);
-}
-
-function queryBase (selector: string, one = false, parent: any = document) {
-    if (one) {
-        const el = parent.querySelector(selector);
-        if (el) return new Dom(el as HTMLElement);
-        throw new Error('Element is not exist' + selector);
-    }
-    const list = parent.querySelectorAll(selector);
-    const res: (Dom)[] = [];
-    for (let i = 0; i < list.length; i++) {
-        res.push(new Dom(list[i] as HTMLElement));
-    }
-    return res;
-}
-
-// @ts-ignore
-export const dom: IDom & IDoms = (() => {
-    const builder = (name: any) => new Dom(name);
-    const pps: any = {};
-    DomNames.forEach(name => {
-        pps[name] = {
-            get: () => builder(name)
-        };
-    });
-    Object.defineProperties(builder, pps);
-    return builder;
-})();
-
-type IGlobalStyle = {
-    [prop in string]: IStyle|string|IGlobalStyle;
-}
-export function style (data: Record<string, IStyle|IGlobalStyle>) {
-    const dom = new Dom('style').text(styleStr(data)).el;
-    return document.head.appendChild(dom);
-}
-
-function styleStr (data: Record<string, IStyle|IGlobalStyle>, prefix = ''): string {
-    let cssStr = prefix ? `${prefix}{` : '';
-    const sub: string[] = [];
-    for (const key in data) {
-        const value = data[key];
-        if (typeof value === 'object') {
-
-            let keyStr = '';
-            if (key[0] === '&') {
-                keyStr = key.substring(1);
-            } else if (key[0] === ':') {
-                keyStr = key;
-            } else {
-                keyStr = ` ${key}`;
-            }
-
-            sub.push(styleStr(value as any, `${prefix}${keyStr}`));
-            continue;
-        } else {
-            const {important, cssValue, cssKey} = formatCssKV(key, value);
-            cssStr += `${cssKey}:${cssValue}${important ? `!${important}` : ''};`;
-        }
-    }
-    cssStr += (prefix ? `}` : '');
-    return cssStr + sub.join('');
-}
-
-const NumberKeyReg = /(width$)|(height$)|(top$)|(bottom$)|(left$)|(right$)|(^margin)|(^padding)|(font-?size)/i;
-const ImportantReg = /!important$/;
-const NumberReg = /^[0-9]+$/;
-
-function formatCssKV (k: string, v: any) {
-    k = transformCssKey(k);
-    let important = '';
-    if (ImportantReg.test(v)) {
-        important = 'important';
-        v = v.replace(ImportantReg, '');
-    }
-    // 对数字类型错处理
-    if (NumberReg.test(v) && NumberKeyReg.test(k)) {
-        v = `${v}px`;
-    }
-    return {cssKey: k, cssValue: v, important};
-}
-
-// 替换replaceAll
-// backgroundColor => 'background-color'
-function transformCssKey (str: string) {
-    const n = str.length;
-    let result = '';
-    for (let i = 0; i < n; i++) {
-        const s = str[i];
-        const code = s.charCodeAt(0);
-        if (code >= 65 && code <= 90) {
-            result += `-${s.toLowerCase()}`;
-        } else {
-            result += s;
-        }
-    }
-    return result;
-}
-
-export function mount (node: Dom|Dom[], parent: string|HTMLElement|Dom) {
-    let el: any = parent;
-    if (typeof parent === 'string') {
-        el = queryBase(parent, true);
-    } else if (parent instanceof HTMLElement) {
-        el = new Dom(parent);
-    }
-    Array.isArray(node) ? el.append(...node) : el.append(node);
 }

@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import {Dom} from '../element';
+import type  {Dom} from '../element';
 import {GlobalStoreUseHistory} from './history';
 
 type IState = Record<string, any>;
@@ -13,7 +13,7 @@ type IActions<State extends IState, Actions extends IActions<State, Actions>> = 
   [prop in string]: (this: IStore<State, Actions> & Actions, ...args: any[]) => any;
 }
 
-type IStore<
+export type IStore<
   State extends IState,
   Actions extends IActions<State, Actions>
 > = {
