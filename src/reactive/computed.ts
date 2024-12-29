@@ -38,6 +38,8 @@ class Computed<T> {
     private _compute: IComputeFn<T>;
     private _dirty = false;
 
+    private _set?: (v: T)=>void;
+
     get value () {
         if (this._dirty) {
             this._refreshValue();
@@ -45,15 +47,20 @@ class Computed<T> {
         getComputeWatch()?.(this);
         return this._value;
     }
-    // set value (v) {
-    //     this._value = v;
-    // }
+    set value (v) {
+        if (!this._set) {
+            console.warn('Computed not have set property');
+            return;
+        }
+        this._set(v);
+    }
 
     private _listeners: ((v: T)=>void)[] = [];
 
     private _clearSub: (()=>void)[] = [];
-    constructor (v: IComputeFn<T>) {
-        this._compute = v;
+    constructor (get: IComputeFn<T>, set?: (v: T)=>void) {
+        this._compute = get;
+        this._set = set;
         const disable = setComputeWatchEnable((store, key) => {
             const handler = () => {
                 this._dirty = true;
