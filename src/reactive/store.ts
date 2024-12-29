@@ -4,10 +4,8 @@
  * @Description: Coding something
  */
 
-import {LinkDomType} from '../utils';
 import type  {Dom} from '../element';
 import {getComputeWatch} from './computed';
-import {GlobalStoreUseHistory} from './history';
 
 type IState = Record<string, any>;
 
@@ -65,12 +63,9 @@ export function createStore<
         originData[k] = value;
         objMap[k] = {
             get () {
-                GlobalStoreUseHistory.addUse(result, k);
+                latestStore = {store: result, attr: k};
                 getComputeWatch()?.(result, k);
                 const v = originData[k];
-                if (v?.__proto__) {
-                    v.__proto__.__ld_type = LinkDomType.StoreData;
-                }
                 return v;
             },
             set (v: any) {
@@ -94,9 +89,12 @@ export function createStore<
     return result;
 };
 
+let latestStore: {store: IStore<any, any>, attr: string} | null = null;
+
 export function bindStore (el: Dom, v: any) {
-    const {sub, get, set} = GlobalStoreUseHistory.latest;
-    if (get() !== v) throw new Error('Bind 传入参数错误');
+    if (!latestStore) throw new Error('Bind 传入参数错误');
+    const {store, attr} = latestStore;
+    if (store[attr] !== v) throw new Error('Bind 传入参数错误');
 
     const dom = el.el;
     let vType = 'string';
@@ -126,14 +124,14 @@ export function bindStore (el: Dom, v: any) {
     let ignoreSub = false;
     const modStore = () => {
         ignoreSub = true;
-        set(getValue());
+        store[attr] = getValue();
         ignoreSub = false;
     };
 
-    setValue(get());
+    setValue(store[attr]);
     // @ts-ignore
     el.event('input', () => { modStore();});
     // @ts-ignore
     el.event('change', () => { modStore(); });
-    sub((v: any) => {if (!ignoreSub)setValue(v);});
+    store.$sub('attr', (v: any) => {if (!ignoreSub)setValue(v);});
 }

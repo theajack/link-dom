@@ -4,9 +4,6 @@
  * @Description: Coding something
  */
 
-import {LinkDomType} from '../utils';
-import type {IHistoryData} from './history';
-import {buildReactive} from './reactive';
 import type {IStore} from './store';
 
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
@@ -32,7 +29,7 @@ export function getComputeWatch () {
 
 class Computed<T> {
 
-    __ld_type = LinkDomType.Computed;
+    __isComputed = true;
     _value: T;
 
     private _compute: IComputeFn<T>;
@@ -116,30 +113,9 @@ export function watch<T> (v: IComputeFn<T>, fn: (v: T)=>void) {
 }
 
 export function isComputed (v: any): v is Computed<any> {
-    return v?.__ld_type === LinkDomType.Computed;
+    return !!v?.__isComputed;
 }
 
 export function isComputedLike (v: any): v is IComputedLike<any> {
     return typeof v === 'function' || isComputed(v);
-}
-
-export function computedLikeToReactive (v: IComputedLike) {
-    return buildReactive(computedToHistoryData(v) as IHistoryData);
-}
-
-export function computedToHistoryData (v: any): IHistoryData|null {
-    if (typeof v === 'function') {
-        v = computed(v);
-    }
-
-    if (isComputed(v)) {
-        return {
-            get: () => v.value,
-            set: (x) => v.value = x,
-            sub: (ln) => v.sub(ln),
-            __ld_type: LinkDomType.History,
-        };
-    }
-
-    return null;
 }

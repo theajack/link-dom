@@ -5,17 +5,12 @@
  */
 import {type IChild} from './element';
 import {isComputedLike} from './reactive/computed';
-import {isReactive} from './reactive/reactive';
 import {Text} from './text';
 
 export enum LinkDomType {
     Dom,
     Text,
     Frag,
-    Reactive,
-    Computed,
-    History,
-    StoreData,
 }
 
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
@@ -29,9 +24,6 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             el = new Text(el);
             el = el.el;
         } else if (typeof el.__ld_type === 'number') {
-            if (isReactive(el)) {
-                el = new Text(el);
-            }
             el = el.el;
         } else if (!(dom instanceof HTMLElement)) {
             // @ts-ignore

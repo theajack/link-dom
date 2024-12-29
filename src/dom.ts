@@ -1,5 +1,5 @@
 import {Dom} from './element';
-import type {IReactive} from './reactive/reactive';
+import type {IComputedLike} from './reactive/computed';
 import {Frag} from './text';
 import {Text} from './text';
 import type {IStyle} from './type';
@@ -38,7 +38,7 @@ type IDoms = {
 
 interface IEle {
     text: Text & {
-        (v: string|number|IReactive): Text;
+        (v: string|number|IComputedLike): Text;
     },
     frag: Frag,
 }

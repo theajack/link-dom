@@ -1,16 +1,14 @@
 import {bindStore} from './reactive/store';
 import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
-import {useReact, type IReactive, buildReactive, isReactive} from './reactive/reactive';
+import {useReactive} from './reactive/reactive';
 import {LinkDomType, formatCssKV, traverseChildren} from './utils';
 import {queryBase} from './dom';
 import type {Frag} from './text';
-import {Text} from './text';
-import {isReactHistory} from './reactive/history';
-import {isComputedLike, type IComputedLike, computedLikeToReactive} from './reactive/computed';
+import {type IComputedLike} from './reactive/computed';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
 
-export type IChild = Dom|Text|Frag|string|number|HTMLElement|IReactive|IComputedLike|IChild[];
+export type IChild = Dom|Text|Frag|string|number|HTMLElement|IComputedLike|IChild[];
 
 export class Dom {
     __ld_type = LinkDomType.Dom;
@@ -19,21 +17,21 @@ export class Dom {
     constructor (key: (keyof HTMLElementTagNameMap)|HTMLElement) {
         this.el = typeof key === 'string' ? document.createElement(key) : key;
     }
-    private _ur (key: string, val?: string|number|IReactive|IComputedLike) {
+    private _ur (key: string, val?: string|number|IComputedLike) {
         if (typeof val === 'undefined') {
             return this.el[key];
         }
-        useReact(val, (v) => this.el[key] = v);
+        useReactive(val, (v) => this.el[key] = v);
         return this;
     }
     class (): string;
     class (val: string): this;
-    class (val?: string|IReactive|IComputedLike): string | this {
+    class (val?: string|IComputedLike): string | this {
         return this._ur('className', val);
     }
     id (): string;
     id (val: string): this;
-    id (val?: string|IReactive|IComputedLike): string | this {
+    id (val?: string|IComputedLike): string | this {
         return this._ur('id', val);
     }
     addClass (name: string) {
@@ -55,35 +53,12 @@ export class Dom {
         return this;
     }
     text (): string;
-    text (val: string|number|IReactive|IComputedLike): this;
-    text (val?: string|number|IReactive|IComputedLike): string | this {
+    text (val: string|number|IComputedLike): this;
+    text (val?: string|number|IComputedLike): string | this {
         if (typeof val === 'undefined') {
             return this.el.innerText;
         }
-
-        if (isComputedLike(val)) {
-            val = computedLikeToReactive(val);
-        }
-
-        if (isReactive(val)) {
-            const {reacts} = val;
-            let content = '';
-            for (const item of reacts) {
-                if (isReactHistory(item)) {
-                    if (content) {
-                        this.append(new Text(content));
-                        content = '';
-                    }
-                    this.append(new Text(buildReactive(item)));
-                } else {
-                    content += item;
-                }
-            };
-            if (content) {this.append(new Text(content));}
-        } else {
-            this.el.innerText = val as string;
-        }
-        return this;
+        return this._ur('innerText', val);
     }
     // @ts-ignore
     private __mounted?: (el: Dom)=>void;
@@ -106,7 +81,7 @@ export class Dom {
             return this.el.getAttribute(name) || '';
         }
 
-        useReact(value, (v) => this.el.setAttribute(name, v));
+        useReactive(value, (v) => this.el.setAttribute(name, v));
         return this;
     }
     removeAttr (key: string) {
@@ -149,7 +124,7 @@ export class Dom {
         const style = this.el.style;
         if (typeof value !== 'undefined') {
             // @ts-ignore
-            useReact(value, (v) => {
+            useReactive(value, (v) => {
                 // @ts-ignore
                 const {important, cssValue, cssKey} = formatCssKV(name, v);
                 style.setProperty(cssKey, cssValue, important);
@@ -179,12 +154,12 @@ export class Dom {
         return this._ur('innerHTML', val);
     }
     outerHtml (): string;
-    outerHtml (val: string|number|IReactive|IComputedLike): this;
-    outerHtml (val?: string|number|IReactive|IComputedLike): string | this {
+    outerHtml (val: string|number|IComputedLike): this;
+    outerHtml (val?: string|number|IComputedLike): string | this {
         if (typeof val === 'undefined') {
             return this.el.outerHTML;
         }
-        useReact(val, (v) => {
+        useReactive(val, (v) => {
             this.html(v);
             this.el = this.el.children[0] as HTMLElement;
         });
@@ -250,10 +225,10 @@ export class Dom {
     hide () {
         return this.style('display', 'none');
     }
-    show (display: IStyle['display']|IReactive|IComputedLike<IStyle['display']> = 'block') {
+    show (display: IStyle['display']|IComputedLike<IStyle['display']> = 'block') {
         return this.style('display', display as any);
     }
-    setVisible (visible = true, display: IStyle['display']|IReactive|IComputedLike<IStyle['display']> = 'block') {
+    setVisible (visible = true, display: IStyle['display']|IComputedLike<IStyle['display']> = 'block') {
         return visible ? this.show(display) : this.hide();
     }
     query (selector: string, one: true): Dom;
@@ -263,7 +238,7 @@ export class Dom {
     }
     src(): string;
     src(v: string): this;
-    src (v?: string|IReactive|IComputedLike) {
+    src (v?: string|IComputedLike) {
         return this._ur('src', v);
     }
     parent () {

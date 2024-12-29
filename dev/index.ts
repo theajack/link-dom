@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import {createStore, dom, mount, $, computed, watch, raw} from '../src';
+import {createStore, dom, mount, computed, watch} from '../src';
 
 function Counter () {
     const store = createStore({
@@ -19,15 +19,15 @@ function Counter () {
     });
 
     return dom.div.append(
-        dom.button.text($`count is ${store.count}; ${raw(22)} cx=${countAddX} computed=${countAdd1} +1=${() => store.count2 + 1}; a=${store.count}`)
+        dom.button.text(() => `count is ${store.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${() => store.count2 + 1}; a=${store.count}`)
             .click(() => {
                 store.count++;
                 store.count2++;
             }),
-        dom.div.append($`${store.count}`),
+        dom.div.append(() => store.count),
         dom.div.append(() => store.count),
         dom.div.append(countAdd1),
-        dom.div.text($`count=${store.count}`)
+        dom.div.text(() => `count=${store.count}`)
             .show(() => `${store.count % 2 === 1 ? 'block' : 'none'}`),
         dom.div.text(() => `count=${store.count}`)
             .style('color', () => `${store.count % 2 === 1 ? 'red' : 'green'}`)
@@ -37,7 +37,6 @@ function Counter () {
 mount(Counter(), 'body');
 
 window.dom = dom;
-
 
 const store = createStore({
     count: 0,
