@@ -4,10 +4,9 @@
  * @Description: Coding something
  */
 
-import {LinkDomType} from '../utils';
 import type  {Dom} from '../element';
-import {getComputeWatch} from './computed';
-import {GlobalStoreUseHistory} from './history';
+import type {Computed} from './computed';
+import {getComputeWatch, computed, isComputedLike, isComputed} from './computed';
 
 type IState = Record<string, any>;
 
@@ -65,12 +64,9 @@ export function createStore<
         originData[k] = value;
         objMap[k] = {
             get () {
-                GlobalStoreUseHistory.addUse(result, k);
+                setLatestStore(result, k);
                 getComputeWatch()?.(result, k);
                 const v = originData[k];
-                if (v?.__proto__) {
-                    v.__proto__.__ld_type = LinkDomType.StoreData;
-                }
                 return v;
             },
             set (v: any) {
@@ -94,8 +90,35 @@ export function createStore<
     return result;
 };
 
+const latestStore: {
+    set: (v: any)=>void;
+    get: ()=>any;
+    sub: (ln: (v: any)=>void)=>void;
+} = {} as any;
+
+export function setLatestStore (target: IStore<any, any>|Computed<any>, attr: string = '') {
+    let sub: (ln: ()=>void)=>void;
+    if (isComputed(target)) {
+        attr = 'value';
+        sub = (ln) => {target.sub(ln);};
+    } else {
+        sub = (ln) => {target.$sub(attr, ln);};
+    }
+    Object.assign(latestStore, {
+        set: (v: any) => {target[attr] = v;},
+        get: () => target[attr],
+        sub
+    });
+}
+
 export function bindStore (el: Dom, v: any) {
-    const {sub, get, set} = GlobalStoreUseHistory.latest;
+    if (!latestStore) throw new Error('Bind 传入参数错误');
+
+    if (isComputed(v)) {
+        v.value; // 标记一下 latestStore
+    }
+
+    const {get, set, sub} = latestStore;
     if (get() !== v) throw new Error('Bind 传入参数错误');
 
     const dom = el.el;
@@ -132,8 +155,21 @@ export function bindStore (el: Dom, v: any) {
 
     setValue(get());
     // @ts-ignore
-    el.event('input', () => { modStore();});
+    el.on('input', () => { modStore();});
     // @ts-ignore
-    el.event('change', () => { modStore(); });
+    el.on('change', () => { modStore(); });
     sub((v: any) => {if (!ignoreSub)setValue(v);});
+}
+
+
+export function useReactive (v: any, apply: (v:any)=>void) {
+    if (isComputedLike(v)) {
+        const compute = computed(v);
+        compute.sub(() => {
+            apply(compute.value);
+        });
+        apply(compute.value);
+    } else {
+        apply(v);
+    }
 }

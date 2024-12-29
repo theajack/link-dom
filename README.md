@@ -58,6 +58,7 @@ Dom declaration
 
 ```ts
 export declare class Dom {
+	__ld_type: LinkDomType;
 	el: HTMLElement;
 	constructor(key: (keyof HTMLElementTagNameMap) | HTMLElement);
 	private _ur;
@@ -71,7 +72,7 @@ export declare class Dom {
 	toggleClass(name: string, force?: boolean): boolean;
 	remove(): this;
 	text(): string;
-	text(val: string | number | IReactive): this;
+	text(val: string | number | IComputedLike): this;
 	private __mounted?;
 	mounted(v: (el: Dom) => void): this;
 	attr(name: {
@@ -96,17 +97,17 @@ export declare class Dom {
 	html(): string;
 	html(val: string | number): this;
 	outerHtml(): string;
-	outerHtml(val: string | number): this;
+	outerHtml(val: string | number | IComputedLike): this;
 	child(i: number): Dom | null;
 	children(): Dom[];
 	click(value: IEventObject): this;
-	event(name: Partial<Record<IEventKey, IEventObject>>): this;
-	event(name: IEventKey, value?: IEventObject): this;
+	on(name: Partial<Record<IEventKey, IEventObject>>): this;
+	on(name: IEventKey, value?: IEventObject): this;
 	append(...doms: IChild[]): this;
 	ref(v: Dom): this;
 	hide(): this;
-	show(display?: string): this;
-	setVisible(visible?: boolean, display?: string): this;
+	display(display?: IStyle["display"] | IComputedLike<IStyle["display"]>): this;
+	show(visible: IComputedLike<boolean> | boolean, display?: IStyle["display"]): this;
 	query(selector: string, one: true): Dom;
 	query(selector: string, one?: false): Dom[];
 	src(): string;
@@ -119,6 +120,14 @@ export declare class Dom {
 	type(name: "text" | "number" | "password" | "checkbox" | "radio" | "color" | "range" | "submit" | "reset" | "input" | "date" | "email" | "tel"): this;
 	bind(v: any): this;
 }
+```
+
+Transform Selector of HTMLElement into Dom
+
+```js
+const body = dom('body');
+// or
+const body = dom(document.body);
 ```
 
 ### style
@@ -138,13 +147,13 @@ style({
 })
 ```
 
-### event
+### events
 
 ```js
 import {mount, dom} from 'link-dom';
 function Main(){
     return dom.div.text('Hello World!')
-        .event('click', ()=>{
+        .on('click', ()=>{
             console.log('Hello')
         });
 }
@@ -157,7 +166,7 @@ Use a decorator
 import {mount, dom} from 'link-dom';
 function Main(){
     return dom.div.text('Hello World!')
-        .event('click', {
+        .on('click', {
             stop: true,
             listener: ()=>{
                 console.log('Hello')
@@ -166,6 +175,8 @@ function Main(){
 }
 mount(Main(), 'body');
 ```
+
+Support `'prevent' | 'stop' | 'capture' | 'once' | 'self'` decorators.
 
 ### mounted
 
@@ -194,7 +205,7 @@ mount(Main(), 'body');
 A simple state management and related APIs to use
 
 ```js
-import {createStore, react, mount} from 'link-dom';
+import {createStore, mount, computed} from 'link-dom';
 function Counter () {
     const store = createStore({
         count: 0,
@@ -205,9 +216,11 @@ function Counter () {
     const unsub = store.$sub('count', (v, pv) => {
         console.log(`Subscribe Count Change value=,`, v, `; prevValue=`, pv);
     });
+    const countAdd1 = computed(()=>store.count + 1);
     return dom.div.append(
         dom.input.type('number').bind(store.count),
-        dom.span.text(react`count=${store.count}`),
+        dom.span.text(() => `count=${store.count}; count+1=${countAdd1.value}`),
+        dom.span.text('ShowText').show(()=>store.count % 2 === 1),
         dom.button.text('addCount').click(increase),
         dom.button.text('UnSubscribe').click(unsub)
     );
@@ -226,26 +239,26 @@ const store = createStore({
 });
 ```
 
-#### react
-
-The react method is used to concatenate a piece of responsive data
+#### computed
 
 ```js
-import {react} from 'link-dom';
-
-const reactive = react`count=${store.count}`;
-// You can also just pass one piece of data, you don't need to use a template string, you can just call the function
-const reactive = react(store.count);
-```
-
-#### raw
-
-The raw method is used to annotate a static data in React
-
-```js
-import {react, raw} from 'link-dom';
-const StaticName = 'count';
-const reactive = react`${raw(StaticName)}=${store.count}`;
+const store = createStore({
+    count: 0,
+});
+const countAdd1 = computed(()=>{
+    return store.count + 1;
+})
+const countAdd2 = computed(()=>{
+    return countAdd1.value + 1;
+})
+const countSetDemo = computed(()=>{
+    return store.count + 1;
+}, (v)=>{
+    store.count = v - 1;
+});
+countAdd1.sub((v, old)=>{
+    console.log('sub:', v, old);
+});
 ```
 
 #### Dom.bind
@@ -254,6 +267,17 @@ Used for bidirectional binding of input type elements, the data inside the bind 
 
 ```js
 const input = dom.input.bind(store.count)
+```
+
+bind set Computed
+
+```ts
+const countSetDemo = computed(()=>{
+    return store.count + 1;
+}, (v)=>{
+    store.count = v - 1;
+});
+const input = dom.input.bind(countSetDemo)
 ```
 
 #### Store.$sub
@@ -278,6 +302,23 @@ let handler = (value, prevValue)=>{
 store.$sub('count', handler);
 store.$unsub('count', handler);
 store.$unsub('count'); // 不传入第二个参数可以取消指定状态的所有订阅
+```
+
+#### watch 
+
+```js
+import {watch} from 'link-dom';
+const store = createStore({
+    count: 0,
+});
+const countAdd1 = computed(()=>{
+    return store.count + 1;
+});
+
+watch(()=>store.count, (v, old)=>{console.log(v, old)});
+watch(countAdd1, (v, old)=>{console.log(v, old)});
+watch(()=>countAdd1.value, (v, old)=>{console.log(v, old)});
+watch(()=>store.count+1, (v, old)=>{console.log(v, old)});
 ```
 
 ### Samples
@@ -313,11 +354,11 @@ mount(List(), 'body');
 Minimal version
 
 ```js
-import {dom, createStore, react, mount} from 'link-dom';
+import {dom, createStore, mount} from 'link-dom';
 
 function Counter () {
     const store = createStore({ count: 0 });
-    return dom.button.text(react`count is ${store.count}`)
+    return dom.button.text(()=>`count is ${store.count}`)
         .click(() => store.count++);
 }
 mount(Counter(), 'body');
@@ -337,9 +378,11 @@ function Counter () {
     const unsub = store.$sub('count', (v, pv) => {
         console.log(`Subscribe Count Change value=,`, v, `; prevValue=`, pv);
     });
+    const countAdd1 = computed(()=>store.count + 1);
     return dom.div.append(
         dom.input.type('number').bind(store.count),
-        dom.span.text(react`count=${store.count}`),
+        dom.span.text(() => `count=${store.count}; count+1=${countAdd1.value}`),
+        dom.span.text('ShowText').show(()=>store.count % 2 === 1),
         dom.button.text('addCount').click(increase),
         dom.button.text('UnSubscribe').click(unsub)
     );

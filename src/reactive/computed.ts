@@ -4,10 +4,7 @@
  * @Description: Coding something
  */
 
-import {LinkDomType} from '../utils';
-import type {IHistoryData} from './history';
-import {buildReactive} from './reactive';
-import type {IStore} from './store';
+import {setLatestStore, type IStore} from './store';
 
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
 
@@ -30,9 +27,9 @@ export function getComputeWatch () {
     return computedWatch;
 }
 
-class Computed<T> {
+export class Computed<T> {
 
-    __ld_type = LinkDomType.Computed;
+    __isComputed = true;
     _value: T;
 
     private _compute: IComputeFn<T>;
@@ -44,6 +41,7 @@ class Computed<T> {
         if (this._dirty) {
             this._refreshValue();
         }
+        setLatestStore(this);
         getComputeWatch()?.(this);
         return this._value;
     }
@@ -55,7 +53,7 @@ class Computed<T> {
         this._set(v);
     }
 
-    private _listeners: ((v: T)=>void)[] = [];
+    private _listeners: ((v: T, n: T)=>void)[] = [];
 
     private _clearSub: (()=>void)[] = [];
     constructor (get: IComputeFn<T>, set?: (v: T)=>void) {
@@ -64,10 +62,13 @@ class Computed<T> {
         const disable = setComputeWatchEnable((store, key) => {
             const handler = () => {
                 this._dirty = true;
-                this._listeners.forEach(fn => {
-                    if (typeof fn !== 'function') debugger;
-                    fn(this._value);
-                });
+                if (this._listeners.length > 0) {
+                    const old = this._value;
+                    const newValue = this.value;
+                    this._listeners.forEach(fn => {
+                        fn(newValue, old);
+                    });
+                }
             };
             const clear = typeof key === 'string' ?
                 // @ts-ignore
@@ -106,9 +107,9 @@ class Computed<T> {
     }
 }
 
-export function computed<T> (v: IComputedLike<T>) {
+export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void) {
     if (isComputed(v)) return v;
-    return new Computed(v);
+    return new Computed(v, set);
 }
 
 export function watch<T> (v: IComputeFn<T>, fn: (v: T)=>void) {
@@ -116,30 +117,9 @@ export function watch<T> (v: IComputeFn<T>, fn: (v: T)=>void) {
 }
 
 export function isComputed (v: any): v is Computed<any> {
-    return v?.__ld_type === LinkDomType.Computed;
+    return !!v?.__isComputed;
 }
 
 export function isComputedLike (v: any): v is IComputedLike<any> {
     return typeof v === 'function' || isComputed(v);
-}
-
-export function computedLikeToReactive (v: IComputedLike) {
-    return buildReactive(computedToHistoryData(v) as IHistoryData);
-}
-
-export function computedToHistoryData (v: any): IHistoryData|null {
-    if (typeof v === 'function') {
-        v = computed(v);
-    }
-
-    if (isComputed(v)) {
-        return {
-            get: () => v.value,
-            set: (x) => v.value = x,
-            sub: (ln) => v.sub(ln),
-            __ld_type: LinkDomType.History,
-        };
-    }
-
-    return null;
 }
