@@ -6,7 +6,7 @@
 
 import type {IChild} from './element';
 import type {IComputedLike} from './reactive/computed';
-import {useReactive} from './reactive/reactive';
+import {useReactive} from './reactive/store';
 import {LinkDomType, traverseChildren} from './utils';
 
 export class Text {

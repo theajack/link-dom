@@ -5,7 +5,6 @@
  */
 
 import {createStore, dom, mount, computed, watch} from '../src';
-
 function Counter () {
     const store = createStore({
         count: 0,
@@ -19,7 +18,7 @@ function Counter () {
     });
 
     return dom.div.append(
-        dom.button.text(() => `count is ${store.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${() => store.count2 + 1}; a=${store.count}`)
+        dom.button.text(() => `count is ${store.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.count2 + 1}; a=${store.count}`)
             .click(() => {
                 store.count++;
                 store.count2++;
@@ -28,7 +27,7 @@ function Counter () {
         dom.div.append(() => store.count),
         dom.div.append(countAdd1),
         dom.div.text(() => `count=${store.count}`)
-            .show(() => `${store.count % 2 === 1 ? 'block' : 'none'}`),
+            .show(() => store.count % 2 === 1),
         dom.div.text(() => `count=${store.count}`)
             .style('color', () => `${store.count % 2 === 1 ? 'red' : 'green'}`)
             .style('cursor', () => `${store.count % 2 === 1 ? 'pointer' : 'text'}`)
@@ -50,3 +49,49 @@ store.count ++;
 console.log(countAdd1.value, countAddX.value);
 
 
+function Counter2 () {
+    const store = createStore({
+        count: 0,
+    });
+    const increase = () => {
+        store.count += 1;
+    };
+    const unsub = store.$sub('count', (v, pv) => {
+        console.log(`Subscribe Count Change value=,`, v, `; prevValue=`, pv);
+    });
+    const countAdd1 = computed(() => store.count + 1);
+    return dom.div.append(
+        dom.input.type('number').bind(store.count),
+        dom.span.text(() => `count=${store.count}; count+1=${countAdd1.value}`),
+        dom.button.text('addCount').click(increase),
+        dom.button.text('UnSubscribe').click(unsub)
+    );
+}
+
+mount(Counter2(), 'body');
+
+
+function Counter3 () {
+    const store = createStore({
+        count: 0,
+    });
+    const countAdd1 = computed(() => {
+        return store.count + 1;
+    });
+    const countAdd2 = computed(() => {
+        return countAdd1.value + 1;
+    });
+    const countSetDemo = computed(() => {
+        return store.count + 1;
+    }, (v) => {
+        store.count = v - 1;
+    });
+    return dom.div.append(
+        dom.input.type('number').bind(store.count),
+        dom.span.text(() => `count=${store.count}; count+1=${countAdd1.value}; count+2=${countAdd2.value}`),
+        dom.button.text('addCount').click(() => store.count ++),
+        dom.button.text('setComputed').click(() => countSetDemo.value --),
+    );
+}
+
+mount(Counter3(), 'body');

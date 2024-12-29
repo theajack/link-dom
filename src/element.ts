@@ -1,6 +1,5 @@
-import {bindStore} from './reactive/store';
+import {bindStore, useReactive} from './reactive/store';
 import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
-import {useReactive} from './reactive/reactive';
 import {LinkDomType, formatCssKV, traverseChildren} from './utils';
 import {queryBase} from './dom';
 import type {Frag} from './text';
@@ -179,16 +178,16 @@ export class Dom {
         return list;
     }
     click (value: IEventObject) {
-        return this.event('click', value);
+        return this.on('click', value);
     }
-    event (name: Partial<Record<IEventKey, IEventObject>>): this;
-    event (name: IEventKey, value?: IEventObject): this;
+    on (name: Partial<Record<IEventKey, IEventObject>>): this;
+    on (name: IEventKey, value?: IEventObject): this;
     // eslint-disable-next-line no-undef
-    event (name: IEventKey|Partial<Record<IEventKey, IEventObject>>, value?: IEventObject) {
+    on (name: IEventKey|Partial<Record<IEventKey, IEventObject>>, value?: IEventObject) {
         if (typeof name === 'object') {
             for (const k in name) {
                 // @ts-ignore
-                this.event(k, name[k]);
+                this.on(k, name[k]);
             }
             return this;
         }
@@ -223,13 +222,16 @@ export class Dom {
         return this;
     }
     hide () {
-        return this.style('display', 'none');
+        return this.display('none');
     }
-    show (display: IStyle['display']|IComputedLike<IStyle['display']> = 'block') {
+    display (display: IStyle['display']|IComputedLike<IStyle['display']> = 'block') {
         return this.style('display', display as any);
     }
-    setVisible (visible = true, display: IStyle['display']|IComputedLike<IStyle['display']> = 'block') {
-        return visible ? this.show(display) : this.hide();
+    show (visible: IComputedLike<boolean>|boolean, display: IStyle['display'] = 'block') {
+        useReactive(visible, (v) => {
+            this.display(v ? display : 'none');
+        });
+        return this;
     }
     query (selector: string, one: true): Dom;
     query (selector: string, one?: false): Dom[];

@@ -5,7 +5,8 @@
  */
 
 import type  {Dom} from '../element';
-import {getComputeWatch} from './computed';
+import type {Computed} from './computed';
+import {getComputeWatch, computed, isComputedLike, isComputed} from './computed';
 
 type IState = Record<string, any>;
 
@@ -63,7 +64,7 @@ export function createStore<
         originData[k] = value;
         objMap[k] = {
             get () {
-                latestStore = {store: result, attr: k};
+                setLatestStore(result, k);
                 getComputeWatch()?.(result, k);
                 const v = originData[k];
                 return v;
@@ -89,12 +90,36 @@ export function createStore<
     return result;
 };
 
-let latestStore: {store: IStore<any, any>, attr: string} | null = null;
+const latestStore: {
+    set: (v: any)=>void;
+    get: ()=>any;
+    sub: (ln: (v: any)=>void)=>void;
+} = {} as any;
+
+export function setLatestStore (target: IStore<any, any>|Computed<any>, attr: string = '') {
+    let sub: (ln: ()=>void)=>void;
+    if (isComputed(target)) {
+        attr = 'value';
+        sub = (ln) => {target.sub(ln);};
+    } else {
+        sub = (ln) => {target.$sub(attr, ln);};
+    }
+    Object.assign(latestStore, {
+        set: (v: any) => {target[attr] = v;},
+        get: () => target[attr],
+        sub
+    });
+}
 
 export function bindStore (el: Dom, v: any) {
     if (!latestStore) throw new Error('Bind 传入参数错误');
-    const {store, attr} = latestStore;
-    if (store[attr] !== v) throw new Error('Bind 传入参数错误');
+
+    if (isComputed(v)) {
+        v.value; // 标记一下 latestStore
+    }
+
+    const {get, set, sub} = latestStore;
+    if (get() !== v) throw new Error('Bind 传入参数错误');
 
     const dom = el.el;
     let vType = 'string';
@@ -124,14 +149,27 @@ export function bindStore (el: Dom, v: any) {
     let ignoreSub = false;
     const modStore = () => {
         ignoreSub = true;
-        store[attr] = getValue();
+        set(getValue());
         ignoreSub = false;
     };
 
-    setValue(store[attr]);
+    setValue(get());
     // @ts-ignore
-    el.event('input', () => { modStore();});
+    el.on('input', () => { modStore();});
     // @ts-ignore
-    el.event('change', () => { modStore(); });
-    store.$sub('attr', (v: any) => {if (!ignoreSub)setValue(v);});
+    el.on('change', () => { modStore(); });
+    sub((v: any) => {if (!ignoreSub)setValue(v);});
+}
+
+
+export function useReactive (v: any, apply: (v:any)=>void) {
+    if (isComputedLike(v)) {
+        const compute = computed(v);
+        compute.sub(() => {
+            apply(compute.value);
+        });
+        apply(compute.value);
+    } else {
+        apply(v);
+    }
 }
