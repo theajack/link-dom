@@ -4,13 +4,17 @@
  * @Description: Coding something
  */
 
-import type {IStore} from './store';
+import {LinkDomType} from '../utils';
 
 let instance: Target;
 
 export interface IHistoryData {
-    store: IStore<any, any>,
-    attr: string,
+    // store: IStore<any, any>,
+    // attr: string,
+    sub: (ln: (v: any)=>void)=>(()=>void),
+    get: ()=>any,
+    set: (v: any)=>void,
+    __ld_type: LinkDomType.History,
 }
 
 class Target {
@@ -25,7 +29,15 @@ class Target {
         if (this.list.length > this.maxSize) {
             this.list.shift();
         }
-        this.list.push({store, attr});
+        this.list.push({
+            __ld_type: LinkDomType.History,
+            sub: (ln) => {
+                return store.$sub(attr, ln);
+                // todo unsub
+            },
+            get: () => store[attr],
+            set: (v) => {store[attr] = v;}
+        });
     }
 
     get latest () {
@@ -44,3 +56,8 @@ class Target {
 export const GlobalStoreUseHistory = new Target();
 
 // window.GlobalStoreUseHistory = GlobalStoreUseHistory;
+
+
+export function isReactHistory (item: any): item is IHistoryData {
+    return item?.__ld_type === LinkDomType.History;
+}

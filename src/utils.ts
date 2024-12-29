@@ -4,6 +4,7 @@
  * @Description: Coding something
  */
 import {type IChild} from './element';
+import {isComputedLike} from './reactive/computed';
 import {isReactive} from './reactive/reactive';
 import {Text} from './text';
 
@@ -12,6 +13,9 @@ export enum LinkDomType {
     Text,
     Frag,
     Reactive,
+    Computed,
+    History,
+    StoreData,
 }
 
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
@@ -21,8 +25,10 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             return;
         }
         let el: any = dom;
-        // @ts-ignore
-        if (typeof el.__ld_type === 'number') {
+        if (isComputedLike(el)) {
+            el = new Text(el);
+            el = el.el;
+        } else if (typeof el.__ld_type === 'number') {
             if (isReactive(el)) {
                 el = new Text(el);
             }

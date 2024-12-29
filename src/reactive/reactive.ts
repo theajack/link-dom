@@ -5,8 +5,9 @@
  */
 
 import {LinkDomType} from '../utils';
+import {computed, computedToHistoryData, isComputedLike} from './computed';
 import type {IHistoryData} from './history';
-import {GlobalStoreUseHistory} from './history';
+import {GlobalStoreUseHistory, isReactHistory} from './history';
 
 const RawMark = Symbol('raw');
 
@@ -22,7 +23,7 @@ export interface IReactive {
 
 export function buildReactive (data: IHistoryData): IReactive {
     return {
-        value: data.store[data.attr],
+        value: data.get(),
         reacts: [data],
         __ld_type: LinkDomType.Reactive,
     };
@@ -39,12 +40,17 @@ export function react (tpl: TemplateStringsArray|any, ...args: any[]): IReactive
         let index = 1;
         reacts = [value] as any[];
         for (let i = args.length - 1; i >= 0; i--) {
-
             let arg = args[i];
             if (arg?.[RawMark]) {
                 arg = arg.value;
                 reacts.unshift(arg);
+            } else if (isComputedLike(arg)) {
+                const computed = computedToHistoryData(arg);
+                arg = computed?.get();
+                reacts.unshift(computed);
             } else {
+                // 此处无法区分 storeData 和 普通的静态变量
+                // 所以如果是静态变量需要使用 raw 包裹
                 const data = GlobalStoreUseHistory.getHistory(index);
                 reacts.unshift(data);
                 index ++;
@@ -65,12 +71,18 @@ export function react (tpl: TemplateStringsArray|any, ...args: any[]): IReactive
 export const $ = react;
 
 export function useReact (v: any, apply: (v:any)=>void) {
-    if (isReactive(v)) {
+    if (isComputedLike(v)) {
+        const compute = computed(v);
+        compute.sub(() => {
+            apply(compute.value);
+        });
+        apply(compute.value);
+    } else if (isReactive(v)) {
         const {value, reacts} = v;
 
         reacts.forEach((item: any) => {
             if (isReactHistory(item)) {
-                item.store.$sub(item.attr, () => {
+                item.sub(() => {
                     apply(concatReactsValues(reacts));
                 });
             }
@@ -82,23 +94,13 @@ export function useReact (v: any, apply: (v:any)=>void) {
 }
 
 function concatReactsValues (reacts: any[]): any {
-    if (reacts.length === 1) {
-        const {store, attr} = reacts[0];
-        return store.$get(attr);
-    } else {
-        return reacts.map(item => {
-            if (isReactHistory(item)) {
-                return item.store.$get(item.attr);
-            }
-            return item;
-        }).join('');
-    }
+    return reacts.map(item => {
+        if (isReactHistory(item)) {
+            return item.get();
+        }
+        return item;
+    }).join('');
 }
-
-export function isReactHistory (item: any): item is IHistoryData {
-    return typeof item === 'object' && !!item?.store.$unsub;
-}
-
 export function isReactive (v: any): v is IReactive {
     return v?.__ld_type === LinkDomType.Reactive;
 }

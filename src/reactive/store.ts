@@ -4,7 +4,9 @@
  * @Description: Coding something
  */
 
+import {LinkDomType} from '../utils';
 import type  {Dom} from '../element';
+import {getComputeWatch} from './computed';
 import {GlobalStoreUseHistory} from './history';
 
 type IState = Record<string, any>;
@@ -12,6 +14,7 @@ type IState = Record<string, any>;
 type IActions<State extends IState, Actions extends IActions<State, Actions>> = {
   [prop in string]: (this: IStore<State, Actions> & Actions, ...args: any[]) => any;
 }
+
 
 export type IStore<
   State extends IState,
@@ -23,6 +26,7 @@ export type IStore<
 } & {
   $sub: <Prop extends keyof State>(key: Prop, ln: (v: State[Prop], prev: State[Prop])=>void) => (()=>void);
   $unsub: <Prop extends keyof State>(key: Prop, ln?: (v: State[Prop], prev: State[Prop])=>void) => void;
+  $get: <Prop extends keyof State>(key: Prop)=>State[Prop];
 }
 // set: <Prop extends keyof State>(key: Prop, value: State[Prop][0]) => void;
 
@@ -51,7 +55,7 @@ export function createStore<
         },
         $get (attr: string) {
             return originData[attr];
-        }
+        },
     };
 
     const objMap: any = {};
@@ -61,7 +65,12 @@ export function createStore<
         objMap[k] = {
             get () {
                 GlobalStoreUseHistory.addUse(result, k);
-                return originData[k];
+                getComputeWatch()?.(result, k);
+                const v = originData[k];
+                if (v?.__proto__) {
+                    v.__proto__.__ld_type = LinkDomType.StoreData;
+                }
+                return v;
             },
             set (v: any) {
                 const origin = originData[k];
@@ -85,9 +94,8 @@ export function createStore<
 };
 
 export function bindStore (el: Dom, v: any) {
-    const {store, attr} = GlobalStoreUseHistory.latest;
-    if (!store) throw new Error('Bind 参数错误');
-    if (store.$get(attr) !== v) throw new Error('Bind 传入参数错误');
+    const {sub, get, set} = GlobalStoreUseHistory.latest;
+    if (get() !== v) throw new Error('Bind 传入参数错误');
 
     const dom = el.el;
     let vType = 'string';
@@ -117,15 +125,14 @@ export function bindStore (el: Dom, v: any) {
     let ignoreSub = false;
     const modStore = () => {
         ignoreSub = true;
-        store[attr] = getValue();
+        set(getValue());
         ignoreSub = false;
     };
 
-    setValue(store.$get([attr]));
+    setValue(get());
     // @ts-ignore
     el.event('input', () => { modStore();});
     // @ts-ignore
     el.event('change', () => { modStore(); });
-    store.$sub(attr, (v: any) => {if (!ignoreSub)setValue(v);});
+    sub((v: any) => {if (!ignoreSub)setValue(v);});
 }
-

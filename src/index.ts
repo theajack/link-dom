@@ -10,3 +10,5 @@ export {createStore} from './reactive/store';
 export * from './type.d';
 
 export {react, $, raw, type IReactive} from './reactive/reactive';
+
+export {computed, watch} from './reactive/computed';

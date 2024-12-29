@@ -1,14 +1,16 @@
 import {bindStore} from './reactive/store';
 import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
-import {useReact, type IReactive, isReactHistory, buildReactive, isReactive} from './reactive/reactive';
+import {useReact, type IReactive, buildReactive, isReactive} from './reactive/reactive';
 import {LinkDomType, formatCssKV, traverseChildren} from './utils';
 import {queryBase} from './dom';
 import type {Frag} from './text';
 import {Text} from './text';
+import {isReactHistory} from './reactive/history';
+import type {IComputedLike} from './reactive/computed';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
 
-export type IChild = Dom|Text|Frag|string|number|HTMLElement|IReactive|IChild[];
+export type IChild = Dom|Text|Frag|string|number|HTMLElement|IReactive|IComputedLike|IChild[];
 
 export class Dom {
     __ld_type = LinkDomType.Dom;
@@ -17,7 +19,7 @@ export class Dom {
     constructor (key: (keyof HTMLElementTagNameMap)|HTMLElement) {
         this.el = typeof key === 'string' ? document.createElement(key) : key;
     }
-    private _ur (key: string, val?: string|number|IReactive) {
+    private _ur (key: string, val?: string|number|IReactive|IComputedLike) {
         if (typeof val === 'undefined') {
             return this.el[key];
         }
@@ -26,12 +28,12 @@ export class Dom {
     }
     class (): string;
     class (val: string): this;
-    class (val?: string|IReactive): string | this {
+    class (val?: string|IReactive|IComputedLike): string | this {
         return this._ur('className', val);
     }
     id (): string;
     id (val: string): this;
-    id (val?: string|IReactive): string | this {
+    id (val?: string|IReactive|IComputedLike): string | this {
         return this._ur('id', val);
     }
     addClass (name: string) {
@@ -53,8 +55,8 @@ export class Dom {
         return this;
     }
     text (): string;
-    text (val: string|number|IReactive): this;
-    text (val?: string|number|IReactive): string | this {
+    text (val: string|number|IReactive|IComputedLike): this;
+    text (val?: string|number|IReactive|IComputedLike): string | this {
         if (typeof val === 'undefined') {
             return this.el.innerText;
         }
@@ -172,8 +174,8 @@ export class Dom {
         return this._ur('innerHTML', val);
     }
     outerHtml (): string;
-    outerHtml (val: string|number|IReactive): this;
-    outerHtml (val?: string|number|IReactive): string | this {
+    outerHtml (val: string|number|IReactive|IComputedLike): this;
+    outerHtml (val?: string|number|IReactive|IComputedLike): string | this {
         if (typeof val === 'undefined') {
             return this.el.outerHTML;
         }
@@ -256,7 +258,7 @@ export class Dom {
     }
     src(): string;
     src(v: string): this;
-    src (v?: string|IReactive) {
+    src (v?: string|IReactive|IComputedLike) {
         return this._ur('src', v);
     }
     parent () {
