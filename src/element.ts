@@ -6,7 +6,7 @@ import {queryBase} from './dom';
 import type {Frag} from './text';
 import {Text} from './text';
 import {isReactHistory} from './reactive/history';
-import type {IComputedLike} from './reactive/computed';
+import {isComputedLike, type IComputedLike, computedLikeToReactive} from './reactive/computed';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
 
@@ -60,6 +60,11 @@ export class Dom {
         if (typeof val === 'undefined') {
             return this.el.innerText;
         }
+
+        if (isComputedLike(val)) {
+            val = computedLikeToReactive(val);
+        }
+
         if (isReactive(val)) {
             const {reacts} = val;
             let content = '';
@@ -245,10 +250,10 @@ export class Dom {
     hide () {
         return this.style('display', 'none');
     }
-    show (display = 'block') {
+    show (display: IStyle['display']|IReactive|IComputedLike<IStyle['display']> = 'block') {
         return this.style('display', display as any);
     }
-    setVisible (visible = true, display = 'block') {
+    setVisible (visible = true, display: IStyle['display']|IReactive|IComputedLike<IStyle['display']> = 'block') {
         return visible ? this.show(display) : this.hide();
     }
     query (selector: string, one: true): Dom;

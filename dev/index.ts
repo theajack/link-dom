@@ -13,21 +13,41 @@ function Counter () {
     });
 
     const countAdd1 = computed(() => store.count + 1);
+    const countAddX = computed(() => store.count + countAdd1.value + 1);
     countAdd1.sub((v: any) => {
         console.log(v, countAdd1.value);
     });
 
     return dom.div.append(
-        dom.button.text($`count is ${store.count}; ${raw(22)} computed=${countAdd1} +1=${() => store.count2 + 1}; a=${store.count}`)
+        dom.button.text($`count is ${store.count}; ${raw(22)} cx=${countAddX} computed=${countAdd1} +1=${() => store.count2 + 1}; a=${store.count}`)
             .click(() => {
                 store.count++;
                 store.count2++;
             }),
         dom.div.append($`${store.count}`),
         dom.div.append(() => store.count),
-        dom.div.append(countAdd1)
+        dom.div.append(countAdd1),
+        dom.div.text($`count=${store.count}`)
+            .show(() => `${store.count % 2 === 1 ? 'block' : 'none'}`),
+        dom.div.text(() => `count=${store.count}`)
+            .style('color', () => `${store.count % 2 === 1 ? 'red' : 'green'}`)
+            .style('cursor', () => `${store.count % 2 === 1 ? 'pointer' : 'text'}`)
     );
 }
 mount(Counter(), 'body');
+
+window.dom = dom;
+
+
+const store = createStore({
+    count: 0,
+});
+
+const countAdd1 = computed(() => store.count + 1);
+const countAddX = computed(() => store.count + countAdd1.value + 1);
+
+store.count ++;
+
+console.log(countAdd1.value, countAddX.value);
 
 

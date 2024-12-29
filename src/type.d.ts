@@ -3,6 +3,8 @@
  * @Date: 2023-07-06 22:46:06
  * @Description: Coding something
  */
+
+import type {IComputedLike} from './reactive/computed';
  
 
 type TCssCommonValue = 'inherit' | 'initial' | 'unset' | 'revert' | 'none' | 'auto';
@@ -158,11 +160,15 @@ interface IEventAttributes {
 
 type ICustomStyle = keyof INumberStyle | keyof IOptionStyle;
 
-export type IStyle = Partial<
+
+type IOriginStyle =
     Omit<CSSStyleDeclaration, ICustomStyle> &
     IOptionStyle &
     INumberStyle
->;
+
+export type IStyle = {
+    [Key in (keyof IOriginStyle)]?: IOriginStyle[Key] | IComputedLike<IOriginStyle[Key]>
+}
 
 type IGlobalStyle = {
     [prop in string]: IStyle|string|IGlobalStyle;

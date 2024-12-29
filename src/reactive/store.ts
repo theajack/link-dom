@@ -25,7 +25,7 @@ export type IStore<
   [prop in keyof Actions]: Actions[prop];
 } & {
   $sub: <Prop extends keyof State>(key: Prop, ln: (v: State[Prop], prev: State[Prop])=>void) => (()=>void);
-  $unsub: <Prop extends keyof State>(key: Prop, ln?: (v: State[Prop], prev: State[Prop])=>void) => void;
+  $unsub: <Prop extends keyof State>(key: Prop, ln?: (v: State[Prop], prev: State[Prop])=>void) => boolean;
   $get: <Prop extends keyof State>(key: Prop)=>State[Prop];
 }
 // set: <Prop extends keyof State>(key: Prop, value: State[Prop][0]) => void;
@@ -47,11 +47,12 @@ export function createStore<
             if (!subMap[k]) return;
             if (typeof ln === 'undefined') {
                 delete subMap[k];
-                return;
+                return true;
             }
             const index = subMap[k].indexOf(ln);
-            if (index === -1) return;
+            if (index === -1) return false;
             subMap[k].splice(index, 1);
+            return true;
         },
         $get (attr: string) {
             return originData[attr];

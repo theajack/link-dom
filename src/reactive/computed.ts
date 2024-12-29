@@ -6,6 +6,7 @@
 
 import {LinkDomType} from '../utils';
 import type {IHistoryData} from './history';
+import {buildReactive} from './reactive';
 import type {IStore} from './store';
 
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
@@ -56,12 +57,15 @@ class Computed<T> {
         const disable = setComputeWatchEnable((store, key) => {
             const handler = () => {
                 this._dirty = true;
-                this._listeners.forEach(fn => {fn(this._value);});
+                this._listeners.forEach(fn => {
+                    if (typeof fn !== 'function') debugger;
+                    fn(this._value);
+                });
             };
             const clear = typeof key === 'string' ?
                 // @ts-ignore
                 store.$sub(key, handler) :
-                store.sub(store);
+                store.sub(handler);
                 
             this._clearSub.push(clear);
         });
@@ -83,7 +87,9 @@ class Computed<T> {
         const index = this._listeners.indexOf(fn);
         if (index !== -1) {
             this._listeners.splice(index, 1);
+            return true;
         }
+        return false;
     }
 
     destroy () {
@@ -108,6 +114,10 @@ export function isComputed (v: any): v is Computed<any> {
 
 export function isComputedLike (v: any): v is IComputedLike<any> {
     return typeof v === 'function' || isComputed(v);
+}
+
+export function computedLikeToReactive (v: IComputedLike) {
+    return buildReactive(computedToHistoryData(v) as IHistoryData);
 }
 
 export function computedToHistoryData (v: any): IHistoryData|null {
