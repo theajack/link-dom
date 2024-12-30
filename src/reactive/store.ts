@@ -4,16 +4,16 @@
  * @Description: Coding something
  */
 
-import type  {Dom} from '../element';
+import type {Dom} from '../element';
 import type {Computed} from './computed';
 import {getComputeWatch, computed, isComputedLike, isComputed} from './computed';
+import {isRef, type Ref} from './ref';
 
 type IState = Record<string, any>;
 
 type IActions<State extends IState, Actions extends IActions<State, Actions>> = {
   [prop in string]: (this: IStore<State, Actions> & Actions, ...args: any[]) => any;
 }
-
 
 export type IStore<
   State extends IState,
@@ -96,9 +96,9 @@ const latestStore: {
     sub: (ln: (v: any)=>void)=>void;
 } = {} as any;
 
-export function setLatestStore (target: IStore<any, any>|Computed<any>, attr: string = '') {
+export function setLatestStore (target: IStore<any, any>|Computed<any>|Ref<any>, attr: string = '') {
     let sub: (ln: ()=>void)=>void;
-    if (isComputed(target)) {
+    if (isComputed(target) || isRef(target)) {
         attr = 'value';
         sub = (ln) => {target.sub(ln);};
     } else {
@@ -114,12 +114,14 @@ export function setLatestStore (target: IStore<any, any>|Computed<any>, attr: st
 export function bindStore (el: Dom, v: any) {
     if (!latestStore) throw new Error('Bind 传入参数错误');
 
-    if (isComputed(v)) {
-        v.value; // 标记一下 latestStore
+    if (isComputed(v) || isRef(v)) {
+        v = v.value;
     }
 
     const {get, set, sub} = latestStore;
-    if (get() !== v) throw new Error('Bind 传入参数错误');
+    if (get() !== v) {
+        throw new Error('Bind 传入参数错误');
+    }
 
     const dom = el.el;
     let vType = 'string';

@@ -4,6 +4,7 @@
  * @Description: Coding something
  */
 
+import type {Ref} from './ref';
 import {setLatestStore, type IStore} from './store';
 
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
@@ -11,7 +12,7 @@ export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
 export type IComputeFn<T> = ()=>T;
 
 export type IComputedWatch = ((
-    computed: Computed<any> | IStore<any, any>,
+    computed: Computed<any> | Ref<any> | IStore<any, any>,
     key?: string
 ) => void);
 let computedWatch: IComputedWatch|null = null;

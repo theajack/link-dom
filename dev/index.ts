@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import {createStore, dom, mount, computed, watch} from '../src';
+import {createStore, dom, mount, computed, watch, ref} from '../src';
 function Counter () {
     const store = createStore({
         count: 0,
@@ -95,3 +95,28 @@ function Counter3 () {
 }
 
 mount(Counter3(), 'body');
+
+function Counter4 () {
+    const count = ref(0);
+
+    const countAdd1 = computed(() => {
+        return count.value + 1;
+    });
+    const countAdd2 = computed(() => {
+        return countAdd1.value + 1;
+    });
+    const countSetDemo = computed(() => {
+        return count.value + 1;
+    }, (v) => {
+        count.value = v - 1;
+    });
+    return dom.div.append(
+        dom.input.type('number').bind(count),
+        dom.span.text(() => `count=${count.value}; count+1=${countAdd1.value}; count+2=${countAdd2.value}`),
+        dom.button.text('addCount').click(() => count.value ++),
+        dom.button.text('setComputed').click(() => countSetDemo.value --),
+    );
+
+}
+
+mount(Counter4(), 'body');

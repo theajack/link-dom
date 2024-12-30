@@ -6,9 +6,8 @@
 export * from './element';
 export * from './dom';
 export * from './text';
-export {createStore} from './reactive/store';
 export * from './type.d';
 
-// export {react, $, raw, type IReactive} from './reactive/reactive';
-
-export {computed, watch} from './reactive/computed';
+export {createStore} from './reactive/store';
+export {computed, watch, isComputed} from './reactive/computed';
+export {ref, isRef} from './reactive/ref';
