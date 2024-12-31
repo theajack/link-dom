@@ -4,8 +4,8 @@
  * @Description: Coding something
  */
 
-import type {Ref} from './ref';
-import {setLatestStore, type IStore} from './store';
+import {isRef, type Ref} from './ref';
+import {setLatestStore, type IStore, getLatestStore} from './store';
 
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
 
@@ -87,12 +87,12 @@ export class Computed<T> {
         this._dirty = false;
     }
 
-    sub (fn: (v: T)=>void) {
+    sub (fn: (v: T, old: T)=>void) {
         this._listeners.push(fn);
         return () => this.unsub(fn);
     }
 
-    unsub (fn: (v: T)=>void) {
+    unsub (fn: (v: T, old: T)=>void) {
         const index = this._listeners.indexOf(fn);
         if (index !== -1) {
             this._listeners.splice(index, 1);
@@ -113,8 +113,14 @@ export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void) {
     return new Computed(v, set);
 }
 
-export function watch<T> (v: IComputeFn<T>, fn: (v: T)=>void) {
-    return computed(v).sub(fn);
+export function watch<T> (v: IComputedLike<T>|Ref<T>|T, fn: (v: T, old)=>void): ()=>void {
+    if (isRef(v)) {
+        return v.sub(fn);
+    }
+    if (isComputedLike(v)) {
+        return computed(v).sub(fn);
+    }
+    return getLatestStore()?.sub(fn);
 }
 
 export function isComputed (v: any): v is Computed<any> {

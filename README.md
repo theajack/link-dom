@@ -234,14 +234,26 @@ mount(Counter(), 'body');
 Create a state store
 
 ```js
+import {createStore} from 'link-dom';
 const store = createStore({
     count: 0,
 });
 ```
 
+#### ref
+
+Create a state store
+
+```js
+import {ref} from 'link-dom';
+const count = ref(0);
+console.log(count.value);
+```
+
 #### computed
 
 ```js
+import {computed} from 'link-dom';
 const store = createStore({
     count: 0,
 });
@@ -307,18 +319,34 @@ store.$unsub('count'); // 不传入第二个参数可以取消指定状态的所
 #### watch 
 
 ```js
-import {watch} from 'link-dom';
+import {watch, createStore, ref, computed} from 'link-dom';
 const store = createStore({
     count: 0,
 });
+const count = ref(0);
 const countAdd1 = computed(()=>{
-    return store.count + 1;
+    return store.count + count + 1;
 });
 
-watch(()=>store.count, (v, old)=>{console.log(v, old)});
-watch(countAdd1, (v, old)=>{console.log(v, old)});
-watch(()=>countAdd1.value, (v, old)=>{console.log(v, old)});
-watch(()=>store.count+1, (v, old)=>{console.log(v, old)});
+watch(store.count, (v, old)=>{console.log('watch store', v, old)});
+watch(count, (v, old)=>{console.log('watch ref', v, old)});
+watch(countAdd1, (v, old)=>{console.log('watch computed', v, old)});
+watch(()=>countAdd1.value, (v, old)=>{console.log('watch countAdd1', v, old)});
+watch(()=>store.count + 1, (v, old)=>{console.log('watch count+1', v, old)});
+store.count ++;
+count.value ++;
+```
+
+unwatch
+
+```js
+import {watch, ref} from 'link-dom';
+const count = ref(0);
+const unwatch = watch(count, (v, pref)=>{
+    console.log('watch', ref)
+});
+
+unwatch();
 ```
 
 ### Samples

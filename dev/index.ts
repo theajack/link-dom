@@ -17,6 +17,10 @@ function Counter () {
         console.log(v, countAdd1.value);
     });
 
+    watch(store.count, (v, old) => {
+        console.log('store.count', v, old);
+    });
+
     return dom.div.append(
         dom.button.text(() => `count is ${store.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.count2 + 1}; a=${store.count}`)
             .click(() => {
@@ -98,6 +102,10 @@ mount(Counter3(), 'body');
 
 function Counter4 () {
     const count = ref(0);
+
+    watch(count, v => {
+        console.log(v);
+    });
 
     const countAdd1 = computed(() => {
         return count.value + 1;

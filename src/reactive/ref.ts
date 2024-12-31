@@ -29,12 +29,12 @@ export class Ref<T> {
         this._value = v;
     }
 
-    sub (fn: (v: T)=>void) {
+    sub (fn: (v: T, old: T)=>void) {
         this._listeners.push(fn);
         return () => this.unsub(fn);
     }
 
-    unsub (fn: (v: T)=>void) {
+    unsub (fn: (v: T, old: T)=>void) {
         const index = this._listeners.indexOf(fn);
         if (index !== -1) {
             this._listeners.splice(index, 1);

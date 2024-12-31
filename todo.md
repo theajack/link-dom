@@ -3,5 +3,7 @@
  * @Date: 2024-12-21 10:51:01
  * @Description: Coding something
 -->
-- [ ] Support Computed
-- [ ] Sub function as parameter
+- [x] Support Computed
+- [x] Sub function as parameter
+- [x] Support Ref
+- [ ] Support createStore.getters

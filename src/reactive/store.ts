@@ -93,16 +93,20 @@ export function createStore<
 const latestStore: {
     set: (v: any)=>void;
     get: ()=>any;
-    sub: (ln: (v: any)=>void)=>void;
+    sub: (ln: (v: any, old: any)=>void)=>(()=>void);
 } = {} as any;
+
+export function getLatestStore () {
+    return latestStore;
+}
 
 export function setLatestStore (target: IStore<any, any>|Computed<any>|Ref<any>, attr: string = '') {
     let sub: (ln: ()=>void)=>void;
     if (isComputed(target) || isRef(target)) {
         attr = 'value';
-        sub = (ln) => {target.sub(ln);};
+        sub = (ln) => target.sub(ln);
     } else {
-        sub = (ln) => {target.$sub(attr, ln);};
+        sub = (ln) => target.$sub(attr, ln);
     }
     Object.assign(latestStore, {
         set: (v: any) => {target[attr] = v;},
