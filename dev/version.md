@@ -1,3 +1,25 @@
+<!--
+ * @Author: chenzhongsheng
+ * @Date: 2025-01-02 15:42:22
+ * @Description: Coding something
+-->
+
+# 0.0.7
+
+- fix typing error
+- Mod show method, add display method
+- fix use ref for reactive
+
+# 0.0.6
+
+- add ref function
+
+# 0.0.5
+
+- Implement Computed watch
+- Support Function Compression
+- Remove Join function
+
 # 0.0.4
 
 - Support Text and Frag

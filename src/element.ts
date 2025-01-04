@@ -3,6 +3,7 @@ import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
 import {LinkDomType, formatCssKV, traverseChildren} from './utils';
 import {queryBase} from './dom';
 import type {Frag} from './text';
+import type {IReactiveLike} from './reactive/computed';
 import {type IComputedLike} from './reactive/computed';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
@@ -16,7 +17,7 @@ export class Dom {
     constructor (key: (keyof HTMLElementTagNameMap)|HTMLElement) {
         this.el = typeof key === 'string' ? document.createElement(key) : key;
     }
-    private _ur (key: string, val?: string|number|IComputedLike) {
+    private _ur (key: string, val?: IReactiveLike<string|number>) {
         if (typeof val === 'undefined') {
             return this.el[key];
         }
@@ -24,13 +25,13 @@ export class Dom {
         return this;
     }
     class (): string;
-    class (val: string): this;
-    class (val?: string|IComputedLike): string | this {
+    class (val: IReactiveLike<string>): this;
+    class (val?: IReactiveLike<string>): string | this {
         return this._ur('className', val);
     }
     id (): string;
-    id (val: string): this;
-    id (val?: string|IComputedLike): string | this {
+    id (val: IReactiveLike<string>): this;
+    id (val?: IReactiveLike<string>): string | this {
         return this._ur('id', val);
     }
     addClass (name: string) {
@@ -52,8 +53,8 @@ export class Dom {
         return this;
     }
     text (): string;
-    text (val: string|number|IComputedLike): this;
-    text (val?: string|number|IComputedLike): string | this {
+    text (val: IReactiveLike<string|number>): this;
+    text (val?: IReactiveLike<string|number>): string | this {
         if (typeof val === 'undefined') {
             return this.el.innerText;
         }
@@ -113,7 +114,8 @@ export class Dom {
         // @ts-ignore
         if (!this.el.__xr_data) this.el.__xr_data = {};
         // @ts-ignore
-        this.el.__xr_data[name] = value;
+        
+        useReactive(value, (v) => this.el.__xr_data[name] = v);
         return this;
     }
     style (name: IStyle|Record<string, any>): this;
@@ -143,18 +145,18 @@ export class Dom {
     }
 
     value (): string;
-    value (val: string|number): this;
-    value (val?: string|number): string | this {
+    value (val: IReactiveLike<string|number>): this;
+    value (val?: IReactiveLike<string|number>): string | this {
         return this._ur('value', val);
     }
     html (): string;
-    html (val: string|number): this;
-    html (val?: string|number): string | this {
+    html (val: IReactiveLike<string|number>): this;
+    html (val?: IReactiveLike<string|number>): string | this {
         return this._ur('innerHTML', val);
     }
     outerHtml (): string;
-    outerHtml (val: string|number|IComputedLike): this;
-    outerHtml (val?: string|number|IComputedLike): string | this {
+    outerHtml (val: IReactiveLike<string|number>): this;
+    outerHtml (val?: IReactiveLike<string|number>): string | this {
         if (typeof val === 'undefined') {
             return this.el.outerHTML;
         }
@@ -224,10 +226,10 @@ export class Dom {
     hide () {
         return this.display('none');
     }
-    display (display: IStyle['display']|IComputedLike<IStyle['display']> = 'block') {
+    display (display: IReactiveLike<IStyle['display']> = 'block') {
         return this.style('display', display as any);
     }
-    show (visible: IComputedLike<boolean>|boolean, display: IStyle['display'] = 'block') {
+    show (visible: IReactiveLike<boolean>, display: IStyle['display'] = 'block') {
         useReactive(visible, (v) => {
             this.display(v ? display : 'none');
         });
@@ -239,8 +241,8 @@ export class Dom {
         return queryBase(selector, one, this.el);
     }
     src(): string;
-    src(v: string): this;
-    src (v?: string|IComputedLike) {
+    src(v: IReactiveLike<string>): this;
+    src (v?: IReactiveLike<string>) {
         return this._ur('src', v);
     }
     parent () {
@@ -250,8 +252,8 @@ export class Dom {
         return this.html('');
     }
     name(): string;
-    name(v: string): this;
-    name (value?: string): string|this {
+    name(v: IReactiveLike<string>): this;
+    name (value?: IReactiveLike<string>): string|this {
         return this.attr(`__xr_name`, value);
     }
     find (name: string) {
@@ -265,7 +267,7 @@ export class Dom {
     }
 
     // @ts-ignore
-    bind (v: any) {
+    bind (v: IReactiveLike<string|number|boolean>) {
         bindStore(this, v);
         return this;
     }

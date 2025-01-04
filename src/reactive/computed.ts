@@ -7,6 +7,9 @@
 import {isRef, type Ref} from './ref';
 import {setLatestStore, type IStore, getLatestStore} from './store';
 
+export type IReactiveLike<T=any> = IReactive<T> | T;
+export type IReactive<T=any> = IComputedLike<T> | Ref<T>;
+
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
 
 export type IComputeFn<T> = ()=>T;
@@ -113,7 +116,7 @@ export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void) {
     return new Computed(v, set);
 }
 
-export function watch<T> (v: IComputedLike<T>|Ref<T>|T, fn: (v: T, old)=>void): ()=>void {
+export function watch<T> (v: IReactive<T>|T, fn: (v: T, old: T)=>void): ()=>void {
     if (isRef(v)) {
         return v.sub(fn);
     }
