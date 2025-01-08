@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import {createStore, dom, mount, computed, watch, ref} from '../src';
+import {createStore, dom, mount, computed, watch, ref, style} from '../src';
 function Counter () {
     const store = createStore({
         count: 0,
@@ -37,20 +37,19 @@ function Counter () {
             .style('cursor', () => `${store.count % 2 === 1 ? 'pointer' : 'text'}`)
     );
 }
-mount(Counter(), 'body');
 
-window.dom = dom;
+// window.dom = dom;
 
-const store = createStore({
-    count: 0,
-});
+// const store = createStore({
+//     count: 0,
+// });
 
-const countAdd1 = computed(() => store.count + 1);
-const countAddX = computed(() => store.count + countAdd1.value + 1);
+// const countAdd1 = computed(() => store.count + 1);
+// const countAddX = computed(() => store.count + countAdd1.value + 1);
 
-store.count ++;
+// store.count ++;
 
-console.log(countAdd1.value, countAddX.value);
+// console.log(countAdd1.value, countAddX.value);
 
 
 function Counter2 () {
@@ -72,35 +71,7 @@ function Counter2 () {
     );
 }
 
-mount(Counter2(), 'body');
-
-
 function Counter3 () {
-    const store = createStore({
-        count: 0,
-    });
-    const countAdd1 = computed(() => {
-        return store.count + 1;
-    });
-    const countAdd2 = computed(() => {
-        return countAdd1.value + 1;
-    });
-    const countSetDemo = computed(() => {
-        return store.count + 1;
-    }, (v) => {
-        store.count = v - 1;
-    });
-    return dom.div.append(
-        dom.input.type('number').bind(store.count),
-        dom.span.text(() => `count=${store.count}; count+1=${countAdd1.value}; count+2=${countAdd2.value}`),
-        dom.button.text('addCount').click(() => store.count ++),
-        dom.button.text('setComputed').click(() => countSetDemo.value --),
-    );
-}
-
-mount(Counter3(), 'body');
-
-function Counter4 () {
     const count = ref(0);
 
     watch(count, v => {
@@ -127,4 +98,63 @@ function Counter4 () {
 
 }
 
-mount(Counter4(), 'body');
+
+mount(Counter(), 'body');
+mount(Counter2(), 'body');
+mount(Counter3(), 'body');
+
+function test () {
+    return dom.div.style({
+        color: 'red',
+    }).text('test1').append(
+        dom.div.text('test2').append(
+            window.a = dom.div.text('test3').append(
+                dom.div.text('test4')
+            )
+        )
+    );
+}
+
+mount(test(), 'body');
+
+
+function styleReactive () {
+
+    const color = ref('red');
+
+    return dom.div.text('style reactive').style({
+        color: color,
+        position: () => 'absolute',
+    }).append(
+        dom.input.bind(color),
+        dom.input.bind(color)
+    );
+}
+
+mount(styleReactive(), 'body');
+
+function reactiveStyle () {
+
+    const color = ref('red');
+    const pos = ref('absolute');
+    style({
+        '.a': {
+            position: () => pos.value + 'xx',
+            color: color,
+            fontSize: 1,
+            '.b': {
+                color: 'blue',
+            },
+            '.a-a': {
+                color: color,
+                fontSize: 2,
+            },
+        },
+        '.b': {
+            color: 'blue',
+        }
+    });
+    window.color = color;
+    window.pos = pos;
+}
+reactiveStyle();

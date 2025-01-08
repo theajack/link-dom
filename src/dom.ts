@@ -1,5 +1,6 @@
 import {Dom} from './element';
-import type {IComputedLike} from './reactive/computed';
+import type {IComputedLike, IReactive} from './reactive/computed';
+import {isReactive, useReactive} from './reactive/store';
 import {Frag} from './text';
 import {Text} from './text';
 import type {IStyle} from './type';
@@ -86,38 +87,115 @@ export const dom: IDom & IDoms & IEle = (() => {
 })();
 
 type IGlobalStyle = {
-    [prop in string]: IStyle|string|IGlobalStyle;
+    [prop in string]: IStyle|string|number|IReactive<string|number>|IGlobalStyle;
 }
-export function style (data: Record<string, IStyle|IGlobalStyle>) {
-    const dom = new Dom('style').text(styleStr(data)).el;
-    return document.head.appendChild(dom);
+export function style (data: Record<string, IStyle|IGlobalStyle>|string|IReactive<string>) {
+    const isReact = isReactive(data);
+    const addStyle = (v = '') => {
+        const dom = new Dom('style').text(v);
+        document.head.appendChild(dom.el);
+        return dom;
+    };
+    if (isReact || typeof data === 'string') {
+        const dom = addStyle();
+        useReactive(data, v => { dom.text(v); });
+    } else {
+        let reactiveStyle: Dom;
+        styleStr({data, onStyle (r, s) {
+            if (r) {
+                if (!reactiveStyle) reactiveStyle = addStyle();
+                reactiveStyle.text(r);
+            }
+            if (s) { addStyle(s); }
+        }});
+    }
 }
 
-function styleStr (data: Record<string, IStyle|IGlobalStyle>, prefix = ''): string {
-    let cssStr = prefix ? `${prefix}{` : '';
-    const sub: string[] = [];
+function styleStr ({
+    data,
+    reactiveValue = [],
+    staticValue = [],
+    prefix = '',
+    index = 0,
+    onStyle,
+    first = true,
+}:{
+    data: Record<string, IStyle|IGlobalStyle>,
+    reactiveValue?: string[],
+    staticValue?: string[],
+    prefix?: string,
+    index?: number,
+    onStyle: (r: string, s?: string) => void,
+    first?: boolean,
+}) {
+    const cssValue: string[] = [];
+
+    const addCssValue = (v: string) => {
+        cssValue.push(v);
+        index ++;
+    };
+
+    if (prefix) {addCssValue(`${prefix}{`);}
+
+    let isReactiveStyle = false;
+    const objects: any[] = [];
     for (const key in data) {
         const value = data[key];
-        if (typeof value === 'object') {
-
-            let keyStr = '';
-            if (key[0] === '&') {
-                keyStr = key.substring(1);
-            } else if (key[0] === ':') {
-                keyStr = key;
-            } else {
-                keyStr = ` ${key}`;
-            }
-
-            sub.push(styleStr(value as any, `${prefix}${keyStr}`));
+        const isReact = isReactive(value);
+        if (isReact) {
+            isReactiveStyle = true;
+            ((i: number) => {
+                useReactive(value, (v, init) => {
+                    if (init) {
+                        addCssValue(joinCssValue(key, v));
+                    } else {
+                        console.log(v, i);
+                        reactiveValue[i] = joinCssValue(key, v);
+                        onStyle(reactiveValue.join('').trim());
+                    }
+                });
+            })(index);
+        } else if (typeof value === 'object') {
+            objects.push({key, value});
             continue;
         } else {
-            const {important, cssValue, cssKey} = formatCssKV(key, value);
-            cssStr += `${cssKey}:${cssValue}${important ? `!${important}` : ''};`;
+            addCssValue(joinCssValue(key, value));
         }
     }
-    cssStr += (prefix ? `}` : '');
-    return cssStr + sub.join('');
+    if (prefix) {
+        addCssValue('}');
+    }
+    if (cssValue.length) {
+        (isReactiveStyle ? reactiveValue : staticValue).push(...cssValue);
+    }
+    objects.forEach(({key, value}) => {
+        let keyStr = '';
+        if (key[0] === '&') {
+            keyStr = key.substring(1);
+        } else if (key[0] === ':') {
+            keyStr = key;
+        } else {
+            keyStr = ` ${key}`;
+        }
+        styleStr({
+            data: value as any,
+            prefix: `${prefix}${keyStr}`,
+            index,
+            reactiveValue,
+            staticValue,
+            onStyle,
+            first: false,
+        });
+    });
+
+    if (first) {
+        onStyle(reactiveValue.join('').trim(), staticValue.join('').trim());
+    }
+}
+
+function joinCssValue (key: string, value: any) {
+    const {important, cssValue, cssKey} = formatCssKV(key, value);
+    return `${cssKey}:${cssValue}${important ? `!${important}` : ''};`;
 }
 
 export function mount (node: Dom|Dom[], parent: string|HTMLElement|Dom) {

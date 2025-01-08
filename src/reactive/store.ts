@@ -5,7 +5,7 @@
  */
 
 import type {Dom} from '../element';
-import type {Computed, IReactive} from './computed';
+import type {Computed, IComputedLike, IReactive} from './computed';
 import {getComputeWatch, computed, isComputedLike, isComputed} from './computed';
 import {isRef, type Ref} from './ref';
 
@@ -168,15 +168,21 @@ export function bindStore (el: Dom, v: any) {
 }
 
 
-export function useReactive (v: any|IReactive<any>, apply: (v:any)=>void) {
+export function useReactive (v: any|IReactive<any>, apply: (v:any, isInit: boolean)=>void) {
     if (isRef(v)) {
-        v.sub(() => { apply(v.value); });
-        apply(v.value);
+        v.sub(() => { apply(v.value, false); });
+        apply(v.value, true);
     } else if (isComputedLike(v)) {
         const compute = computed(v);
-        compute.sub(() => { apply(compute.value); });
-        apply(compute.value);
+        compute.sub(() => { apply(compute.value, false); });
+        apply(compute.value, true);
     } else {
-        apply(v);
+        apply(v, true);
+        return false;
     }
+    return true;
+}
+
+export function isReactive (v: any): v is Ref<any>|IComputedLike {
+    return isRef(v) || isComputedLike(v);
 }

@@ -8,7 +8,7 @@
 
 Super concise chained call UI library
 
-**[Demo](https://shiyix.cn/jsbox/?github=theajack.link-dom ) | [Versions](https://github.com/theajack/mc-event/blob/main/dev/version.md) | [MessageBoard](https://theajack.github.io/message-board?app=link-dom)**
+**[Demo](https://shiyix.cn/jsbox/?github=theajack.link-dom) | [Versions](https://github.com/theajack/mc-event/blob/main/dev/version.md) | [MessageBoard](https://theajack.github.io/message-board?app=link-dom)**
 
 ## Introduction
 

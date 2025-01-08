@@ -10,12 +10,12 @@ type IEventKey = keyof DocumentEventMap;
 
 export type IChild = Dom|Text|Frag|string|number|HTMLElement|IComputedLike|IChild[];
 
-export class Dom {
+export class Dom<T extends HTMLElement = HTMLElement> {
     __ld_type = LinkDomType.Dom;
-    el: HTMLElement;
+    el: T;
     // eslint-disable-next-line no-undef
-    constructor (key: (keyof HTMLElementTagNameMap)|HTMLElement) {
-        this.el = typeof key === 'string' ? document.createElement(key) : key;
+    constructor (key: (keyof HTMLElementTagNameMap)|T) {
+        this.el = (typeof key === 'string' ? document.createElement(key) : key) as T;
     }
     private _ur (key: string, val?: IReactiveLike<string|number>) {
         if (typeof val === 'undefined') {
@@ -162,7 +162,7 @@ export class Dom {
         }
         useReactive(val, (v) => {
             this.html(v);
-            this.el = this.el.children[0] as HTMLElement;
+            this.el = this.el.children[0] as T;
         });
         return this;
     }
