@@ -235,9 +235,10 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         });
         return this;
     }
-    query (selector: string, one: true): Dom;
-    query (selector: string, one?: false): Dom[];
-    query (selector: string, one = false): Dom|Dom[] {
+
+    query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
+    query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
+    query <T extends HTMLElement = HTMLElement> (selector: string, one = false): Dom<T>|Dom<T>[] {
         return queryBase(selector, one, this.el);
     }
     src(): string;

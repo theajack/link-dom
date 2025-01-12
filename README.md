@@ -23,7 +23,8 @@ In tool library projects that require UI development, if native js is used to wr
 1. Imperative UI, supports chained calls and has no third-party dependencies.
 2. Has friendly type declaration support, covering attributes, styles, Dom tags, etc.
 3. Has good css-in-js support and supports nested rules similar to less.
-4. Supports state management.
+4. Support reactive css-in-js.
+5. Supports state management.
 
 ## Install
 
@@ -141,6 +142,25 @@ style({
         '*': {color: '#000'},
         '.child': {
             color: '#444',
+            '&.active': {color: '#f44'}
+        },
+    }
+})
+```
+
+reactive style
+
+```js
+import {style} from 'link-dom';
+
+const color = ref('#000')
+
+style({
+    '.parent': {
+        fontSize: '12px',
+        '*': {color},
+        '.child': {
+            color: ()=>color.value,
             '&.active': {color: '#f44'}
         },
     }

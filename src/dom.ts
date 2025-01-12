@@ -6,8 +6,8 @@ import {Text} from './text';
 import type {IStyle} from './type';
 import {formatCssKV} from './utils';
 
-export function collectRef <T extends string[]> (...list: T): {
-    [k in T[number]]: Dom
+export function collectRef <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
+    [k in T[number]]: Dom<E>
 } {
     const refs: any = {};
     list.forEach(name => {
@@ -23,18 +23,20 @@ const DomNames = [
     'title', 'var', 'style', 'meta', 'head', 'link', 'svg', 'script',
 ] as const;
 
-type TDomName = (typeof DomNames)[number];
+// eslint-disable-next-line no-undef
+type HTMLMap = HTMLElementTagNameMap;
+
+type TDomName = keyof HTMLMap;
 
 interface IDom {
-    // eslint-disable-next-line no-undef
-    (name: keyof HTMLElementTagNameMap): Dom;
+    <T extends TDomName>(name: T): Dom<HTMLMap[T]>;
     (name: HTMLElement): Dom;
-    (name: TDomName): Dom;
+    <T extends TDomName>(name: T): Dom<HTMLMap[T]>;
     (name: string): Dom;
 }
 
 type IDoms = {
-    [tagName in TDomName]: Dom;
+    [tagName in TDomName]: Dom<HTMLMap[tagName]>;
 }
 
 interface IEle {
@@ -44,13 +46,13 @@ interface IEle {
     frag: Frag,
 }
 
-export function query (selector: string, one: true): Dom;
-export function query (selector: string, one?: false): Dom[];
-export function query (selector: string, one = false): Dom|Dom[] {
+export function query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
+export function query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
+export function query <T extends HTMLElement = HTMLElement> (selector: string, one = false): Dom<T>|Dom<T>[] {
     return queryBase(selector, one, document);
 }
 
-export function queryBase (selector: string, one = false, parent: any = document) {
+export function queryBase (selector: string, one = false, parent: any = document): any {
     if (one) {
         const el = parent.querySelector(selector);
         if (el) return new Dom(el as HTMLElement);

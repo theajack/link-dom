@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import {createStore, dom, mount, computed, watch, ref, style} from '../src';
+import {createStore, dom, mount, computed, watch, ref, style, collectRef} from '../src';
 function Counter () {
     const store = createStore({
         count: 0,
@@ -134,7 +134,6 @@ function styleReactive () {
 mount(styleReactive(), 'body');
 
 function reactiveStyle () {
-
     const color = ref('red');
     const pos = ref('absolute');
     style({
