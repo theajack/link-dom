@@ -7,11 +7,11 @@ window.jsboxCode = {
     lib: 'https://cdn.jsdelivr.net/npm/link-dom',
     lang: 'javascript',
     needUI: true,
-    code: `var {dom, createStore, $, mount} = window.LinkDom;
+    code: `var {dom, ref, mount} = window.LinkDom;
 function Counter () {
-    const store = createStore({ count: 0 });
-    return dom.button.text($\`count is \${store.count}\`)
-        .click(() => store.count++);
+    const count = ref(0);
+    return dom.button.text(() => \`count is \${count.value}\`)
+        .click(() => count.value++);
 }
 mount(Counter(), '#jx-app');`
 };
