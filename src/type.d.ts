@@ -4,6 +4,7 @@
  * @Description: Coding something
  */
 
+import type {Dom} from './element';
 import type {IComputedLike} from './reactive/computed';
  
 
@@ -62,8 +63,8 @@ type INumberStyle = {
 // capture：使用事件的捕获模式；
 // self：只有event.target是当前操作的元素时才触发事件；
 type TEventDecorator = 'prevent' | 'stop' | 'capture' | 'once' | 'self';
-export type IEventObject = ((e: Event)=>any) | ({
-    listener?: (e: Event)=>any;
+export type IEventObject<T extends Dom = Dom> = ((e: Event, dom: T)=>any) | ({
+    listener?: (e: Event, dom: T)=>any;
 } & {
 [decorator in TEventDecorator]?: boolean;
 })

@@ -2,13 +2,13 @@ import {bindStore, useReactive} from './reactive/store';
 import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
 import {LinkDomType, formatCssKV, traverseChildren} from './utils';
 import {queryBase} from './dom';
-import type {Frag} from './text';
+import type {Comment, Frag} from './text';
 import type {IReactiveLike} from './reactive/computed';
 import {type IComputedLike} from './reactive/computed';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
 
-export type IChild = Dom|Text|Frag|string|number|HTMLElement|IComputedLike|IChild[];
+export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|IComputedLike|IChild[];
 
 export class Dom<T extends HTMLElement = HTMLElement> {
     __ld_type = LinkDomType.Dom;
@@ -47,6 +47,9 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     }
     toggleClass (name: string, force?: boolean): boolean {
         return !!this.el?.classList.toggle(name, force);
+    }
+    replaceClass (n: string, old: string) {
+        return this.removeClass(old).addClass(n);
     }
     remove () {
         this.el?.remove();
@@ -166,11 +169,31 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         });
         return this;
     }
-    child (i: number) {
+    child <T extends HTMLElement = HTMLElement> (i: number) {
         const node = this.el.children[i];
         if (!node) return null;
-        return new Dom(node as HTMLElement);
+        return new Dom(node as T);
     }
+    next <T extends HTMLElement = HTMLElement> () {
+        const next = this.el.nextElementSibling as any;
+        return next ? new Dom<T>(next) : null;
+    }
+    prev <T extends HTMLElement = HTMLElement> () {
+        const prev = this.el.previousElementSibling as any;
+        return prev ? new Dom<T>(prev) : null;
+    }
+    firstChild <T extends HTMLElement = HTMLElement> () {
+        return this.child<T>(0);
+    }
+    lastChild<T extends HTMLElement = HTMLElement> () {
+        const children = this.el.children;
+        if (children.length === 0) return null;
+        return new Dom(children[children.length - 1] as T);
+    }
+    brothers () {
+        return this.parent()?.children() || [];
+    }
+    
     children () {
         const n = this.el.children.length;
         const list: Dom[] = [];
@@ -179,13 +202,13 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         }
         return list;
     }
-    click (value: IEventObject) {
+    click (value: IEventObject<this>) {
         return this.on('click', value);
     }
-    on (name: Partial<Record<IEventKey, IEventObject>>): this;
-    on (name: IEventKey, value?: IEventObject): this;
+    on (name: Partial<Record<IEventKey, IEventObject<this>>>): this;
+    on (name: IEventKey, value?: IEventObject<this>): this;
     // eslint-disable-next-line no-undef
-    on (name: IEventKey|Partial<Record<IEventKey, IEventObject>>, value?: IEventObject) {
+    on (name: IEventKey|Partial<Record<IEventKey, IEventObject<this>>>, value?: IEventObject<this>) {
         if (typeof name === 'object') {
             for (const k in name) {
                 // @ts-ignore
@@ -196,7 +219,9 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         const dom = this.el;
         if (typeof value === 'function') {
             // @ts-ignore
-            this.el.addEventListener(name, value);
+            this.el.addEventListener(name, (e) => {
+                value(e, this);
+            });
         } else {
             const handle = (e: Event) => {
                 // @ts-ignore
@@ -204,7 +229,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
                 if (value!.stop) e.stopPropagation();
                 if (value!.prevent) e.preventDefault();
                 if (value!.once) dom.removeEventListener(name, handle, value!.capture);
-                value!.listener?.(e);
+                value!.listener?.(e, this);
             };
             dom.addEventListener(name, handle, value!.capture ?? false);
         }
@@ -214,6 +239,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     append (...doms: IChild[]) {
         traverseChildren(doms, (child) => {
             this.el.appendChild(child);
+            debugger;
         });
         return this;
     }
@@ -246,8 +272,15 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     src (v?: IReactiveLike<string>) {
         return this._ur('src', v);
     }
-    parent () {
-        return this.el.parentElement;
+    parent <T extends HTMLElement = HTMLElement> (i = 1) {
+        if (i === 0) return this;
+        let el: any = this.el;
+        while (i > 0) {
+            el = el.parentElement;
+            if (!el) return null;
+            i--;
+        }
+        return new Dom<T>(el);
     }
     empty () {
         return this.html('');
@@ -257,8 +290,11 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     name (value?: IReactiveLike<string>): string|this {
         return this.attr(`__xr_name`, value);
     }
-    find (name: string) {
+    findName (name: string) {
         return this.query(`[__xr_name="${name}"]`, true);
+    }
+    find (v: string) {
+        return this.query(v, true);
     }
 
     type (name: 'text'|'number'|'password'|'checkbox'|

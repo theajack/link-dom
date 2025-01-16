@@ -5,6 +5,7 @@
  */
 
 import {createStore, dom, mount, computed, watch, ref, style, collectRef} from '../src';
+window.dom = dom;
 function Counter () {
     const store = createStore({
         count: 0,

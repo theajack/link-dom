@@ -11,6 +11,7 @@ export enum LinkDomType {
     Dom,
     Text,
     Frag,
+    Comment,
 }
 
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
@@ -25,7 +26,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             el = el.el;
         } else if (typeof el.__ld_type === 'number') {
             el = el.el;
-        } else if (!(dom instanceof HTMLElement)) {
+        } else if (!(dom instanceof Node)) {
             // @ts-ignore
             el = document.createTextNode(`${dom}`);
         }

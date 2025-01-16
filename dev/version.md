@@ -4,6 +4,18 @@
  * @Description: Coding something
 -->
 
+# 0.0.9
+
+- event ad this parameter
+- add next,prev,firstChild,lastChild,brothers api
+- enhance parent api
+- add svg support
+- add dom.fromHTML,query,find,comment api
+
+# 0.0.8 
+
+- typing optimization
+
 # 0.0.7
 
 - fix typing error

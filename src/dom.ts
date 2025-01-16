@@ -1,7 +1,7 @@
 import {Dom} from './element';
 import type {IComputedLike, IReactive} from './reactive/computed';
 import {isReactive, useReactive} from './reactive/store';
-import {Frag} from './text';
+import {Comment, Frag} from './text';
 import {Text} from './text';
 import type {IStyle} from './type';
 import {formatCssKV} from './utils';
@@ -20,11 +20,13 @@ const DomNames = [
     'a', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'canvas', 'code', 'pre', 'table', 'th', 'td', 'tr', 'video', 'audio',
     'ol', 'select', 'option', 'p', 'i', 'iframe', 'img', 'input', 'label', 'ul', 'li', 'span', 'textarea', 'form', 'br', 'tbody',
     'object', 'progress', 'section', 'slot', 'small', 'strong', 'sub', 'summary', 'sup', 'template',
-    'title', 'var', 'style', 'meta', 'head', 'link', 'svg', 'script',
+    'title', 'var', 'style', 'meta', 'head', 'link', 'svg', 'script', 'svg',
 ] as const;
 
 // eslint-disable-next-line no-undef
-type HTMLMap = HTMLElementTagNameMap;
+type HTMLMap = HTMLElementTagNameMap & {
+    svg: HTMLElement, // SVGElement
+};
 
 type TDomName = keyof HTMLMap;
 
@@ -44,6 +46,12 @@ interface IEle {
         (v: string|number|IComputedLike): Text;
     },
     frag: Frag,
+    comment: Comment & {
+        (v: string|number|IComputedLike): Comment;
+    },
+    fromHTML: <T extends HTMLElement = HTMLElement>(v: string)=>Dom<T>,
+    query: typeof query,
+    find: <T extends HTMLElement = HTMLElement> (selector: string)=>Dom<T>,
 }
 
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
@@ -77,7 +85,23 @@ export const dom: IDom & IDoms & IEle = (() => {
                 fn.text = fn;
                 return fn;
             }
-        }
+        },
+        comment: {
+            get: () => {
+                const fn = (v: any) => new Comment(v);
+                fn.text = fn;
+                return fn;
+            }
+        },
+        fromHTML: {
+            get: () => {
+                return (v: string) => dom.div.html(v).firstChild();
+            }
+        },
+        query: {get: () => query},
+        find: {get: () => {
+            return (v: string) => query(v, true);
+        }}
     };
     DomNames.forEach(name => {
         pps[name] = {

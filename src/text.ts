@@ -11,7 +11,7 @@ import {LinkDomType, traverseChildren} from './utils';
 
 export class Text {
     __ld_type = LinkDomType.Text;
-    el: Node;
+    el: globalThis.Text;
     constructor (val?: string|number|IComputedLike) {
         this.el = document.createTextNode('');
         if (typeof val !== 'undefined') {
@@ -20,6 +20,26 @@ export class Text {
     }
     text (val: string|number|IComputedLike) {
         
+        useReactive(val, (v) => this.el.textContent = v);
+        return this;
+    }
+    // @ts-ignore
+    private __mounted?: (el: Text)=>void;
+    mounted (v: (el: Text)=>void) {
+        this.__mounted = v;
+        return this;
+    }
+}
+export class Comment {
+    __ld_type = LinkDomType.Comment;
+    el: globalThis.Comment;
+    constructor (val?: string|number|IComputedLike) {
+        this.el = document.createComment('');
+        if (typeof val !== 'undefined') {
+            this.text(val);
+        }
+    }
+    text (val: string|number|IComputedLike) {
         useReactive(val, (v) => this.el.textContent = v);
         return this;
     }

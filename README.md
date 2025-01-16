@@ -58,22 +58,23 @@ mount(hello, 'body');
 Dom declaration
 
 ```ts
-export declare class Dom {
+export declare class Dom<T extends HTMLElement = HTMLElement> {
 	__ld_type: LinkDomType;
-	el: HTMLElement;
-	constructor(key: (keyof HTMLElementTagNameMap) | HTMLElement);
+	el: T;
+	constructor(key: (keyof HTMLElementTagNameMap) | T);
 	private _ur;
 	class(): string;
-	class(val: string): this;
+	class(val: IReactiveLike<string>): this;
 	id(): string;
-	id(val: string): this;
+	id(val: IReactiveLike<string>): this;
 	addClass(name: string): this;
 	removeClass(name: string): this;
 	hasClass(name: string): boolean;
 	toggleClass(name: string, force?: boolean): boolean;
+	replaceClass(n: string, old: string): this;
 	remove(): this;
 	text(): string;
-	text(val: string | number | IComputedLike): this;
+	text(val: IReactiveLike<string | number>): this;
 	private __mounted?;
 	mounted(v: (el: Dom) => void): this;
 	attr(name: {
@@ -94,32 +95,38 @@ export declare class Dom {
 	style(name: IStyleKey | string): string;
 	style<T extends IStyleKey>(name: T, value: IStyle[T]): this;
 	value(): string;
-	value(val: string | number): this;
+	value(val: IReactiveLike<string | number>): this;
 	html(): string;
-	html(val: string | number): this;
+	html(val: IReactiveLike<string | number>): this;
 	outerHtml(): string;
-	outerHtml(val: string | number | IComputedLike): this;
-	child(i: number): Dom | null;
-	children(): Dom[];
-	click(value: IEventObject): this;
-	on(name: Partial<Record<IEventKey, IEventObject>>): this;
-	on(name: IEventKey, value?: IEventObject): this;
+	outerHtml(val: IReactiveLike<string | number>): this;
+	child<T extends HTMLElement = HTMLElement>(i: number): Dom<T> | null;
+	next<T extends HTMLElement = HTMLElement>(): Dom<T> | null;
+	prev<T extends HTMLElement = HTMLElement>(): Dom<T> | null;
+	firstChild<T extends HTMLElement = HTMLElement>(): Dom<T> | null;
+	lastChild<T extends HTMLElement = HTMLElement>(): Dom<T> | null;
+	brothers(): Dom<HTMLElement>[];
+	children(): Dom<HTMLElement>[];
+	click(value: IEventObject<this>): this;
+	on(name: Partial<Record<IEventKey, IEventObject<this>>>): this;
+	on(name: IEventKey, value?: IEventObject<this>): this;
 	append(...doms: IChild[]): this;
 	ref(v: Dom): this;
 	hide(): this;
-	display(display?: IStyle["display"] | IComputedLike<IStyle["display"]>): this;
-	show(visible: IComputedLike<boolean> | boolean, display?: IStyle["display"]): this;
-	query(selector: string, one: true): Dom;
-	query(selector: string, one?: false): Dom[];
+	display(display?: IReactiveLike<IStyle["display"]>): this;
+	show(visible: IReactiveLike<boolean>, display?: IStyle["display"]): this;
+	query<T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
+	query<T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
 	src(): string;
-	src(v: string): this;
-	parent(): HTMLElement | null;
+	src(v: IReactiveLike<string>): this;
+	parent<T extends HTMLElement = HTMLElement>(i?: number): Dom<T> | null;
 	empty(): this;
 	name(): string;
-	name(v: string): this;
-	find(name: string): Dom;
+	name(v: IReactiveLike<string>): this;
+	findName(name: string): Dom<HTMLElement>;
+	find(v: string): Dom<HTMLElement>;
 	type(name: "text" | "number" | "password" | "checkbox" | "radio" | "color" | "range" | "submit" | "reset" | "input" | "date" | "email" | "tel"): this;
-	bind(v: any): this;
+	bind(v: IReactiveLike<string | number | boolean>): this;
 }
 ```
 
@@ -173,8 +180,8 @@ style({
 import {mount, dom} from 'link-dom';
 function Main(){
     return dom.div.text('Hello World!')
-        .on('click', ()=>{
-            console.log('Hello')
+        .on('click', (e, self)=>{
+            console.log('Hello', self)
         });
 }
 mount(Main(), 'body');
@@ -310,6 +317,21 @@ const countSetDemo = computed(()=>{
     store.count = v - 1;
 });
 const input = dom.input.bind(countSetDemo)
+```
+
+#### Spacial Api
+
+```js
+dom.text('hello'); // create textNode
+dom.text.text('hello');
+dom.comment('hello'); // create Comment
+dom.comment.text('hello');
+dom.frag.append(/**/); // create DocumentFragment
+
+dom.svg.html(/**/); // create SVGElement
+dom.fromHTML('<a>1</a>'); // from html string
+dom.query('.test'); // query elements
+dom.find('.test'); // find first element
 ```
 
 #### Store.$sub
