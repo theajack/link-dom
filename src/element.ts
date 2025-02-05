@@ -239,7 +239,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     append (...doms: IChild[]) {
         traverseChildren(doms, (child) => {
             this.el.appendChild(child);
-            debugger;
         });
         return this;
     }

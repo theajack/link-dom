@@ -60,6 +60,11 @@ export function query <T extends HTMLElement = HTMLElement> (selector: string, o
     return queryBase(selector, one, document);
 }
 
+export function find <T extends HTMLElement = HTMLElement> (selector: string): Dom<T> {
+    return queryBase(selector, true, document);
+}
+
+
 export function queryBase (selector: string, one = false, parent: any = document): any {
     if (one) {
         const el = parent.querySelector(selector);
@@ -175,7 +180,7 @@ function styleStr ({
                     if (init) {
                         addCssValue(joinCssValue(key, v));
                     } else {
-                        console.log(v, i);
+                        // console.log(v, i);
                         reactiveValue[i] = joinCssValue(key, v);
                         onStyle(reactiveValue.join('').trim());
                     }

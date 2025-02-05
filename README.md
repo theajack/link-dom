@@ -34,10 +34,12 @@ npm i link-dom
 
 ### CDN Usage
 
+```html
 <script src="https://cdn.jsdelivr.net/npm/link-dom"></script>
 <script>
     console.log(window.LinkDom)
 </script>
+```
 
 ## Usage
 

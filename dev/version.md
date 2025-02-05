@@ -4,6 +4,12 @@
  * @Description: Coding something
 -->
 
+# 0.0.10
+
+- add bgTransparent
+- add clear api
+- remove debugger and log
+
 # 0.0.9
 
 - event ad this parameter
