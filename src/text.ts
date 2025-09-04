@@ -66,7 +66,7 @@ export class Frag {
         return this;
     }
     // @ts-ignore
-    private __mounted?: (el: Frag)=>void;
+    __mounted?: (el: Frag)=>void;
     mounted (v: (el: Frag)=>void) {
         this.__mounted = (_this) => {
             _this.children.forEach(child => {

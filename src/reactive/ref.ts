@@ -4,14 +4,15 @@
  * @Description: Coding something
  */
 
+import {isArrayOrJson} from '../utils';
 import {getComputeWatch} from './computed';
 import {setLatestStore} from './store';
+import {deepRef} from './deep';
 
 export class Ref<T> {
 
     __isRef = true;
-
-    _value: T;
+    private _value: T;
 
     get value () {
         setLatestStore(this);
@@ -25,8 +26,12 @@ export class Ref<T> {
     }
     private _listeners: ((v: T, n: T)=>void)[] = [];
 
-    constructor (v: T) {
-        this._value = v;
+    constructor (_value: T,  _deep = true) {
+        if (!_deep || !isArrayOrJson(_value)) {
+            this._value = _value;
+        } else {
+            this._value = deepRef(_value);
+        }
     }
 
     sub (fn: (v: T, old: T)=>void) {
@@ -50,6 +55,10 @@ export class Ref<T> {
 export function isRef (v: any): v is Ref<any> {
     return !!v?.__isRef;
 }
-export function ref<T> (v: T) {
-    return new Ref(v);
+export function ref<T> (v: T, deep = true) {
+    return new Ref(v, deep);
+}
+
+export function reactive<T> (v: T) {
+    return deepRef(v);
 }

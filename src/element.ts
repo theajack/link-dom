@@ -2,13 +2,16 @@ import {bindStore, useReactive} from './reactive/store';
 import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
 import {LinkDomType, formatCssKV, traverseChildren} from './utils';
 import {queryBase} from './dom';
-import type {Comment, Frag} from './text';
+import type {Comment, Frag, Text} from './text';
 import type {IReactiveLike} from './reactive/computed';
 import {type IComputedLike} from './reactive/computed';
+import type {Join} from './reactive/join';
+import {isJoin} from './reactive/join';
+import type {IController} from './controller';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
 
-export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|IComputedLike|IChild[];
+export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IComputedLike|IController|IChild[];
 
 export class Dom<T extends HTMLElement = HTMLElement> {
     __ld_type = LinkDomType.Dom;
@@ -61,7 +64,11 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         if (typeof val === 'undefined') {
             return this.el.innerText;
         }
-        return this._ur('innerText', val);
+        if (isJoin(val)) {
+            return this.append((val as Join).toFrag());
+        } else {
+            return this._ur('innerText', val);
+        }
     }
     // @ts-ignore
     private __mounted?: (el: Dom)=>void;

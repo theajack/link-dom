@@ -12,6 +12,11 @@ export enum LinkDomType {
     Text,
     Frag,
     Comment,
+    For,
+    If,
+    Switch,
+    Show,
+    Marker,
 }
 
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
@@ -30,7 +35,6 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             // @ts-ignore
             el = document.createTextNode(`${dom}`);
         }
-        
         onChild(el, dom);
         // @ts-ignore
         dom.__mounted?.(dom);
@@ -69,4 +73,10 @@ function transformCssKey (str: string) {
         }
     }
     return result;
+}
+
+export function isArrayOrJson (o: any) {
+    const data = o.constructor.name;
+    if (data === 'Object' || data === 'Array') return true;
+    return false;
 }

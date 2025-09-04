@@ -1,5 +1,7 @@
+import type {IController} from './controller';
 import {Dom} from './element';
 import type {IComputedLike, IReactive} from './reactive/computed';
+import {isJoin, type Join} from './reactive/join';
 import {isReactive, useReactive} from './reactive/store';
 import {Comment, Frag} from './text';
 import {Text} from './text';
@@ -118,7 +120,7 @@ export const dom: IDom & IDoms & IEle = (() => {
 })();
 
 type IGlobalStyle = {
-    [prop in string]: IStyle|string|number|IReactive<string|number>|IGlobalStyle;
+    [prop in string]: IStyle|string|number|IReactive<string|number>|IGlobalStyle|Join;
 }
 export function style (data: Record<string, IStyle|IGlobalStyle>|string|IReactive<string>) {
     const isReact = isReactive(data);
@@ -151,7 +153,7 @@ function styleStr ({
     onStyle,
     first = true,
 }:{
-    data: Record<string, IStyle|IGlobalStyle>,
+    data: Record<string, IStyle|IGlobalStyle|Join>,
     reactiveValue?: string[],
     staticValue?: string[],
     prefix?: string,
@@ -171,8 +173,13 @@ function styleStr ({
     let isReactiveStyle = false;
     const objects: any[] = [];
     for (const key in data) {
-        const value = data[key];
-        const isReact = isReactive(value);
+        let value: any = data[key];
+        let isReact = true;
+        if (isJoin(value)) {
+            value = (value as Join).toComputed();
+        } else {
+            isReact = isReactive(value);
+        }
         if (isReact) {
             isReactiveStyle = true;
             ((i: number) => {
@@ -229,7 +236,9 @@ function joinCssValue (key: string, value: any) {
     return `${cssKey}:${cssValue}${important ? `!${important}` : ''};`;
 }
 
-export function mount (node: Dom|Dom[], parent: string|HTMLElement|Dom) {
+export type IMountDom = Dom|Frag|Text|Comment|IController;
+
+export function mount (node: IMountDom|IMountDom[], parent: string|HTMLElement|Dom|Frag) {
     let el: any = parent;
     if (typeof parent === 'string') {
         el = queryBase(parent, true);

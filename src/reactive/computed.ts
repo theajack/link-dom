@@ -4,15 +4,17 @@
  * @Description: Coding something
  */
 
+import {observe} from './deep';
+import type {Join} from './join';
 import {isRef, type Ref} from './ref';
 import {setLatestStore, type IStore, getLatestStore} from './store';
 
-export type IReactiveLike<T=any> = IReactive<T> | T;
+export type IReactiveLike<T=any> = IReactive<T> | T | Join;
 export type IReactive<T=any> = IComputedLike<T> | Ref<T>;
 
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
 
-export type IComputeFn<T> = ()=>T;
+export type IComputeFn<T = any> = ()=>T;
 
 export type IComputedWatch = ((
     computed: Computed<any> | Ref<any> | IStore<any, any>,
@@ -64,11 +66,11 @@ export class Computed<T> {
         this._compute = get;
         this._set = set;
         const disable = setComputeWatchEnable((store, key) => {
-            const handler = () => {
+            const handler = (newValue: T, old: T) => {
                 this._dirty = true;
                 if (this._listeners.length > 0) {
-                    const old = this._value;
-                    const newValue = this.value;
+                    // const old = this._value;
+                    // const newValue = this.value;
                     this._listeners.forEach(fn => {
                         fn(newValue, old);
                     });
@@ -78,8 +80,9 @@ export class Computed<T> {
                 // @ts-ignore
                 store.$sub(key, handler) :
                 store.sub(handler);
-                
-            this._clearSub.push(clear);
+            
+            const unobserve = observe(get, handler);
+            this._clearSub.push(clear, unobserve!);
         });
         this._refreshValue();
         disable();
@@ -121,9 +124,17 @@ export function watch<T> (v: IReactive<T>|T, fn: (v: T, old: T)=>void): ()=>void
         return v.sub(fn);
     }
     if (isComputedLike(v)) {
-        return computed(v).sub(fn);
+        const unsub = computed(v).sub(fn);
+        let unobs: any = null;
+        if (typeof v === 'function') {
+            unobs = observe(v, fn);
+        }
+        return () => {
+            unsub();
+            unobs?.();
+        };
     }
-    return getLatestStore()?.sub(fn);
+    return getLatestStore()?.sub?.(fn);
 }
 
 export function isComputed (v: any): v is Computed<any> {

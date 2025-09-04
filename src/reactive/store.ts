@@ -5,8 +5,11 @@
  */
 
 import type {Dom} from '../element';
-import type {Computed, IComputedLike, IReactive} from './computed';
+import type {Computed, IComputeFn, IComputedLike, IReactive} from './computed';
 import {getComputeWatch, computed, isComputedLike, isComputed} from './computed';
+import {observe} from './deep';
+import type {Join} from './join';
+import {isJoin} from './join';
 import {isRef, type Ref} from './ref';
 
 type IState = Record<string, any>;
@@ -173,14 +176,32 @@ export function useReactive (v: any|IReactive<any>, apply: (v:any, isInit: boole
         v.sub(() => { apply(v.value, false); });
         apply(v.value, true);
     } else if (isComputedLike(v)) {
-        const compute = computed(v);
-        compute.sub(() => { apply(compute.value, false); });
-        apply(compute.value, true);
+        _useComputed(v as IComputeFn, apply);
+    } else if (isJoin(v)) {
+        _useComputed((v as Join).toComputed(), apply);
     } else {
         apply(v, true);
         return false;
     }
     return true;
+}
+
+export function getReactiveValue (v: any|IReactive<any>) {
+    if (isRef(v) || isComputed(v)) {
+        return v.value;
+    } else if (typeof v === 'function') {
+        return v();
+    } else {
+        return v;
+    }
+}
+
+function _useComputed (v: IComputeFn, apply: (v:any, isInit: boolean)=>void) {
+    const compute = computed(v);
+    const fn = (v: any) => { apply(v, false); };
+    compute.sub(fn);
+    observe(v, fn);
+    apply(compute.value, true);
 }
 
 export function isReactive (v: any): v is Ref<any>|IComputedLike {

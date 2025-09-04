@@ -10,4 +10,6 @@ export * from './type.d';
 
 export {createStore} from './reactive/store';
 export {computed, watch, isComputed} from './reactive/computed';
-export {ref, isRef} from './reactive/ref';
+export {ref, isRef, reactive} from './reactive/ref';
+export {join} from './reactive/join';
+export {ctrl} from './controller';
