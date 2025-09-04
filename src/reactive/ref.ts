@@ -5,60 +5,46 @@
  */
 
 import {isArrayOrJson} from '../utils';
-import {getComputeWatch} from './computed';
-import {setLatestStore} from './store';
-import {deepRef} from './deep';
-
-export class Ref<T> {
-
-    __isRef = true;
+import {deepAssign, reactive} from './reactive';
+import {DepUtil} from './dep';
+import {isReactive} from './computed';
+export class Ref<T = any> {
+    __isReactive = true;
     private _value: T;
-
     get value () {
-        setLatestStore(this);
-        getComputeWatch()?.(this);
+        DepUtil.add(this, 'value');
         return this._value;
     }
     set value (v) {
-        const oldValue = this._value;
-        this._value = v;
-        this._listeners.forEach(fn => {fn(v, oldValue);});
+        if (v === this._value) return;
+        if (this.isDeep(v)) {
+            // deepAssign(this._value, v);
+            throw new Error('deep ref not support');
+        } else {
+            this._value = v;
+        }
+        DepUtil.trigger(this, 'value');
     }
-    private _listeners: ((v: T, n: T)=>void)[] = [];
-
-    constructor (_value: T,  _deep = true) {
-        if (!_deep || !isArrayOrJson(_value)) {
+    _deep = false;
+    constructor (_value: T, _deep = true) {
+        if (isReactive(_value)) return _value;
+        this._deep = _deep;
+        if (!this.isDeep(_value)) {
             this._value = _value;
         } else {
-            this._value = deepRef(_value);
+            this._value = reactive(_value as object) as T;
         }
     }
-
-    sub (fn: (v: T, old: T)=>void) {
-        this._listeners.push(fn);
-        return () => this.unsub(fn);
+    private isDeep (v: any) {
+        return this._deep && isArrayOrJson(v);
     }
-
-    unsub (fn: (v: T, old: T)=>void) {
-        const index = this._listeners.indexOf(fn);
-        if (index !== -1) {
-            this._listeners.splice(index, 1);
-            return true;
-        }
-        return false;
-    }
-
     destroy () {
-        this._listeners = [];
+        DepUtil.clear(this);
     }
-}
-export function isRef (v: any): v is Ref<any> {
-    return !!v?.__isRef;
 }
 export function ref<T> (v: T, deep = true) {
     return new Ref(v, deep);
 }
-
-export function reactive<T> (v: T) {
-    return deepRef(v);
+export function isRef (v: any): v is Ref {
+    return !!v?.__isReactive;
 }

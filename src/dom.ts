@@ -1,8 +1,9 @@
 import type {IController} from './controller';
+import type {IChild} from './element';
 import {Dom} from './element';
 import type {IComputedLike, IReactive} from './reactive/computed';
 import {isJoin, type Join} from './reactive/join';
-import {isReactive, useReactive} from './reactive/store';
+import {isReactiveLike, useReactive} from './reactive/utils';
 import {Comment, Frag} from './text';
 import {Text} from './text';
 import type {IStyle} from './type';
@@ -123,7 +124,7 @@ type IGlobalStyle = {
     [prop in string]: IStyle|string|number|IReactive<string|number>|IGlobalStyle|Join;
 }
 export function style (data: Record<string, IStyle|IGlobalStyle>|string|IReactive<string>) {
-    const isReact = isReactive(data);
+    const isReact = isReactiveLike(data);
     const addStyle = (v = '') => {
         const dom = new Dom('style').text(v);
         document.head.appendChild(dom.el);
@@ -134,6 +135,7 @@ export function style (data: Record<string, IStyle|IGlobalStyle>|string|IReactiv
         useReactive(data, v => { dom.text(v); });
     } else {
         let reactiveStyle: Dom;
+        // @ts-ignore
         styleStr({data, onStyle (r, s) {
             if (r) {
                 if (!reactiveStyle) reactiveStyle = addStyle();
@@ -176,9 +178,9 @@ function styleStr ({
         let value: any = data[key];
         let isReact = true;
         if (isJoin(value)) {
-            value = (value as Join).toComputed();
+            value = (value as Join).toFn();
         } else {
-            isReact = isReactive(value);
+            isReact = isReactiveLike(value);
         }
         if (isReact) {
             isReactiveStyle = true;
@@ -246,4 +248,9 @@ export function mount (node: IMountDom|IMountDom[], parent: string|HTMLElement|D
         el = new Dom(parent);
     }
     Array.isArray(node) ? el.append(...node) : el.append(node);
+}
+
+export function childToFrag (node: IChild) {
+    const frag = dom.frag.append(node);
+    return frag.el;
 }

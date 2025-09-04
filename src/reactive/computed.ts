@@ -4,51 +4,31 @@
  * @Description: Coding something
  */
 
-import {observe} from './deep';
+import {observe} from './reactive';
+import {DepUtil} from './dep';
 import type {Join} from './join';
-import {isRef, type Ref} from './ref';
-import {setLatestStore, type IStore, getLatestStore} from './store';
+import {type Ref} from './ref';
+import {generateReactiveByValue} from './utils';
 
 export type IReactiveLike<T=any> = IReactive<T> | T | Join;
-export type IReactive<T=any> = IComputedLike<T> | Ref<T>;
+export type IReactive<T=any> = IComputedLike<T> | Ref<T> | Link<T>;
 
 export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
 
 export type IComputeFn<T = any> = ()=>T;
 
 export type IComputedWatch = ((
-    computed: Computed<any> | Ref<any> | IStore<any, any>,
+    computed: Computed<any> | Ref<any>,
     key?: string
 ) => void);
-let computedWatch: IComputedWatch|null = null;
-
-function setComputeWatchEnable (fn: IComputedWatch) {
-    computedWatch = fn;
-    return () => {
-        computedWatch = null;
-    };
-}
-
-export function getComputeWatch () {
-    return computedWatch;
-}
-
-export class Computed<T> {
-
-    __isComputed = true;
+export class Computed<T=any> {
+    __isReactive = true;
     _value: T;
-
-    private _compute: IComputeFn<T>;
-    private _dirty = false;
 
     private _set?: (v: T)=>void;
 
     get value () {
-        if (this._dirty) {
-            this._refreshValue();
-        }
-        setLatestStore(this);
-        getComputeWatch()?.(this);
+        DepUtil.add(this, 'value');
         return this._value;
     }
     set value (v) {
@@ -59,88 +39,78 @@ export class Computed<T> {
         this._set(v);
     }
 
-    private _listeners: ((v: T, n: T)=>void)[] = [];
-
-    private _clearSub: (()=>void)[] = [];
     constructor (get: IComputeFn<T>, set?: (v: T)=>void) {
-        this._compute = get;
         this._set = set;
-        const disable = setComputeWatchEnable((store, key) => {
-            const handler = (newValue: T, old: T) => {
-                this._dirty = true;
-                if (this._listeners.length > 0) {
-                    // const old = this._value;
-                    // const newValue = this.value;
-                    this._listeners.forEach(fn => {
-                        fn(newValue, old);
-                    });
-                }
-            };
-            const clear = typeof key === 'string' ?
-                // @ts-ignore
-                store.$sub(key, handler) :
-                store.sub(handler);
-            
-            const unobserve = observe(get, handler);
-            this._clearSub.push(clear, unobserve!);
-        });
-        this._refreshValue();
-        disable();
-    }
-
-    private _refreshValue () {
-        this._value = this._compute();
-        this._dirty = false;
-    }
-
-    sub (fn: (v: T, old: T)=>void) {
-        this._listeners.push(fn);
-        return () => this.unsub(fn);
-    }
-
-    unsub (fn: (v: T, old: T)=>void) {
-        const index = this._listeners.indexOf(fn);
-        if (index !== -1) {
-            this._listeners.splice(index, 1);
-            return true;
-        }
-        return false;
+        observe(get, (v) => {
+            this._value = v;
+            DepUtil.trigger(this, 'value');
+        },  (value) => { this._value = value; });
     }
 
     destroy () {
-        this._listeners = [];
-        this._clearSub.forEach(fn => fn());
-        this._clearSub = [];
+        DepUtil.clear(this);
     }
 }
 
 export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void) {
-    if (isComputed(v)) return v;
-    return new Computed(v, set);
+    if (isReactive(v)) return v;
+    return new Computed(v as ()=>T, set);
 }
 
-export function watch<T> (v: IReactive<T>|T, fn: (v: T, old: T)=>void): ()=>void {
-    if (isRef(v)) {
-        return v.sub(fn);
+export function watch<T> (v: IReactive<T>, fn: (v: T, old: T)=>void): ()=>void {
+    if (isReactive(v)) {
+        const origin = v;
+        v = () => origin.value;
     }
-    if (isComputedLike(v)) {
-        const unsub = computed(v).sub(fn);
-        let unobs: any = null;
-        if (typeof v === 'function') {
-            unobs = observe(v, fn);
+    if (typeof v === 'function') {
+        return observe(v as any, fn);
+    }
+    return () => {};
+}
+
+export function isReactive (v: any): v is Ref<any> {
+    return !!v?.__isReactive;
+}
+
+export class Link<T = any> {
+    __isReactive = true;
+    private _value: T;
+    get value () {
+        DepUtil.add(this, 'value');
+        return this._value;
+    }
+    private _set?: (v: T)=>void;
+    private _clearDep?: ()=>void;
+    set value (v) {
+        if (v === this._value) return;
+        this._set?.(v);
+        this._triggerSet(v);
+    }
+    private _triggerSet (v: T) {
+        this._value = v;
+        DepUtil.trigger(this, 'value');
+    }
+    constructor (_value: T) {
+        if (typeof _value === 'function') throw new Error('Link 不能传入函数');
+        if (isReactive(_value)) return _value as any;
+        const react = generateReactiveByValue(_value);
+        if (react) {
+            this._value = _value;
+            this._set = react.set;
+            this._clearDep = react.sub((v: any) => {
+                this._triggerSet(v);
+            });
+        } else {
+            this._value = _value;
         }
-        return () => {
-            unsub();
-            unobs?.();
-        };
     }
-    return getLatestStore()?.sub?.(fn);
+    destroy () {
+        DepUtil.clear(this);
+        this._clearDep?.();
+    }
 }
 
-export function isComputed (v: any): v is Computed<any> {
-    return !!v?.__isComputed;
-}
 
-export function isComputedLike (v: any): v is IComputedLike<any> {
-    return typeof v === 'function' || isComputed(v);
+export function link (value: any) {
+    return new Link(value);
 }

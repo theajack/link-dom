@@ -62,23 +62,6 @@ export class Marker {
         }
     }
 
-    private findEnd () {
-        if (this.end) return this.end;
-        // 找到下一个 __marker=true的comment
-        let next = this.start.nextSibling;
-        while (next) {
-            if (next.nodeType === Node.COMMENT_NODE) {
-                const comment = next as Comment;
-                // @ts-ignore
-                if (comment.__marker) {
-                    return comment;
-                }
-            }
-            next = next.nextSibling;
-        }
-        return null;
-    }
-
     private addCache (frag: DocumentFragment = document.createDocumentFragment()) {
         this.cacheFrag = frag;
         const Map = Marker.GlobalMarkerMap;
@@ -108,4 +91,16 @@ export function createMarkerNode (text = '') {
     // @ts-ignore
     node.__marker = true;
     return node;
+}
+
+export function removeBetween (start: Comment, end: Comment) {
+    let next: any = start;
+    while (next) {
+        if (next === end) {
+            break;
+        }
+        const _next = next.nextSibling;
+        next.remove();
+        next = _next;
+    }
 }

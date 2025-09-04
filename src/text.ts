@@ -5,20 +5,20 @@
  */
 
 import type {IChild} from './element';
-import type {IComputedLike} from './reactive/computed';
-import {useReactive} from './reactive/store';
+import type {IComputedLike, IReactive} from './reactive/computed';
+import {useReactive} from './reactive/utils';
 import {LinkDomType, traverseChildren} from './utils';
 
 export class Text {
     __ld_type = LinkDomType.Text;
     el: globalThis.Text;
-    constructor (val?: string|number|IComputedLike) {
+    constructor (val?: string|number|boolean|IReactive) {
         this.el = document.createTextNode('');
         if (typeof val !== 'undefined') {
             this.text(val);
         }
     }
-    text (val: string|number|IComputedLike) {
+    text (val: string|number|boolean|IReactive) {
         
         useReactive(val, (v) => this.el.textContent = v);
         return this;

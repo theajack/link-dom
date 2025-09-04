@@ -5,15 +5,15 @@
  */
 
 import {Frag, Text} from '../text';
-import type {IComputeFn} from './computed';
-import {getReactiveValue} from './store';
+import type {IReactive} from './computed';
+import {getReactiveValue} from './utils';
 
 export class Join {
     __is_join = true;
 
     constructor (
         private strs: TemplateStringsArray,
-        private values: any[]
+        private values: (IReactive|string|number|boolean)[]
     ) {
     }
 
@@ -27,7 +27,7 @@ export class Join {
         return frag;
     }
 
-    toComputed (): IComputeFn<any> {
+    toFn (): ()=>any {
         return () => {
             let value = '';
             const n = this.values.length;
@@ -39,10 +39,10 @@ export class Join {
     }
 }
 
-export function isJoin (v: any) {
+export function isJoin (v: any): v is Join {
     return v?.__is_join === true;
 }
 
-export function join (strs: TemplateStringsArray, ...values: any[]): Join {
+export function join (strs: TemplateStringsArray, ...values: (IReactive|string|number|boolean)[]): Join {
     return new Join(strs, values);
 }

@@ -8,8 +8,8 @@ export * from './dom';
 export * from './text';
 export * from './type.d';
 
-export {createStore} from './reactive/store';
-export {computed, watch, isComputed} from './reactive/computed';
-export {ref, isRef, reactive} from './reactive/ref';
+export {computed, watch, link} from './reactive/computed';
+export {ref} from './reactive/ref';
+export {reactive} from './reactive/reactive';
 export {join} from './reactive/join';
 export {ctrl} from './controller';

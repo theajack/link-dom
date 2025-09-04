@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import {type IChild} from './element';
-import {isComputedLike} from './reactive/computed';
+import {isReactiveLike} from './reactive/utils';
 import {Text} from './text';
 
 export enum LinkDomType {
@@ -26,7 +26,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             return;
         }
         let el: any = dom;
-        if (isComputedLike(el)) {
+        if (isReactiveLike(el)) {
             el = new Text(el);
             el = el.el;
         } else if (typeof el.__ld_type === 'number') {
@@ -76,7 +76,7 @@ function transformCssKey (str: string) {
 }
 
 export function isArrayOrJson (o: any) {
-    const data = o.constructor.name;
+    const data = o?.constructor.name;
     if (data === 'Object' || data === 'Array') return true;
     return false;
 }

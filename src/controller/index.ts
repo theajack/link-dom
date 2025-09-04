@@ -9,13 +9,13 @@ import type {Ref} from '../reactive/ref';
 import type {IReactiveLike} from '../reactive/computed';
 import {For} from './for';
 import {If} from './if';
-import '../reactive/deep';
+import '../reactive/reactive';
 
 export type IController = For | If
 
 export const ctrl = {
 
-    for: <T = any> (list: Ref<T[]>, fn: (item: T, index: number)=>IChild) => {
+    for: <T = any> (list: Ref<T[]>, fn: (item: T, index: Ref<number>)=>IChild) => {
         return new For<T>(list, fn);
     },
 

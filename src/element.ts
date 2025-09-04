@@ -1,9 +1,9 @@
-import {bindStore, useReactive} from './reactive/store';
+import {bind, useReactive} from './reactive/utils';
 import type {IAttrKey, IEventObject, IStyle, IStyleKey} from './type';
 import {LinkDomType, formatCssKV, traverseChildren} from './utils';
 import {queryBase} from './dom';
 import type {Comment, Frag, Text} from './text';
-import type {IReactiveLike} from './reactive/computed';
+import type {IReactive, IReactiveLike} from './reactive/computed';
 import {type IComputedLike} from './reactive/computed';
 import type {Join} from './reactive/join';
 import {isJoin} from './reactive/join';
@@ -309,9 +309,8 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         return this.attr('type', name);
     }
 
-    // @ts-ignore
-    bind (v: IReactiveLike<string|number|boolean>) {
-        bindStore(this, v);
+    bind (v: IReactive) {
+        bind(this, v);
         return this;
     }
 }

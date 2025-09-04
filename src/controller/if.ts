@@ -8,7 +8,7 @@ import type {IChild} from '../element';
 import {Frag} from '../text';
 import {LinkDomType} from '../utils';
 import {watch, type IReactiveLike} from '../reactive/computed';
-import {getReactiveValue} from '../reactive/store';
+import {getReactiveValue} from '../reactive/utils';
 import {Marker} from './_marker';
 
 export class If {
