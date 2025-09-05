@@ -1,3 +1,8 @@
+/*
+ * @Author: chenzhongsheng
+ * @Date: 2025-09-01 20:06:25
+ * @Description: Coding something
+ */
 import {LinkDomType} from '../utils';
 
 export class Marker {
@@ -9,87 +14,64 @@ export class Marker {
 
     end: Node|null = null;
 
-    cacheFrag: DocumentFragment|null = null;
-
     private _clearSelf = false;
 
-    get parentElement () {
-        return this.start.parentElement;
+    get parentNode () {
+        return this.start.parentNode;
     }
 
     constructor ({
-        start, end = true, clearSelf = false,
+        start, end = true, clearSelf = false, startText = '', endText = ''
     }: {
-        start?: Node|null, end?: true, clearSelf?: boolean
+        start?: Node|null, end?: true, clearSelf?: boolean,
+        startText?: string, endText?: string
     } = {}) {
-        this.start = start || createMarkerNode();
+        this.start = start || createMarkerNode(startText);
         if (end) {
-            this.end = createMarkerNode();
+            this.end = createMarkerNode(endText);
         }
         this._clearSelf = clearSelf;
     }
 
     // 清除marker中间的内容
     clear () {
-        if (!this.start.parentElement) {
-            this.addCache();
-            return false;
+        if (!this.start.parentNode) {
+            throw new Error('parent is null');
         }
-        this.clearCache();
 
         let next = this._clearSelf ? this.start : this.start.nextSibling;
+        const list: Node[] = [];
         while (next) {
             if (next.nodeType === Node.COMMENT_NODE) {
                 const comment = next as Element;
                 // @ts-ignore
-                if (comment.__marker) {
-                    return comment;
+                if (comment === this.end) {
+                    break;
                 }
             }
             // @ts-ignore
             next.remove();
+            list.push(next);
             next = this.start.nextSibling;
         }
+        return list;
     }
 
     replace (frag: DocumentFragment) {
-        const parent = this.start.parentElement;
+        const parent = this.start.parentNode;
         if (!parent) {
             // todo 需要保存状态后续显示出来之后再处理
-            this.addCache(frag);
-            return false;
+            throw new Error('parent is null');
         }
-        this.clear();
+        const list = this.clear();
         const next = this.start.nextSibling;
         if (!next) {
             parent.appendChild(frag);
         } else {
             parent.insertBefore(frag, next);
         }
+        return list;
     }
-
-    private addCache (frag: DocumentFragment = document.createDocumentFragment()) {
-        this.cacheFrag = frag;
-        const Map = Marker.GlobalMarkerMap;
-        if (Map.has(this.parentElement)) {
-            Map.get(this.parentElement)!.add(this);
-        } else {
-            Map.set(this.parentElement, new Set([this]));
-        }
-    }
-
-    private clearCache () {
-        this.cacheFrag = null;
-        const Map = Marker.GlobalMarkerMap;
-        if (Map.has(this.parentElement)) {
-            const set = Map.get(this.parentElement)!;
-            set.delete(this);
-            if (set.size === 0) {
-                Map.delete(this.parentElement);
-            }
-        }
-    }
-
 }
 
 export function createMarkerNode (text = '') {

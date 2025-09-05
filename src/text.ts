@@ -5,7 +5,7 @@
  */
 
 import type {IChild} from './element';
-import type {IComputedLike, IReactive} from './reactive/computed';
+import type {IComputedLike, IReactive} from './type';
 import {useReactive} from './reactive/utils';
 import {LinkDomType, traverseChildren} from './utils';
 

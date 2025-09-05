@@ -74,6 +74,7 @@ function arraySort (this: any[], compare?: ((a: any, b: any)=>number)|undefined)
 export function reactive<T extends object = any> (data: T): T {
     if (data[OriginTarget]) return data;
     if (data[ProxyTarget]) return data[ProxyTarget];
+    if (!isArrayOrJson(data)) return data;
     const proxy = new Proxy(data, {
         get (target, key) {
             if (key === OriginTarget) return target;

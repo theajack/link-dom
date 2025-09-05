@@ -48,49 +48,25 @@ class ForChild<T=any> {
     }
 }
 
-export class HangUp {
-    list: (()=>void)[] = [];
-
-    add (fn: ()=>void) {
-        this.list.push(fn);
-    }
-
-    run (fn: ()=>void, cond: ()=>boolean) {
-        if (cond()) {
-            fn();
-        } else {
-            this.add(fn);
-        }
-    }
-
-    recover () {
-        this.list.forEach(fn => fn());
-        this.list = [];
-    }
-
-    destroy () {
-        this.list = [];
-    }
-}
-
 export const ForGlobal = {
-    Map: new WeakMap<any[], For>(),
-
+    Map: new WeakMap<any[], Set<For>>(),
     add (list: any[], forItem: For) {
-        ForGlobal.Map.set(list[OriginTarget] || list, forItem);
+        list = list[OriginTarget] || list;
+        let set = ForGlobal.Map.get(list);
+        if (!set) {
+            set = new Set();
+            ForGlobal.Map.set(list, set);
+        }
+        set.add(forItem);
     },
     deleteIndex (target: any[], index: number) {
-        const forItem = ForGlobal.Map.get(target);
-        forItem?._deleteItem(index);
+        ForGlobal.Map.get(target)?.forEach(item => item._deleteItem(index));
     },
     newItem (target: any[], index: number, data: any) {
-        const forItem = ForGlobal.Map.get(target);
-        forItem?._newItem(index, data);
+        ForGlobal.Map.get(target)?.forEach(item => item._newItem(index, data));
     },
     clearEmpty (target: any[], length: number) {
-        const forItem = ForGlobal.Map.get(target);
-        debugger;
-        forItem?._clearEmptyChildren(length);
+        ForGlobal.Map.get(target)?.forEach(item => item._clearEmptyChildren(length));
     }
 };
 
@@ -101,8 +77,6 @@ export class For <T=any> {
     el: DocumentFragment;
 
     frag: Frag;
-
-    hangUp: HangUp;
 
     private children: ForChild[] = [];
     
@@ -118,7 +92,6 @@ export class For <T=any> {
         _list: Ref<T[]>|T[],
         _generator: (item: T, index: Ref<number>)=>IChild,
     ) {
-        this.hangUp = new HangUp();
         if (isRef(_list)) {
             this._list = _list.value;
             ForGlobal.add(this._list, this);
@@ -141,11 +114,9 @@ export class For <T=any> {
         if (this.children.length > 0) {
             removeBetween(this.children[0].marker.start, this.endMarker);
         }
-        this.hangUp.run(() => {
-            const parent = this.endMarker.parentElement!;
-            this.frag = this._initListFrag();
-            parent.insertBefore(this.frag.el, this.endMarker);
-        }, () => !!this.endMarker.parentElement);
+        const parent = this.endMarker.parentNode!;
+        this.frag = this._initListFrag();
+        parent.insertBefore(this.frag.el, this.endMarker);
     }
 
     private newChild (data: T, index: number) {
@@ -163,10 +134,8 @@ export class For <T=any> {
         if (index >= this._list.length) {
             const frag = new Frag();
             frag.append(this.newChild(data, index).frag);
-            this.hangUp.run(() => {
-                const parent = this.endMarker.parentElement!;
-                parent.insertBefore(frag.el, this.endMarker);
-            }, () => !!this.endMarker.parentElement);
+            const parent = this.endMarker.parentNode!;
+            parent.insertBefore(frag.el, this.endMarker);
             return;
         }
 
@@ -185,10 +154,8 @@ export class For <T=any> {
         }
         marker = cc[markerIndex]?.marker.start || this.endMarker;
         frag.append(this.newChild(data, index).frag);
-        this.hangUp.run(() => {
-            const parent = marker.parentElement!;
-            parent.insertBefore(frag.el, marker);
-        }, () => !!marker.parentElement);
+        const parent = marker.parentNode!;
+        parent.insertBefore(frag.el, marker);
     }
 
     get __mounted () {
@@ -225,14 +192,13 @@ export class For <T=any> {
     }
 
     _clearEmptyChildren (length: number) {
-        const arr = this.children.splice(length);
-        arr.forEach(child => {
+        if (length >= this.children.length) return;
+        this.children.splice(length).forEach(child => {
             child.marker.clear();
         });
     }
 
     destroy () {
-        this.hangUp.destroy();
         this._clearWatch?.();
         if (this.children.length > 0) {
             removeBetween(this.children[0].marker.start, this.endMarker);

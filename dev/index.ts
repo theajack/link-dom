@@ -239,7 +239,7 @@ function reactiveStyle () {
 }
 
 
-function testList () {
+function testFor () {
     const list = ref([{
         content: '2',
         isDone: false,
@@ -344,7 +344,8 @@ function testList () {
                     dom.button.text(() => item.isDone ? 'undo' : 'done').click(() => {
                         item.isDone = !item.isDone;
                     })
-                )
+                ),
+                // testIf()
             ]),
             // ctrl.if(content, () => {
             //     return dom.div.text('1');
@@ -397,13 +398,48 @@ function test (a: any, b: any) {
 // window.list = list;
 
 
-mount(testList(), 'body');
+// mount(testFor(), 'body');
+
+// for 同时两个不起作用
+function testIfAndFor () {
+    const show = ref(false);
+    const list = ref([1, 2, 3]);
+
+    let id = list.value.length;
+
+    return dom.div.append(
+        dom.div.append(
+            dom.button.text('add').click(() => {
+                list.value.push(++id);
+            }),
+            dom.button.text(() => `toggle show: ${show.value}`).click(() => {
+                show.value = !show.value;
+            })
+        ),
+        ctrl.for(list, (item, index) => {
+            return dom.div.text(() => `if:${index.value}: ${item}`);
+        }),
+        ctrl.for(list, (item, index) => {
+            return dom.div.text(() => `if:${index.value}: ${item}`);
+        }),
+        ctrl.if(show, () => {
+            return ctrl.for(list, (item, index) => {
+                return dom.div.text(() => `if:${index.value}: ${item}`);
+            });
+        }).else(() => {
+            return ctrl.for(list, (item, index) => {
+                return dom.div.text(() => `else:${index.value}: ${item}`);
+            });
+        })
+        
+    );
+}
+mount(testIfAndFor(), 'body');
 
 // reactiveStyle();
 
 
 // mount(Counter(), 'body');
-
 
 function CounterDeep () {
     const store = reactive({
