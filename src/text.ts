@@ -65,6 +65,13 @@ export class Frag {
         });
         return this;
     }
+    prepend (...doms: IChild[]) {
+        traverseChildren(doms, (dom, origin) => {
+            this.children.unshift(origin);
+            this.el.prepend(dom);
+        });
+        return this;
+    }
     // @ts-ignore
     __mounted?: (el: Frag)=>void;
     mounted (v: (el: Frag)=>void) {

@@ -36,44 +36,86 @@ export function observe (
     };
 }
 
+function arrayReverse (this: any[]) {
+    const arr = this[OriginTarget] || this;
+    const proxy = this[ProxyTarget] || this;
+    const len = arr.length;
+    const n = Math.floor(arr.length / 2);
+    for (let i = 0; i < n; i++) {
+        const j = len - i - 1;
+        const temp = raw(arr[i]);
+        proxy[i] = arr[j];
+        proxy[j] = temp;
+    }
+    return proxy;
+}
+
+function arraySort (this: any[], compare?: ((a: any, b: any)=>number)|undefined) {
+    const arr = this[OriginTarget] || this;
+    const proxy = this[ProxyTarget] || this;
+    let origin: WeakMap<any, any> = new WeakMap();
+    let proxy2 = new Proxy(arr, {
+        set (target, key, value) {
+            // 将 index = key 的值设置为value
+            const ov = target[key];
+            if (ov === value) return true;
+            origin.set(ov, raw(ov)); // ! 保存原始值
+            const setValue = origin.get(value) || value;
+            proxy[key] = setValue;
+            return true;
+        },
+    });
+    proxy2.sort(compare);
+    // @ts-ignore
+    origin = proxy2 = null; // ! 立即回收
+    return proxy;
+}
+
 export function reactive<T extends object = any> (data: T): T {
     if (data[OriginTarget]) return data;
     if (data[ProxyTarget]) return data[ProxyTarget];
     const proxy = new Proxy(data, {
         get (target, key) {
             if (key === OriginTarget) return target;
-            if (key === ProxyTarget) return target[key];
+            if (key === ProxyTarget || key === 'constructor') return target[key];
             const value = target[key];
-            debugger;
             DepUtil.add(target, key);
+            if (Array.isArray(target)) {
+                if (key === 'reverse') {
+                    return arrayReverse.bind(target);
+                } else if (key === 'sort') {
+                    return arraySort.bind(target);
+                }
+            }
             if (isArrayOrJson(value) && !value[ProxyTarget]) {
-                return reactive(value);
+                target[key] = reactive(value);
             }
             return Reflect.get(target, key, target);
         },
         set (target, key, value, receiver) {
-            if (key === 'length') {
-                console.warn('set length', value);
-            }
-            console.log('Proxy Set', target, key, value);
+            // console.log('Proxy Set', target, key, value);
             const origin = target[key];
             if (value === origin) return true;
 
             if (Array.isArray(target) && key === 'length') {
+                // 设置length
                 ForGlobal.clearEmpty(target, value);
             }
-            if (isArrayItem(target, key)) {
-                ForGlobal.setIndex(target, parseInt(key as string), value);
+            const isArrayIndex = isArrayItem(target, key);
+            if (isArrayIndex && typeof origin === 'undefined') {
+                value = reactive(deepClone(value));
+                (ForGlobal.newItem(target, parseInt(key as string), value));
             } else if (isArrayOrJson(origin) && isArrayOrJson(value)) {
                 deepAssign(origin, value);
+                DepUtil.trigger(target, key);
+                return true;
             }
             const result = Reflect.set(target, key, value, receiver);
             DepUtil.trigger(target, key);
-            // DepUtil.deliverDeps(origin, value);
             return result;
         },
         deleteProperty (target, key) {
-            console.log('Proxy Delete', target, key);
+            // console.log('Proxy Delete', target, key);
             if (!(key in target)) true;
             if (isArrayItem(target, key)) {
                 const i = parseInt(key as string);
@@ -87,6 +129,8 @@ export function reactive<T extends object = any> (data: T): T {
     data[ProxyTarget] = proxy;
     return proxy;
 }
+
+window.reactive = reactive;
 
 function isArrayItem (target: any, key: string|symbol): target is any[] {
     return (Array.isArray(target) && (typeof key === 'string') && parseInt(key).toString() === key);
@@ -102,36 +146,31 @@ export function deepAssign (origin: any, value: any) {
         const v = value[key];
         if (isArrayOrJson(v) && isArrayOrJson(origin[key])) {
             deepAssign(origin[key], v);
+        } else if (isArrayOrJson(v)) {
+            origin[key] = deepAssign({}, v);
+        } else {
+            origin[key] = v;
         }
     }
     for (const key of originKeys) {
         if (typeof key === 'symbol') continue;
         delete origin[key];
     }
-    Object.assign(origin, value);
     if (Array.isArray(origin)) {
         origin.length = value.length;
     }
+    return origin;
 }
 
-
-export function test<T extends object = any> (data: T): T {
-    const proxy = new Proxy(data, {
-        get (target, key) {
-            // console.log('Proxy Get', target, key);
-            return Reflect.get(target, key, target);
-        },
-        set (target, key, value, receiver) {
-            console.log('Proxy Set', target, key, value);
-            return Reflect.set(target, key, value, receiver);
-        },
-        deleteProperty (target, key) {
-            console.log('Proxy Delete', target, key);
-            return Reflect.deleteProperty(target, key);
-        },
-    });
-    return proxy;
+function deepClone (data: any) {
+    if (!isArrayOrJson(data)) return data;
+    return deepAssign(Array.isArray(data) ? [] : {}, data);
 }
 
-window.test = test;
-window.a = test([1, 2, 3, 4, 5]);
+export function raw (data: any) {
+    if (!isArrayOrJson(data)) return data;
+    if (!data[OriginTarget]) return data;
+    return deepAssign(Array.isArray(data) ? [] : {}, data);
+}
+
+window.raw = raw;

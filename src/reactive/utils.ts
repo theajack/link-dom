@@ -147,3 +147,4 @@ export function generateReactiveByValue (v: any) {
 
 export const OriginTarget = Symbol('OriginTarget');
 export const ProxyTarget = Symbol('ProxyTarget');
+window.OriginTarget = OriginTarget;

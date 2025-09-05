@@ -10,13 +10,34 @@ import {Frag} from '../text';
 import {isArrayOrJson, LinkDomType} from '../utils';
 import {Marker, createMarkerNode, removeBetween} from './_marker';
 import {watch} from '../reactive/computed';
-import {deepAssign, reactive} from '../reactive/reactive';
+import {deepAssign} from '../reactive/reactive';
 import {OriginTarget} from '../reactive/utils';
 
 class ForChild<T=any> {
-    marker: Marker;
+    private _marker: Marker;
     index: Ref<number>;
     // removed = false;
+
+    private _frag: Frag;
+
+    get frag () {
+        if (!this._frag) {
+            this._frag = new Frag().append(this._generator(this.data, this.index));
+            this.marker;
+        }
+        return this._frag;
+    }
+
+    get marker () {
+        if (!this._marker) {
+            const first = this.frag.el.firstChild;
+            this._marker = new Marker({start: first, clearSelf: true});
+            if (!first) {
+                this.frag.prepend(this._marker.start);
+            }
+        }
+        return this._marker;
+    }
 
     constructor (
         private _generator: (item: T, index: Ref<number>)=>IChild,
@@ -25,11 +46,6 @@ class ForChild<T=any> {
         index: number
     ) {
         this.index = ref(index);
-        this.marker = new Marker(false);
-    }
-
-    toFrag () {
-        return [this.marker.start, this._generator(this.data, this.index)];
     }
 }
 
@@ -47,23 +63,30 @@ export class HangUp {
             this.add(fn);
         }
     }
+
+    recover () {
+        this.list.forEach(fn => fn());
+        this.list = [];
+    }
+
+    destroy () {
+        this.list = [];
+    }
 }
 
 export const ForGlobal = {
     Map: new WeakMap<any[], For>(),
 
     add (list: any[], forItem: For) {
-        ForGlobal.Map.set(list[OriginTarget], forItem);
+        ForGlobal.Map.set(list[OriginTarget] || list, forItem);
     },
-
-    setIndex (target: any[], index: number, data: any) {
-        const forItem = ForGlobal.Map.get(target);
-        forItem?._updateItem(index, data);
-    },
-
     deleteIndex (target: any[], index: number) {
         const forItem = ForGlobal.Map.get(target);
         forItem?._deleteItem(index);
+    },
+    newItem (target: any[], index: number, data: any) {
+        const forItem = ForGlobal.Map.get(target);
+        forItem?._newItem(index, data);
     },
     clearEmpty (target: any[], length: number) {
         const forItem = ForGlobal.Map.get(target);
@@ -87,7 +110,9 @@ export class For <T=any> {
     private _isDeep = false;
     private _generator: (item: T, index: Ref<number>)=>IChild;
 
-    private endMarker: Comment;
+    private endMarker: Node;
+
+    private _clearWatch: ()=>void;
 
     constructor (
         _list: Ref<T[]>|T[],
@@ -99,15 +124,29 @@ export class For <T=any> {
             this._list = _list.value;
             ForGlobal.add(this._list, this);
             this._isDeep = _list._deep;
-            watch(_list, (v) => {
-                console.log('set list');
-                this._setList(v);
-            });
+            if (!this._isDeep) {
+                this._clearWatch = watch(_list, (v) => {
+                    this._list = v;
+                    console.log('set list');
+                    this.resetList();
+                });
+            }
         } else {
             this._list = _list;
         }
         this._generator = _generator;
         this._initChildren();
+    }
+
+    private resetList () {
+        if (this.children.length > 0) {
+            removeBetween(this.children[0].marker.start, this.endMarker);
+        }
+        this.hangUp.run(() => {
+            const parent = this.endMarker.parentElement!;
+            this.frag = this._initListFrag();
+            parent.insertBefore(this.frag.el, this.endMarker);
+        }, () => !!this.endMarker.parentElement);
     }
 
     private newChild (data: T, index: number) {
@@ -120,42 +159,11 @@ export class For <T=any> {
         this.children[index] = child;
         return child;
     }
-
-    // list.value = newList;
-    private _setList (v: T[]) {
-        if (this._isDeep) {
-            v = reactive(v);
-        }
-        const newSize = v.length;
-        const oldSize = this._list.length;
-        const n = Math.min(oldSize, newSize);
-        for (let i = 0; i < n; i ++) {
-            this._updateItem(i, v[i]);
-        }
-        if (newSize > oldSize) {
-            const frag = new Frag();
-            // 新增
-            for (let i = oldSize; i < newSize; i++) {
-                frag.append(this.newChild(v[i], i).toFrag());
-            }
-            // todo 在元素可见时显示出来
-            this.hangUp.run(() => {
-                const parent = this.endMarker.parentElement!;
-                parent.insertBefore(frag.el, this.endMarker);
-            }, () => !!this.endMarker.parentElement);
-        } else if (newSize < oldSize) {
-            this.hangUp.run(() => {
-                removeBetween(this.children[newSize].marker.start, this.endMarker);
-            }, () => !!this.endMarker.parentElement);
-            this.children.length = newSize;
-        }
-    }
     _updateItem (index: number, data: T) {
         console.log('updateItem', index, this._list.length, data);
-        debugger;
         if (index >= this._list.length) {
             const frag = new Frag();
-            frag.append(this.newChild(data, index).toFrag());
+            frag.append(this.newChild(data, index).frag);
             this.hangUp.run(() => {
                 const parent = this.endMarker.parentElement!;
                 parent.insertBefore(frag.el, this.endMarker);
@@ -169,6 +177,20 @@ export class For <T=any> {
             deepAssign(this._list[index], data);
         }
     }
+    _newItem (index: number, data: T) {
+        const frag = new Frag();
+        const cc = this.children, n = cc.length;
+        let marker = this.endMarker, markerIndex = index;
+        while (index < n && !cc[markerIndex]) {
+            markerIndex ++;
+        }
+        marker = cc[markerIndex]?.marker.start || this.endMarker;
+        frag.append(this.newChild(data, index).frag);
+        this.hangUp.run(() => {
+            const parent = marker.parentElement!;
+            parent.insertBefore(frag.el, marker);
+        }, () => !!marker.parentElement);
+    }
 
     get __mounted () {
         return this.frag.__mounted;
@@ -179,37 +201,21 @@ export class For <T=any> {
         return this;
     }
     private _initChildren () {
-        this.frag = new Frag();
-        const list = this._list;
-        const size = list.length;
-        for (let i = 0; i < size; i++) {
-            this.frag.append(this.newChild(list[i], i).toFrag());
-        }
+        this.frag = this._initListFrag();
         // 后面加一个结尾
         this.endMarker = createMarkerNode('for-end');
         this.frag.append(this.endMarker);
         this.el = this.frag.el;
     }
 
-    // private _renderChild (item: T, index: number) {
-    //     const marker = new Marker(false);
-    //     this.markers[index] = marker;
-    //     return [
-    //         marker.start,
-    //         this._generator(item, index)
-    //     ];
-    // }
-
-
-    private __hackArray () {
-
-    }
-
-
-    _removeItem (start: number, count: number) {
-        if (start >= this.children.length) return;
-        const list = this.children.splice(start, count);
-        list.forEach(item => item.marker.clear());
+    private _initListFrag () {
+        const frag = new Frag();
+        const list = this._list;
+        const size = list.length;
+        for (let i = 0; i < size; i++) {
+            frag.append(this.newChild(list[i], i).frag);
+        }
+        return frag;
     }
 
     _deleteItem (index: number) {
@@ -221,6 +227,16 @@ export class For <T=any> {
 
     _clearEmptyChildren (length: number) {
         this.children.splice(length);
+    }
+
+    destroy () {
+        this.hangUp.destroy();
+        this._clearWatch?.();
+        if (this.children.length > 0) {
+            removeBetween(this.children[0].marker.start, this.endMarker);
+        }
+        // @ts-ignore
+        this.endMarker.remove();
     }
 }
 

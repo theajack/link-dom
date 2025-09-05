@@ -200,9 +200,11 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     brothers () {
         return this.parent()?.children() || [];
     }
-    
+    get childrenLength () {
+        return this.el.children.length;
+    }
     children () {
-        const n = this.el.children.length;
+        const n = this.childrenLength;
         const list: Dom[] = [];
         for (let i = 0; i < n; i++) {
             list.push(this.child(i) as Dom);

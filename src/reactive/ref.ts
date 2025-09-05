@@ -18,8 +18,7 @@ export class Ref<T = any> {
     set value (v) {
         if (v === this._value) return;
         if (this.isDeep(v)) {
-            // deepAssign(this._value, v);
-            throw new Error('deep ref not support');
+            deepAssign(this._value, v);
         } else {
             this._value = v;
         }

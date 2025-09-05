@@ -5,6 +5,7 @@
  */
 
 import {dom, mount, computed, watch, ref, style, collectRef, join, ctrl, reactive, link} from '../src';
+import {deepAssign, raw} from '../src/reactive/reactive';
 
 window.watch = watch;
 window.ref = ref;
@@ -238,21 +239,22 @@ function reactiveStyle () {
 
 function testList () {
     const list = ref([{
+        content: '2',
+        isDone: false,
+    }, {
         content: '1',
         isDone: false,
     }, {
-        content: '2',
-        isDone: false,
-    }, {
-        content: '2',
+        content: '3',
         isDone: false,
     }]);
 
-    window._list = list;
+    window.list = list;
 
     const content = ref('2');
     window._content = content;
     
+    const refs = collectRef('list');
 
     return dom.div.append(
         dom.div.append(
@@ -266,6 +268,70 @@ function testList () {
             }),
         ),
         dom.div.append(
+            ctrl.scope(() => {
+                let id = 0;
+                window.refs = refs;
+                return dom.button.text('test1').click(() => {
+                    list.value.push({
+                        content: '4',
+                        isDone: false,
+                    }, {
+                        content: '5',
+                        isDone: false,
+                    });
+                    test(refs.list.childrenLength, list.value.length);
+                    const index = random(0, list.value.length - 1);
+                    let newContent = `content-id: ${id ++}`;
+                    list.value[index].content = newContent;
+                    test(refs.list.child(index)?.text(), `${index}: ${(newContent)} ${(list.value[index].isDone)}`);
+
+                    newContent += '!!';
+                    list.value[index] = {
+                        content: newContent,
+                        isDone: true,
+                    };
+                    test(refs.list.child(index)?.text(), `${index}: ${(newContent)} ${(list.value[index].isDone)}`);
+                });
+            }),
+            dom.button.text('test2').click(() => {
+                list.value.pop();
+                test(refs.list.childrenLength, list.value.length);
+                list.value.shift();
+                test(refs.list.childrenLength, list.value.length);
+                test(refs.list.child(0)?.text(), `${0}: ${(list.value[0].content)} ${(list.value[0].isDone)}`);
+                list.value.unshift({
+                    content: 'a',
+                    isDone: false,
+                }, {
+                    content: 'b',
+                    isDone: false,
+                }, {
+                    content: 'c',
+                    isDone: false,
+                });
+                test(refs.list.childrenLength, list.value.length);
+                test(refs.list.child(0)?.text(), `${0}: a ${(false)}`);
+            }),
+            dom.button.text('test3').click(() => {
+                list.value.fill({content: 'new', isDone: true});
+                test(refs.list.child(0)?.text(), `0: new true`);
+            }),
+            dom.button.text('test4').click(() => {
+                list.value.reverse();
+                test(refs.list.child(0)?.text(), `0: 3 false`);
+                test(refs.list.child(2)?.text(), `2: 2 false`);
+                list.value.sort((a, b) => a.content > b.content ? 1 : -1);
+                test(refs.list.child(0)?.text(), `0: 1 false`);
+                test(refs.list.child(2)?.text(), `2: 3 false`);
+                const i0 = raw(list.value[0]);
+                const i2 = list.value[2];
+                list.value[0] = i2;
+                list.value[2] = i0;
+                test(refs.list.child(0)?.text(), `0: 3 false`);
+                test(refs.list.child(2)?.text(), `2: 1 false`);
+            }),
+        ),
+        dom.div.ref(refs.list).append(
             ctrl.for(list, (item, index) => [
                 dom.div.text(() => `${index.value}: ${(item.content)} ${(item.isDone)}`),
             ]),
@@ -287,6 +353,19 @@ function testList () {
             // }),
         )
     );
+}
+
+function random (min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function test (a: any, b: any) {
+    const bool = a === b;
+    if (bool) {
+        console.log(`%c 测试通过:${a}`, 'color:green');
+    } else {
+        console.error(`%c 测试失败:${a} !== ${b}`, 'color:red');
+    }
 }
 
 // const list = ref([{

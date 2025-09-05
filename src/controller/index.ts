@@ -21,5 +21,8 @@ export const ctrl = {
 
     if (ref: IReactiveLike, gene: ()=>IChild) {
         return new If(ref, gene);
+    },
+    scope (gene: ()=>IChild) {
+        return gene();
     }
 };

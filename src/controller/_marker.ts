@@ -5,23 +5,28 @@ export class Marker {
     static GlobalMarkerMap = new WeakMap<any, Set<Marker>>();
     __ld_type = LinkDomType.Marker;
 
-    start: Comment;
+    start: Node;
 
-    end: Comment|null = null;
+    end: Node|null = null;
 
     cacheFrag: DocumentFragment|null = null;
 
-    parentElement: any = null;
+    private _clearSelf = false;
 
-    constructor (end = true) {
-        this.start = createMarkerNode();
+    get parentElement () {
+        return this.start.parentElement;
+    }
+
+    constructor ({
+        start, end = true, clearSelf = false,
+    }: {
+        start?: Node|null, end?: true, clearSelf?: boolean
+    } = {}) {
+        this.start = start || createMarkerNode();
         if (end) {
             this.end = createMarkerNode();
         }
-    }
-
-    __mounted () {
-        this.parentElement = this.start.parentElement;
+        this._clearSelf = clearSelf;
     }
 
     // 清除marker中间的内容
@@ -32,15 +37,16 @@ export class Marker {
         }
         this.clearCache();
 
-        let next = this.start.nextSibling;
+        let next = this._clearSelf ? this.start : this.start.nextSibling;
         while (next) {
             if (next.nodeType === Node.COMMENT_NODE) {
-                const comment = next as Comment;
+                const comment = next as Element;
                 // @ts-ignore
                 if (comment.__marker) {
                     return comment;
                 }
             }
+            // @ts-ignore
             next.remove();
             next = this.start.nextSibling;
         }
@@ -93,7 +99,7 @@ export function createMarkerNode (text = '') {
     return node;
 }
 
-export function removeBetween (start: Comment, end: Comment) {
+export function removeBetween (start: Node, end: Node) {
     let next: any = start;
     while (next) {
         if (next === end) {
