@@ -5,9 +5,10 @@
  */
 
 import {isArrayOrJson} from '../utils';
-import {deepAssign, reactive} from './reactive';
+import {reactive} from './reactive';
 import {DepUtil} from './dep';
 import {isReactive} from './computed';
+import {deepAssign} from './utils';
 export class Ref<T = any> {
     __isReactive = true;
     private _value: T;

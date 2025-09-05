@@ -9,7 +9,7 @@
 import {ForGlobal} from '../controller/for';
 import {isArrayOrJson} from '../utils';
 import {DepUtil} from './dep';
-import {OriginTarget, ProxyTarget} from './utils';
+import {OriginTarget, ProxyTarget, deepAssign, deepClone, raw} from './utils';
 
 export function observe (
     exp: ()=>any,
@@ -93,7 +93,7 @@ export function reactive<T extends object = any> (data: T): T {
             return Reflect.get(target, key, target);
         },
         set (target, key, value, receiver) {
-            console.log('Proxy Set', target, key, value);
+            // console.log('Proxy Set', target, key, value);
             const origin = target[key];
             const isArrayLength = Array.isArray(target) && key === 'length';
             if (isArrayLength) {
@@ -130,46 +130,6 @@ export function reactive<T extends object = any> (data: T): T {
     return proxy;
 }
 
-window.reactive = reactive;
-
 function isArrayItem (target: any, key: string|symbol): target is any[] {
     return (Array.isArray(target) && (typeof key === 'string') && parseInt(key).toString() === key);
 }
-
-export function deepAssign (origin: any, value: any) {
-    origin = origin[ProxyTarget] || origin;
-    value = value[OriginTarget] || value;
-    const originKeys = new Set(Object.keys(origin));
-    for (const key in value) {
-        if (typeof key === 'symbol') continue;
-        originKeys.delete(key);
-        const v = value[key];
-        if (isArrayOrJson(v) && isArrayOrJson(origin[key])) {
-            deepAssign(origin[key], v);
-        } else if (isArrayOrJson(v)) {
-            origin[key] = deepAssign({}, v);
-        } else {
-            origin[key] = v;
-        }
-    }
-    for (const key of originKeys) {
-        if (typeof key === 'symbol') continue;
-        delete origin[key];
-    }
-    if (Array.isArray(origin)) {
-        origin.length = value.length;
-    }
-    return origin;
-}
-
-export function deepClone (data: any) {
-    if (!isArrayOrJson(data)) return data;
-    return deepAssign(Array.isArray(data) ? [] : {}, data);
-}
-
-export function raw (data: any) {
-    if (!data[OriginTarget]) return data;
-    return deepClone(data);
-}
-
-window.raw = raw;

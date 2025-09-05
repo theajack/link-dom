@@ -6,21 +6,10 @@
 
 import {observe} from './reactive';
 import {DepUtil} from './dep';
-import type {Join} from './join';
 import {type Ref} from './ref';
 import {generateReactiveByValue} from './utils';
+import type {IComputeFn, IComputedLike, IReactive} from '../type';
 
-export type IReactiveLike<T=any> = IReactive<T> | T | Join;
-export type IReactive<T=any> = IComputedLike<T> | Ref<T> | Link<T>;
-
-export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
-
-export type IComputeFn<T = any> = ()=>T;
-
-export type IComputedWatch = ((
-    computed: Computed<any> | Ref<any>,
-    key?: string
-) => void);
 export class Computed<T=any> {
     __isReactive = true;
     _value: T;

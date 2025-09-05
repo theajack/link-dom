@@ -4,8 +4,8 @@
  * @Description: Coding something
  */
 
+import type {IReactive} from '../type';
 import {Frag, Text} from '../text';
-import type {IReactive} from './computed';
 import {getReactiveValue} from './utils';
 
 export class Join {

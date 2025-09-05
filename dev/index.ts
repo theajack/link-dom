@@ -4,8 +4,10 @@
  * @Description: Coding something
  */
 
-import {dom, mount, computed, watch, ref, style, collectRef, join, ctrl, reactive, link} from '../src';
-import {deepAssign, raw} from '../src/reactive/reactive';
+import {
+    dom, mount, computed, watch, ref, style, collectRef, join, ctrl, reactive, link,
+    deepAssign, deepClone, raw
+} from '../src';
 
 window.watch = watch;
 window.ref = ref;

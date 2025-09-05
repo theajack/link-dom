@@ -10,8 +10,7 @@ import {Frag} from '../text';
 import {isArrayOrJson, LinkDomType} from '../utils';
 import {Marker, createMarkerNode, removeBetween} from './_marker';
 import {watch} from '../reactive/computed';
-import {deepAssign} from '../reactive/reactive';
-import {OriginTarget} from '../reactive/utils';
+import {OriginTarget, deepAssign} from '../reactive/utils';
 
 class ForChild<T=any> {
     private _marker: Marker;
@@ -119,7 +118,6 @@ export class For <T=any> {
         _list: Ref<T[]>|T[],
         _generator: (item: T, index: Ref<number>)=>IChild,
     ) {
-        window._for = this;
         this.hangUp = new HangUp();
         if (isRef(_list)) {
             this._list = _list.value;

@@ -5,7 +5,9 @@
  */
 
 import type {Dom} from './element';
-import type {IComputedLike} from './reactive/computed';
+import type {Computed, Link} from './reactive/computed';
+import type {Join} from './reactive/join';
+import type {Ref} from './reactive/ref';
  
 
 type TCssCommonValue = 'inherit' | 'initial' | 'unset' | 'revert' | 'none' | 'auto';
@@ -68,7 +70,7 @@ export type IEventObject<T extends Dom = Dom> = ((e: Event, dom: T)=>any) | ({
 } & {
 [decorator in TEventDecorator]?: boolean;
 })
-interface IEventAttributes {
+export interface IEventAttributes {
     onclick?: IEventObject;
     onmousedown?: IEventObject;
     onmouseenter?: IEventObject;
@@ -181,3 +183,16 @@ export type IAttrKey = 'accesskey' | 'alt' | 'async' | 'autoplay' | 'checked' | 
     'cols' | 'dir' | 'disabled' | 'enctype' | 'formnovalidate' | 'height' | 'hidden' | 'id' | 'lang' | 'maxlength' | 'name' | 'nonce' | 'readonly' | 'required' | 'size' | 'src' | 'style' | 'width' | 'height' |
     'summary' | 'tabindex' | 'target' | 'title' | 'type' | 'value' | 'href' | 'selected' | 'poster' | 'muted' | 'controls' | 'loop' | 'border' | 'cellspacing' | 'cellpadding' | 'rowspan' | 'colspan';
 
+// Reactive
+
+export type IReactiveLike<T=any> = IReactive<T> | T | Join;
+export type IReactive<T=any> = IComputedLike<T> | Ref<T> | Link<T>;
+
+export type IComputedLike<T=any> = IComputeFn<T> | Computed<T>;
+
+export type IComputeFn<T = any> = ()=>T;
+
+export type IComputedWatch = ((
+    computed: Computed<any> | Ref<any>,
+    key?: string
+) => void);

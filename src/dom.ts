@@ -1,7 +1,7 @@
 import type {IController} from './controller';
 import type {IChild} from './element';
 import {Dom} from './element';
-import type {IComputedLike, IReactive} from './reactive/computed';
+import type {IComputedLike, IReactive} from './type';
 import {isJoin, type Join} from './reactive/join';
 import {isReactiveLike, useReactive} from './reactive/utils';
 import {Comment, Frag} from './text';

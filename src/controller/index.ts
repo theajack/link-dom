@@ -6,7 +6,7 @@
 
 import type {IChild} from '../element';
 import type {Ref} from '../reactive/ref';
-import type {IReactiveLike} from '../reactive/computed';
+import type {IReactiveLike} from '../type';
 import {For} from './for';
 import {If} from './if';
 import '../reactive/reactive';
