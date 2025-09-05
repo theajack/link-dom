@@ -90,6 +90,7 @@ export const ForGlobal = {
     },
     clearEmpty (target: any[], length: number) {
         const forItem = ForGlobal.Map.get(target);
+        debugger;
         forItem?._clearEmptyChildren(length);
     }
 };
@@ -226,7 +227,10 @@ export class For <T=any> {
     }
 
     _clearEmptyChildren (length: number) {
-        this.children.splice(length);
+        const arr = this.children.splice(length);
+        arr.forEach(child => {
+            child.marker.clear();
+        });
     }
 
     destroy () {

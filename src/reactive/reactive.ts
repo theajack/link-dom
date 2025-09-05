@@ -93,14 +93,14 @@ export function reactive<T extends object = any> (data: T): T {
             return Reflect.get(target, key, target);
         },
         set (target, key, value, receiver) {
-            // console.log('Proxy Set', target, key, value);
+            console.log('Proxy Set', target, key, value);
             const origin = target[key];
-            if (value === origin) return true;
-
-            if (Array.isArray(target) && key === 'length') {
-                // 设置length
+            const isArrayLength = Array.isArray(target) && key === 'length';
+            if (isArrayLength) {
+                DepUtil.trigger(target, key);
                 ForGlobal.clearEmpty(target, value);
             }
+            if (value === origin) return true;
             const isArrayIndex = isArrayItem(target, key);
             if (isArrayIndex && typeof origin === 'undefined') {
                 value = reactive(deepClone(value));
@@ -162,15 +162,14 @@ export function deepAssign (origin: any, value: any) {
     return origin;
 }
 
-function deepClone (data: any) {
+export function deepClone (data: any) {
     if (!isArrayOrJson(data)) return data;
     return deepAssign(Array.isArray(data) ? [] : {}, data);
 }
 
 export function raw (data: any) {
-    if (!isArrayOrJson(data)) return data;
     if (!data[OriginTarget]) return data;
-    return deepAssign(Array.isArray(data) ? [] : {}, data);
+    return deepClone(data);
 }
 
 window.raw = raw;

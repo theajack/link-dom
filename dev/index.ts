@@ -283,14 +283,14 @@ function testList () {
                     const index = random(0, list.value.length - 1);
                     let newContent = `content-id: ${id ++}`;
                     list.value[index].content = newContent;
-                    test(refs.list.child(index)?.text(), `${index}: ${(newContent)} ${(list.value[index].isDone)}`);
+                    test(refs.list.child(index)?.child(0)?.text(), `${index}: ${(newContent)} ${(list.value[index].isDone)}`);
 
                     newContent += '!!';
                     list.value[index] = {
                         content: newContent,
                         isDone: true,
                     };
-                    test(refs.list.child(index)?.text(), `${index}: ${(newContent)} ${(list.value[index].isDone)}`);
+                    test(refs.list.child(index)?.child(0)?.text(), `${index}: ${(newContent)} ${(list.value[index].isDone)}`);
                 });
             }),
             dom.button.text('test2').click(() => {
@@ -298,7 +298,7 @@ function testList () {
                 test(refs.list.childrenLength, list.value.length);
                 list.value.shift();
                 test(refs.list.childrenLength, list.value.length);
-                test(refs.list.child(0)?.text(), `${0}: ${(list.value[0].content)} ${(list.value[0].isDone)}`);
+                test(refs.list.child(0)?.child(0)?.text(), `${0}: ${(list.value[0].content)} ${(list.value[0].isDone)}`);
                 list.value.unshift({
                     content: 'a',
                     isDone: false,
@@ -310,30 +310,39 @@ function testList () {
                     isDone: false,
                 });
                 test(refs.list.childrenLength, list.value.length);
-                test(refs.list.child(0)?.text(), `${0}: a ${(false)}`);
+                test(refs.list.child(0)?.child(0)?.text(), `${0}: a ${(false)}`);
             }),
             dom.button.text('test3').click(() => {
                 list.value.fill({content: 'new', isDone: true});
-                test(refs.list.child(0)?.text(), `0: new true`);
+                test(refs.list.child(0)?.child(0)?.text(), `0: new true`);
             }),
             dom.button.text('test4').click(() => {
                 list.value.reverse();
-                test(refs.list.child(0)?.text(), `0: 3 false`);
-                test(refs.list.child(2)?.text(), `2: 2 false`);
+                test(refs.list.child(0)?.child(0)?.text(), `0: 3 false`);
+                test(refs.list.child(2)?.child(0)?.text(), `2: 2 false`);
                 list.value.sort((a, b) => a.content > b.content ? 1 : -1);
-                test(refs.list.child(0)?.text(), `0: 1 false`);
-                test(refs.list.child(2)?.text(), `2: 3 false`);
+                test(refs.list.child(0)?.child(0)?.text(), `0: 1 false`);
+                test(refs.list.child(2)?.child(0)?.text(), `2: 3 false`);
                 const i0 = raw(list.value[0]);
                 const i2 = list.value[2];
                 list.value[0] = i2;
                 list.value[2] = i0;
-                test(refs.list.child(0)?.text(), `0: 3 false`);
-                test(refs.list.child(2)?.text(), `2: 1 false`);
+                test(refs.list.child(0)?.child(0)?.text(), `0: 3 false`);
+                test(refs.list.child(2)?.child(0)?.text(), `2: 1 false`);
             }),
         ),
         dom.div.ref(refs.list).append(
             ctrl.for(list, (item, index) => [
-                dom.div.text(() => `${index.value}: ${(item.content)} ${(item.isDone)}`),
+                dom.div.append(
+                    dom.span.style({
+                        textDecoration: () => item.isDone ? 'line-through' : 'none',
+                    }).click(() => {
+                        item.isDone = !item.isDone;
+                    }).text(() => `${index.value}: ${(item.content)} ${(item.isDone)}`),
+                    dom.button.text(() => item.isDone ? 'undo' : 'done').click(() => {
+                        item.isDone = !item.isDone;
+                    })
+                )
             ]),
             // ctrl.if(content, () => {
             //     return dom.div.text('1');
