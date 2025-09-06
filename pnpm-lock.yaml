@@ -41,6 +41,12 @@ importers:
       link-dom:
         specifier: workspace:*
         version: link:packages/core
+      link-dom-render:
+        specifier: workspace:*
+        version: link:packages/render
+      link-dom-ssr:
+        specifier: workspace:*
+        version: link:packages/ssr
       tslib:
         specifier: ^2.7.0
         version: 2.8.1
@@ -86,7 +92,11 @@ importers:
 
   packages/shared: {}
 
-  packages/ssr: {}
+  packages/ssr:
+    dependencies:
+      link-dom-shared:
+        specifier: workspace:*
+        version: link:../shared
 
 packages:
 

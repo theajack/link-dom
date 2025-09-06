@@ -10,6 +10,7 @@
       "dist"
     ],
     "dependencies": {
+      "link-dom-shared": "workspace:*"
     }
 }
   

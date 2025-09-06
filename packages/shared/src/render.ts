@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import type { IElement, IFragment, IRenderer, ITextNode } from './type';
+import type { IComment, IElement, IFragment, IRenderer, ITextNode } from './type';
 
 export let Renderer: IRenderer;
 
@@ -24,11 +24,17 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
         createElement (tag: string = 'div'): IElement {
             return document.createElement(tag) as any as IElement;
         },
-        createTextNode (text: string = '') {
+        createComment (text: string = ''): IComment {
+            return document.createComment(text) as any as IComment;
+        },
+        createTextNode (text: string = ''): ITextNode {
             return document.createTextNode(text) as ITextNode;
         },
         createFragment (): IFragment {
             return document.createDocumentFragment() as any as IFragment;
         },
+        addStyle (v: any) {
+            document.head.appendChild(v);
+        }
     });
 }

@@ -8,6 +8,8 @@ import { Comment, Frag } from './text';
 import { Text } from './text';
 import type { IStyle } from './type.d';
 import { formatCssKV } from './utils';
+import type { IElement } from 'link-dom-shared';
+import { Renderer } from 'link-dom-shared';
 
 export function collectRef <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: Dom<E>
@@ -60,15 +62,15 @@ interface IEle {
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
 export function query <T extends HTMLElement = HTMLElement> (selector: string, one = false): Dom<T>|Dom<T>[] {
-    return queryBase(selector, one, document);
+    return queryBase(selector, one, Renderer);
 }
 
 export function find <T extends HTMLElement = HTMLElement> (selector: string): Dom<T> {
-    return queryBase(selector, true, document);
+    return queryBase(selector, true, Renderer);
 }
 
 
-export function queryBase (selector: string, one = false, parent: any = document): any {
+export function queryBase (selector: string, one = false, parent: any = Renderer): any {
     if (one) {
         const el = parent.querySelector(selector);
         if (el) return new Dom(el as HTMLElement);
@@ -127,7 +129,7 @@ export function style (data: Record<string, IStyle|IGlobalStyle>|string|IReactiv
     const isReact = isReactiveLike(data);
     const addStyle = (v = '') => {
         const dom = new Dom('style').text(v);
-        document.head.appendChild(dom.el);
+        Renderer.addStyle(dom.el as any);
         return dom;
     };
     if (isReact || typeof data === 'string') {
@@ -240,12 +242,15 @@ function joinCssValue (key: string, value: any) {
 
 export type IMountDom = Dom|Frag|Text|Comment|IController;
 
-export function mount (node: IMountDom|IMountDom[]|IChild, parent: string|HTMLElement|Dom|Frag) {
+export function mount (node: IMountDom|IMountDom[]|IChild, parent: string|HTMLElement|Dom|Frag|IElement) {
     let el: any = parent;
     if (typeof parent === 'string') {
         el = queryBase(parent, true);
     } else if (parent instanceof HTMLElement) {
         el = new Dom(parent);
+    } else if (el.__isCustomEl == true) {
+        // ! Custom render 处理
+        el = new Dom(el);
     }
     Array.isArray(node) ? el.append(...node) : el.append(node);
 }

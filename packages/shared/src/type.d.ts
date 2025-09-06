@@ -9,6 +9,10 @@ export interface ITextNode {
     get textContent(): string;
     set textContent(value: string);
 }
+export interface IComment {
+    get textContent(): string;
+    set textContent(value: string);
+}
 export interface IFragment<T extends IElement|ITextNode = IElement|ITextNode> {
     appendChild(child: T|IFragment<T>): void;
     insertBefore(node: T, child: T | null): T;
@@ -44,5 +48,7 @@ export interface IRenderer {
     querySelectorAll (selector: string): IElement[],
     createElement (tag?: string): IElement,
     createTextNode (text?: string): ITextNode,
+    createComment (text?: string): IComment,
     createFragment (): IFragment,
+    addStyle(v: IElement): void;
 }

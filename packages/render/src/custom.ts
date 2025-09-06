@@ -6,6 +6,8 @@ export enum ElementType {
     Text,
     Empty,
     Frag,
+    Comment,
+    Style,
 };
 
 
@@ -21,6 +23,7 @@ export class CustomElement implements IElement {
     static Root: CustomElement|null = null;
     type = ElementType.Element;
     style: Record<string, any> = {}; // mock
+    __isCustomEl = true;
     tagName = '';
     innerText = '';
     _attributes: Record<string, any> = {};
@@ -143,12 +146,18 @@ export function useRenderer (customRender: ICustomRender = {}) {
         createElement (tag = '') {
             return new CustomElement(ElementType.Element, '', tag);
         },
+        createComment (text) {
+            return new CustomElement(ElementType.Comment, text);
+        },
         createTextNode (text) {
             return new CustomElement(ElementType.Text, text);
         },
         createFragment () {
             return new CustomElement(ElementType.Frag);
         },
+        addStyle (style) {
+            CustomElement.Root?.appendChild(style as any);
+        }
     });
     const root = new CustomElement(ElementType.Element, '', 'root');
     CustomElement.Root = root;

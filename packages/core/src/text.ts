@@ -8,12 +8,13 @@ import type { IChild } from './element';
 import type { IComputedLike, IReactive } from 'link-dom-reactive';
 import { useReactive } from './utils';
 import { LinkDomType, traverseChildren } from './utils';
+import { Renderer } from 'link-dom-shared';
 
 export class Text {
     __ld_type = LinkDomType.Text;
     el: globalThis.Text;
     constructor (val?: string|number|boolean|IReactive) {
-        this.el = document.createTextNode('');
+        this.el = Renderer.createTextNode('') as globalThis.Text;
         if (typeof val !== 'undefined') {
             this.text(val);
         }
@@ -33,7 +34,7 @@ export class Comment {
     __ld_type = LinkDomType.Comment;
     el: globalThis.Comment;
     constructor (val?: string|number|IComputedLike) {
-        this.el = document.createComment('');
+        this.el = Renderer.createComment('') as any;
         if (typeof val !== 'undefined') {
             this.text(val);
         }
@@ -55,7 +56,7 @@ export class Frag {
     el: DocumentFragment;
     children: IChild[] = [];
     constructor () {
-        this.el = document.createDocumentFragment();
+        this.el = Renderer.createFragment() as any;
     }
     append (...doms: IChild[]) {
         traverseChildren(doms, (dom, origin) => {

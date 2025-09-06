@@ -13,3 +13,5 @@ export { ctrl } from './controller';
 export { join } from './join';
 
 export * from 'link-dom-reactive';
+
+export { flow } from './flow';

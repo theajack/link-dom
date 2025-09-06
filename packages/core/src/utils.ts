@@ -11,10 +11,12 @@ import { Text } from './text';
 
 import type { Dom } from './element';
 import { type Join, isJoin } from './join';
+import { Renderer } from 'link-dom-shared';
 
 export enum LinkDomType {
     Dom,
     Text,
+    Join,
     Frag,
     Comment,
     For,
@@ -143,7 +145,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             el = el.el;
         } else if (!(dom instanceof Node)) {
             // @ts-ignore
-            el = document.createTextNode(`${dom}`);
+            el = Renderer.createTextNode(`${dom}`);
         }
         onChild(el, dom);
         // @ts-ignore

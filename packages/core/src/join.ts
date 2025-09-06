@@ -6,10 +6,15 @@
 
 import type { IReactive } from 'link-dom-reactive';
 import { Frag, Text } from './text';
-import { getReactiveValue } from './utils';
+import { LinkDomType, getReactiveValue } from './utils';
 
 export class Join {
     __is_join = true;
+    __ld_type = LinkDomType.Join;
+
+    get el () {
+        return this.toFrag().el;
+    }
 
     constructor (
         private strs: TemplateStringsArray,
@@ -21,9 +26,10 @@ export class Join {
         const frag = new Frag();
         const n = this.values.length;
         for (let i = 0; i < n; i++) {
-            frag.append(this.strs[i], new Text(this.values[i]));
+            if (this.strs[i]) frag.append(this.strs[i]);
+            frag.append(new Text(this.values[i]));
         }
-        frag.append(this.strs[n]);
+        if (this.strs[n]) frag.append(this.strs[n]);
         return frag;
     }
 

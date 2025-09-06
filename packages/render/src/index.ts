@@ -4,5 +4,7 @@
  * @Description: Coding something
  */
 
-
+export { useRenderer, CustomElement, ElementType } from './custom';
+export { defineRenderer, Renderer } from 'link-dom-shared';
+export type { IElement, IFragment, IRenderer, ITextNode } from 'link-dom-shared';
 export * from './type.d';

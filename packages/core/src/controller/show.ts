@@ -15,6 +15,7 @@ function getDefaultStyle (dom: HTMLElement, def?: any) {
     if (def) return def;
     let display = dom.style?.display;
     if (!display) {
+        if (typeof document === 'undefined') return 'block';
         const temp = dom.cloneNode() as HTMLElement;
         document.head.appendChild(temp);
         display = getComputedStyle(temp).display;

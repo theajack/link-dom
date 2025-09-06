@@ -18,6 +18,8 @@
         "@typescript-eslint/parser": "^5.4.0",
         "@vitejs/plugin-legacy": "^4.1.1",
         "link-dom": "workspace:*",
+        "link-dom-render": "workspace:*",
+        "link-dom-ssr": "workspace:*",
         "dts-bundle-generator": "^9.5.1",
         "eslint": "^8.52.0",
         "fs-extra": "^11.2.0",

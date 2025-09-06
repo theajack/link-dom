@@ -8,6 +8,10 @@ import {
     dom, mount, computed, watch, ref, style, collectRef, join, ctrl, reactive, link,
     deepAssign, deepClone, raw
 } from 'link-dom';
+import { useRenderer, type CustomElement } from 'link-dom-render';
+import './ssr';
+import './comp-use';
+
 
 window.watch = watch;
 window.ref = ref;
@@ -414,7 +418,7 @@ function testIfAndFor () {
                 list.value.push(++id);
             }),
             dom.button.text(() => `toggle show: ${show.value}`).click(() => {
-                // show.value = !show.value;
+                show.value = !show.value;
                 num.value ++;
             })
         ),
@@ -622,7 +626,44 @@ function testSwitch () {
     ];
 }
 
-mount(testSwitch(), 'body');
+// mount(testSwitch(), 'body');
+
+
+function testRender () {
+    const root = useRenderer({
+        render (node: CustomElement) {
+            const prefix = new Array(node.deep).fill('  ').join('');
+            const text = `${node.innerText}`;
+            console.log(`${prefix}${node.tagName || 'text'}: ${text.trim()}`);
+        }
+    });
+
+    const v = ref(0);
+    const v2 = computed(() => v.value * 2);
+    mount(
+        dom.div.append(
+            join`value=${v}`,
+            dom.div.text(join`value * 2=${v2}`),
+        ),
+        root,
+    );
+
+    function render () {
+        // v.value ++;
+        console.clear();
+        root.render();
+        // setTimeout(() => {requestAnimationFrame(render);}, 1000);
+    }
+    render();
+    watch(v, render);
+    const btn = document.createElement('button');
+    btn.innerText = 'add';
+    document.body.appendChild(btn);
+
+    btn.onclick = () => v.value ++;
+}
+
+// testRender();
 
 // store.count;
 // ref(store.count1);
