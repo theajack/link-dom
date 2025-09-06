@@ -1,52 +1,34 @@
 {
-    "name": "link-dom",
-    "ebuild": {
-        "libName": "LinkDom",
-        "fileName": "link-dom",
-        "publish": {
-            "name": "link-dom",
-            "version": "0.0.10",
-            "description": "Super concise chained call UI library",
-            "repository": "https://github.com/theajack/link-dom",
-            "keywords": [
-                "UI library"
-            ],
-            "author": "theajack",
-            "license": "",
-            "bugs": {
-                "url": "https://github.com/theajack/link-dom/issues/new"
-            },
-            "homepage": "https://github.com/theajack/link-dom",
-            "publishConfig": {
-                "registry": "https://registry.npmjs.org/",
-                "tag": "latest"
-            }
-        }
-    },
+    "name": "demo",
     "private": true,
-    "version": "0.0.1",
+    "version": "0.0.0",
     "scripts": {
-        "dev": "vite --host",
-        "lint": "eslint --fix",
-        "build": "vite build -m=npm",
-        "preview": "vite preview"
+        "dev": "vite -m=dev",
+        "build:demo": "vite build -m=demo",
+        "build": "tsx ./build/build-packages.ts",
+        "lint": "eslint --fix --ext .js --ext .ts .",
+        "test": "vitest"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.21.4",
         "@rollup/plugin-babel": "^6.0.4",
-        "@types/node": "^22.2.0",
+        "@types/fs-extra": "^11.0.4",
+        "@types/node": "^22.5.1",
         "@typescript-eslint/eslint-plugin": "^5.4.0",
         "@typescript-eslint/parser": "^5.4.0",
-        "@vitejs/plugin-legacy": "^4.0.2",
+        "@vitejs/plugin-legacy": "^4.1.1",
+        "link-dom": "workspace:*",
         "dts-bundle-generator": "^9.5.1",
-        "eslint": "^8.2.0",
-        "terser": "^5.16.8",
-        "typescript": "^4.9.3",
+        "eslint": "^8.52.0",
+        "fs-extra": "^11.2.0",
+        "tslib": "^2.7.0",
+        "tsx": "^4.19.1",
+        "typescript": "^5.0.2",
         "typescript-eslint": "0.0.1-alpha.0",
-        "up-fs": "^0.0.1",
-        "vite": "^4.2.0"
+        "vite": "^5.0.6",
+        "vite-plugin-css-injected-by-js": "^3.5.1",
+        "vitest": "^2.1.2"
     },
-    "dependencies": {},
-    "description": "",
+    "description": "Ebuild project",
     "author": "author"
 }

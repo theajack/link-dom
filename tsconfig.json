@@ -17,7 +17,7 @@
     "removeComments": false,
     "jsx": "preserve",
     "lib": ["esnext", "dom"],
-    "types": ["./build/env.d.ts"],
+    "types": ["./build/env.d.ts", "@types/node"],
     "rootDir": ".",
     "noEmit": false,
     "paths": {
@@ -28,8 +28,12 @@
     "emitDeclarationOnly": true, // 只生成类型文件
   },
   "include": [
-    "src/**/*",
-    "dev/**/*"
+    "packages",
+    ".eslintrc.cjs", 
+    "vite.config.ts",
+    "build",
+    "demo",
+    ".eslintrc.js",
   ],
   "exclude": [
     "node_modules"

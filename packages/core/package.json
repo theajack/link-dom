@@ -1,0 +1,17 @@
+{
+    "name": "link-dom",
+    "version": "0.0.1",
+    "main": "src/index.ts",
+    "module": "src/index.ts",
+    "types": "src/index.ts",
+    "sideEffects": ["*.css", "*.less", "*.scss", "*.sass"],
+    "private": true,
+    "files": [
+      "dist"
+    ],
+    "dependencies": {
+      "link-dom-shared": "workspace:*",
+      "link-dom-reactive": "workspace:*"
+    }
+}
+  

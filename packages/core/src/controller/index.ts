@@ -1,0 +1,38 @@
+/*
+ * @Author: chenzhongsheng
+ * @Date: 2025-09-01 19:32:29
+ * @Description: Coding something
+ */
+
+import type { IChild } from '../element';
+import type { Ref } from 'link-dom-reactive';
+import type { IReactiveLike } from '../type.d';
+import { For } from './for';
+import { If } from './if';
+import { Switch } from './switch';
+import type { IOptionStyle } from '../type.d';
+import { Show } from './show';
+
+export type IController = For | If | Switch;
+
+export const ctrl = {
+    for: <T = any> (list: Ref<T[]>, fn: (item: T, index: Ref<number>)=>IChild) => {
+        return new For<T>(list, fn);
+    },
+    if (ref: IReactiveLike, gene: ()=>IChild) {
+        return new If(ref, gene);
+    },
+    switch (ref: IReactiveLike) {
+        return new Switch(ref);
+    },
+    scope (gene: ()=>IChild) {
+        return gene();
+    },
+    show (
+        ref: IReactiveLike<boolean>,
+        gene: ()=>IChild,
+        showDisplay?: IOptionStyle['display'],
+    ) {
+        return new Show(ref, gene, showDisplay);
+    },
+};

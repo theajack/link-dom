@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "types": [
+      "../../build/env.d.ts",
+    ],
+    "paths": {
+      "link-dom-reactive": ["../reactive/src/index.ts"],
+      "link-dom-shared": ["../shared/src/index.ts"]
+    }
+  },
+  "include": [
+    "src", "../render/src/custom-render.ts", "../shared/src/render.ts",
+  ]
+}
