@@ -44,6 +44,9 @@ importers:
       link-dom-render:
         specifier: workspace:*
         version: link:packages/render
+      link-dom-router:
+        specifier: workspace:*
+        version: link:packages/router
       link-dom-ssr:
         specifier: workspace:*
         version: link:packages/ssr
@@ -89,6 +92,12 @@ importers:
       link-dom-shared:
         specifier: workspace:*
         version: link:../shared
+
+  packages/router:
+    dependencies:
+      link-dom:
+        specifier: workspace:*
+        version: link:../core
 
   packages/shared: {}
 

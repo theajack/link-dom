@@ -145,3 +145,11 @@ export function reactive<T extends object = any> (data: T): T {
 function isArrayItem (target: any, key: string|symbol): target is any[] {
     return (Array.isArray(target) && (typeof key === 'string') && parseInt(key).toString() === key);
 }
+
+export function getTarget <T> (v: T): T {
+    return v?.[OriginTarget] || v;
+}
+
+export function isDeepReactive (v: any) {
+    return !!(v?.[OriginTarget]);
+}

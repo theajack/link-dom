@@ -226,7 +226,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
             }
             return this;
         }
-        debugger;
         const dom = this.el;
         if (typeof value === 'function') {
             // @ts-ignore

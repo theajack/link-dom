@@ -6,3 +6,4 @@ export { reactive, setArrayListeners, observe } from './reactive';
 export * from './type.d';
 export { DepUtil, Dep } from './dep';
 export { isReactiveLike } from './utils';
+export { reader } from './reader';

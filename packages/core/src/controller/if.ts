@@ -80,6 +80,7 @@ export class If {
         this.frag?.__mounted?.(this.frag);
         this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
             const index = this.switchCase();
+            console.log('if switch', index, this.activeIndex);
             // console.log('if switch', index);
             if (index !== this.activeIndex) {
                 const prev = this.activeIndex;

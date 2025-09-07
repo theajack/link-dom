@@ -11,6 +11,7 @@ export function isArrayOrJson (o: any) {
 
 export const OriginTarget = Symbol('OriginTarget');
 export const ProxyTarget = Symbol('ProxyTarget');
+export const DeepReader = Symbol('DeepReader');
 
 export function deepAssign (origin: any, value: any) {
     origin = origin[ProxyTarget] || origin;

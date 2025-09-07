@@ -4,14 +4,12 @@ import {
     deepAssign, deepClone, raw, flow
 } from 'link-dom';
 
-function TodoItem (item: {content: string, isDone: boolean}, index: {value: number}) {
+function TodoItem (item: {content: string, isDone: boolean}, index: {value: number}, toggleDone: () => void) {
     return dom.div.append(
         dom.span.style({
             textDecoration: () => item.isDone ? 'line-through' : 'none',
         }).text(() => `${index.value}: ${(item.content)} ${(item.isDone)}`),
-        dom.button.text(() => item.isDone ? 'undo' : 'done').click(() => {
-            item.isDone = !item.isDone;
-        })
+        dom.button.text(() => item.isDone ? 'undo' : 'done').click(toggleDone)
     );
 }
 
@@ -38,7 +36,9 @@ function Todo () {
             }),
         ),
         dom.div.append(
-            ctrl.for(list, flow(TodoItem)),
+            ctrl.for(list, (item, index) => flow(TodoItem)(item, index, () => {
+                item.isDone = !item.isDone;
+            })),
         )
     );
 }

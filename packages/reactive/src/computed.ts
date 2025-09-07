@@ -12,6 +12,7 @@ import type { IComputeFn, IComputedLike, IReactive } from './type.d';
 
 export class Computed<T=any> {
     __isReactive = true;
+    __isComputed = true;
     _value: T;
 
     private _set?: (v: T)=>void;

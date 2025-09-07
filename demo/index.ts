@@ -9,8 +9,9 @@ import {
     deepAssign, deepClone, raw
 } from 'link-dom';
 import { useRenderer, type CustomElement } from 'link-dom-render';
-import './ssr';
-import './comp-use';
+// import './ssr';
+import './router';
+// import './comp-use';
 
 
 window.watch = watch;
@@ -54,6 +55,7 @@ window.link = link;
 // })();
 
 window.dom = dom;
+
 function Counter () {
     const store = reactive({
         count: 0,
@@ -668,3 +670,28 @@ function testRender () {
 // store.count;
 // ref(store.count1);
 // bind(1);
+
+
+function parseFuzzyRouteUrl (path: string): null|IFuzzyInfo {
+
+    if (!path.includes('/:')) return null;
+    const arr = path.split('/');
+    const paramMap: Record<string, string> = {};
+    for (let i = 0; i < arr.length; i++) {
+        const item = arr[i];
+        if (item[0] !== ':') continue;
+        const res = item.match(/^:(.*?)(\((.*?)\))?$/i);
+        // console.log('res1=', res)
+        if (!res) throw new Error(`错误的路由表达式: ${path}`);
+        const name = res[1];
+        const reg = res[3] || '(.*?)';
+        paramMap[i] = name;
+        arr[i] = reg;
+    }
+    return {
+        reg: new RegExp(arr.join('/')),
+        paramMap,
+    };
+}
+
+window.parseFuzzyRouteUrl = parseFuzzyRouteUrl;
