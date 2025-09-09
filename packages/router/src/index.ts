@@ -7,4 +7,4 @@ export * from './type.d';
 
 export { routerView, RouterView } from './router-view';
 
-export { Router, createRouter, type IRouterItem, type IRouterOptions } from './router';
+export { Router, createRouter, routerLink } from './router';

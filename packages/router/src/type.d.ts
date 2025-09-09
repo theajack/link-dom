@@ -4,51 +4,47 @@
  * @Description: Coding something
  */
 
+import type { IChild } from 'link-dom';
+import type { RouterPath } from './path';
+import type { RouterView } from './router-view';
 
-export interface ITextNode {
-    get textContent(): string;
-    set textContent(value: string);
-}
-export interface IComment {
-    get textContent(): string;
-    set textContent(value: string);
-}
-export interface IFragment<T extends IElement|ITextNode = IElement|ITextNode> {
-    appendChild(child: T|IFragment<T>): void;
-    insertBefore(node: T, child: T | null): T;
-    children: T[];
-    childNodes: T[];
-}
-export interface IElement<T extends IElement = any> extends IFragment<T> {
-    // target stopPropagation preventDefault
-    tagName: string;
-    style: Record<string, any>;
-    addEventListener(eventName: string, listener: (e: Event)=>void, useCapture?: boolean): void;
-    removeEventListener(eventName: string, listener: (e: Event)=>void, useCapture?: boolean): void;
-    setAttribute(name: string, value: string): void;
-    removeAttribute(name: string): void;
-    getAttribute(name: string): string;
-    classList: {
-        add(name: string): void;
-        remove(name: string): void;
-    }
-    remove(): void;
-    get parentElement(): T|null;
-    get parentNode(): T|null;
-    get nextSibling(): T|null;
-    className: string;
-    innerHTML: string;
-    outerHTML: string;
-    innerText: string;
-    [prop: string]: any;
+
+export interface IRouteComponentArgs {
+    query: Record<string, string>;
+    param: Record<string, string|number|boolean>;
+    meta?: Record<string, any>;
+    route: IRouterInnerItem;
+    path: string;
 }
 
-export interface IRenderer {
-    querySelector (selector: string): IElement|null,
-    querySelectorAll (selector: string): IElement[],
-    createElement (tag?: string): IElement,
-    createTextNode (text?: string): ITextNode,
-    createComment (text?: string): IComment,
-    createFragment (): IFragment,
-    addStyle(v: IElement): void;
+export interface IRouterItemBase<T = string> {
+    path: T;
+    component: (options: IRouteComponentArgs)=>IChild;
+    name?: string;
+    meta?: Record<string, any>;
+}
+
+export interface IRouterItem extends IRouterItemBase<string> {
+    children?: IRouterItem[];
+}
+
+export interface IRouterInnerItem extends IRouterItemBase<RouterPath> {
+    routerView?: RouterView;
+    path: RouterPath;
+    children?: IRouterItemBase<RouterPath>[];
+}
+
+export interface IRouterOptions {
+    routes: IRouterItem[];
+    base?: string;
+    mode?: 'hash'|'history';
+}
+
+export interface IRouteOptions {
+    path?: string;
+    name?: string;
+    query?: Record<string, any>;
+    param?: Record<string, any>;
+    mode?: 'push'|'replace';
+    state?: Record<string, any>;
 }

@@ -47,6 +47,7 @@ export function formatUrl (url: string): {path: string, search: string} {
 }
 
 export function queryToSearch (query: Record<string, string>): string {
+    if (!query) return '';
     let search = '';
     for (const k in query) {
         search += `&${k}=${encodeURIComponent(query[k])}`;
@@ -67,4 +68,20 @@ export function searchToQuery (search: string): Record<string, string> {
         }
     });
     return query;
+}
+
+export function applyParam (path: string, param?: Record<string, string>) {
+    if ((!(path.includes(':'))) || !param) return path;
+    const arr = path.split('/');
+    for (let i = 0; i < arr.length; i++) {
+        let item = arr[i];
+        if (!arr) continue;
+        if (item[0] !== ':') continue;
+        item = item.substring(1);
+        if (item[0] === '!' || item[0] === '#') {
+            item = item.substring(1);
+        }
+        arr[i] = param![item];
+    }
+    return arr.join('/');
 }

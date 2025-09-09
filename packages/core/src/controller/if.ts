@@ -71,16 +71,16 @@ export class If {
     }
     else (gene: ()=>IChild) {
         this._addCond(true, gene);
-        this._initChildren();
         return this;
     }
     private _clearWatch: ()=>void;
     __mounted () {
+        console.log('test:if mounted');
         this._initChildren();
         this.frag?.__mounted?.(this.frag);
         this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
             const index = this.switchCase();
-            console.log('if switch', index, this.activeIndex);
+            console.log('test:if switch', index, this.activeIndex);
             // console.log('if switch', index);
             if (index !== this.activeIndex) {
                 const prev = this.activeIndex;
@@ -106,6 +106,7 @@ export class If {
         this.frag = new Frag();
         this.frag.append(this.marker.start);
         const index = this.switchCase();
+        console.log('test:if switch1', index, this.activeIndex);
         this.activeIndex = index;
         if (index >= 0) {
             this.frag.append(this.scopes[index].toFrag());

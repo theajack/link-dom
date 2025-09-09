@@ -1,4 +1,5 @@
 /*
+import { query } from '../../../old/src/dom';
  * @Author: chenzhongsheng
  * @Date: 2025-09-06 21:53:04
  * @Description: Coding something
@@ -27,8 +28,13 @@ export class RouterPath {
         }
         // 匹配失败
         if (!this.fuzzyInfo) {
+            let matched = path === this.path;
+            if (!matched && this.hasChildren) {
+                const head = (!this.path.endsWith('/')) ? `${this.path}/` : this.path;
+                matched = path.startsWith(head);
+            }
             return {
-                matched: this.hasChildren ? path.startsWith(this.path) : path === this.path,
+                matched,
                 param: {}
             };
         };
@@ -39,10 +45,13 @@ export class RouterPath {
             param: extractUrlParam(path, this.fuzzyInfo),
         };
     }
+
+    is404 () {
+        return this.path.endsWith('/404');
+    }
 }
 
 function parseFuzzyRouteUrl (path: string): null|IFuzzyInfo {
-
     if (!path.includes('/:')) return null;
     const arr = path.split('/');
     const paramMap: Record<string, string> = {};
@@ -72,9 +81,7 @@ function extractUrlParam (path: string, fuzzyInfo: IFuzzyInfo) {
     for (const i in map) {
         const name = map[i];
         const v = arr[i as any];
-        // : 字符串
-        // :# 数字
-        // :! 布尔
+        // : 字符串; :# 数字; :! 布尔
         if (name[0] === '#') {
             param[name.substring(1)] = parseFloat(v);
         } else if (name[0] === '!') {

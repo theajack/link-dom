@@ -6,4 +6,4 @@
 export * from './utils';
 export * from './type.d';
 
-export { useSSR } from './render';
+export { ssr } from './ssr';

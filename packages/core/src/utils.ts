@@ -149,7 +149,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             el = Renderer.createTextNode(`${dom}`);
         }
         onChild(el, dom);
-        if (dom?.__ld_type === 10) debugger;
+        // if (dom?.__ld_type === 10) debugger;
         // @ts-ignore
         dom.__mounted?.(dom);
     });

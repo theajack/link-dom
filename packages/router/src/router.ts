@@ -4,34 +4,12 @@
  * @Description: Coding something
  */
 
-import type { IChild, Ref } from 'link-dom';
-import  { reactive, ref } from 'link-dom';
+import type { Dom } from 'link-dom';
+import { DepUtil, dom } from 'link-dom';
 import { RouterPath } from './path';
-import { formatUrl, searchToQuery } from './utils';
-import  { RouterView } from './router-view';
-
-interface IRouterItemBase<T = string> {
-    path: T;
-    component: ()=>IChild;
-    name?: string;
-    meta?: Record<string, any>;
-}
-
-export interface IRouterItem extends IRouterItemBase<string> {
-    children?: IRouterItem[];
-}
-
-export interface IRouterInnerItem extends IRouterItemBase<RouterPath> {
-    routerView?: RouterView;
-    path: RouterPath;
-    children?: IRouterItemBase<RouterPath>[];
-}
-
-export interface IRouterOptions {
-    routes: IRouterItem[];
-    base?: string;
-    mode?: 'hash'|'history';
-}
+import { formatUrl, queryToSearch, searchToQuery, applyParam } from './utils';
+import { RouterView } from './router-view';
+import type { IRouteComponentArgs, IRouteOptions, IRouterInnerItem, IRouterItem, IRouterOptions } from './type';
 
 /**
  * 路由路径
@@ -47,33 +25,62 @@ export interface IRouterOptions {
  * 路由 addComponent 的时候记录一下当前 RouteItem, 通过这个讲 RouterView 与 RouteItem关联
  */
 
-export class Router {
+class RouterState {
+    private _path: string;
+    protected _setPath (path: string) {
+        this._path = path;
+        DepUtil.trigger(this, 'path');
+    }
+    get path () {
+        DepUtil.add(this, 'path');
+        return this._path;
+    }
+    private _query: Record<string, string> = {};
+    protected _setQuery (query: Record<string, string>) {
+        this._query = query;
+        DepUtil.trigger(this, 'query');
+    }
+    get query () {
+        DepUtil.add(this, 'query');
+        return this._query;
+    }
+    private _param: Record<string, string|number|boolean> = {};
+    protected _setParam (param: Record<string, string|number|boolean>) {
+        this._param = param;
+        DepUtil.trigger(this, 'param');
+    }
+    get param () {
+        DepUtil.add(this, 'param');
+        return this._param;
+    }
+    routeList: IRouterInnerItem[] = [];
+    get currentRoute () {
+        return this.routeList[this.routeList.length - 1];
+    }
+}
+
+export class Router extends RouterState {
 
     rootRoute: IRouterInnerItem;
+
+    route404: IRouterInnerItem | null = null;
+
+    // 用于执行name到route的路由匹配
+    private _flatMap: Record<string, IRouterInnerItem> = {};
 
     get routes () {
         return this.rootRoute.children!;
     }
     base = '';
-
-    store: {
-        currentPath: string,
-        query: Record<string, string>,
-        param: Record<string, string|number|boolean>,
-    };
-
     mode: 'hash'|'history';
-    path: Ref<string>;
-
     static instance: Router;
     constructor ({
         routes,
         base = '',
         mode = 'hash'
     }: IRouterOptions) {
-        if (Router.instance) {
-            return Router.instance;
-        }
+        if (Router.instance) return Router.instance;
+        super();
         Router.instance = this;
         const routerView = new RouterView();
         this.rootRoute = {
@@ -84,13 +91,6 @@ export class Router {
         };
         this.base = base;
         this.mode = mode;
-        this.path = ref('');
-        this.store = reactive({
-            get currentPath () {return Router.instance.path.value; },
-            set currentPath (v: string) { Router.instance.path.value = v; },
-            query: {},
-            param: {},
-        });
         this._initEvents();
     }
 
@@ -99,14 +99,21 @@ export class Router {
             const hasChildren = item.children && item.children?.length > 0;
             const route: IRouterInnerItem = {
                 component: item.component,
-                name: item.name,
-                meta: item.meta,
                 // ! 如果需要支持动态路由此处需要修改
                 path: new RouterPath(item.path, hasChildren),
             };
+            if (item.name) route.name = item.name;
+            if (item.meta) route.meta = item.meta;
             if (hasChildren) {
                 route.routerView = new RouterView();
                 route.children = this._initRoutes(item.children!, route.routerView);
+            }
+            if (item.path === '/404') {
+                this.route404 = route;
+            }
+            if (item.name) {
+                if (this._flatMap[item.name]) throw new Error(`duplicate route name: ${item.name}`);
+                this._flatMap[item.name] = route;
             }
             return route;
         });
@@ -127,27 +134,24 @@ export class Router {
         }
     }
 
-    routeList: IRouterInnerItem[] = [];
 
     private _enterNewUrl (url: string) {
+        console.log(`test:${url}`);
         const { path, search } = formatUrl(url);
         // list 为route的路径，param为route所有url match参数
         const { list, param, matchedPaths } = this._matchRoutes(path, [ this.rootRoute ]);
-
-        // if (list.length === 0) {
-        //     this.rootRoute.routerView!.path.value = '';
-        //     // todo 处理404
-        //     return;
-        // }
-
+        this.routeList = list;
+        this._setQuery(searchToQuery(search));
+        this._setParam(param);
         list.forEach((route, index) => {
             if (route.routerView) {
+                // console.log(`test:set id=${route.routerView.id}`, route.routerView.path.value, matchedPaths[index + 1]);
+                console.log(`test:set`, route.routerView.path.value, matchedPaths[index + 1]);
                 route.routerView.path.value = matchedPaths[index + 1];
             }
         });
-        this.routeList = list;
-        Object.assign(this.store.query, searchToQuery(search));
-        Object.assign(this.store.param, param);
+        this._setPath(path);
+        // this.currentPath.value = path;
     }
 
     private _matchRoutes (
@@ -156,12 +160,12 @@ export class Router {
         list: IRouterInnerItem[] = [],
         matchedPaths: string[] = [],
         param: Record<string, string> = {},
-        deep = 0,
     ): {
         list: IRouterInnerItem[];
         param: Record<string, string>;
         matchedPaths: string[];
     } {
+        // const is404 = false;
         const route = routes.find(item => {
             const { matched, param: p } = item.path.match(path);
             Object.assign(param, p);
@@ -171,24 +175,100 @@ export class Router {
             }
             return false;
         });
-        if (!route) {
-            // console.warn('route not found', deep);
-            if (deep === 1) this._route404();
-            return { list: [], param: {}, matchedPaths: [] };
-        }
-        list.push(route);
-        if (route.children) {
-            this._matchRoutes(path, route.children, list, matchedPaths, param, deep + 1);
+        if (route) {
+            list.push(route);
+            if (route.children) {
+                this._matchRoutes(path, route.children, list, matchedPaths, param);
+            }
         }
         return { list, param, matchedPaths };
     }
 
-    private _route404 () {
-        // todo route 404
-        console.warn('route 404');
+    route (arg: string | IRouteOptions) {
+        const { data, url } = this._parseRouteInfo(arg);
+        return this._routeToUrl(url, data.state, data.mode);
+    }
+    _parseRouteInfo (arg: string | IRouteOptions) {
+        const data: IRouteOptions = typeof arg === 'string' ? { path: arg } : arg;
+        const {
+            path, name, query, param,
+        } = data;
+
+        let finalPath: string = '';
+        if (name) {
+            const route = this._flatMap[name];
+            if (!route) throw new Error(`route not found: ${name}`);
+            finalPath = route.path.path;
+        } else {
+            if (!path) throw new Error('path or name is required');
+            finalPath = applyParam(path, param);
+        }
+        finalPath = `${this.base}${finalPath}${queryToSearch(query!)}`;
+        if (this.mode === 'hash') {
+            finalPath = `#${finalPath}`;
+        }
+        return { data, url: finalPath };
+    }
+    _routeToUrl (url: string, state?: Record<string, any>, mode?: 'push'|'replace') {
+        if (this.mode === 'hash') {
+            // location.href = finalPath;
+            location.hash = url;
+        } else {
+            location.href = url;
+        }
+        history[mode === 'replace' ? 'replaceState' : 'pushState'](state || {}, '', url);
+    }
+    back () {
+        return history.back();
+    }
+    forward () {
+        debugger;
+        return history.forward();
+    }
+    go (delta: number) {
+        return history.go(delta);
+    }
+
+    _getRouteComponentArgs (): IRouteComponentArgs {
+        // debugger;
+        return {
+            route: this.currentRoute,
+            query: this.query,
+            param: this.param,
+            path: this.path,
+            meta: this.currentRoute.meta,
+        };
     }
 }
 
 export function createRouter (options: IRouterOptions) {
     return new Router(options);
+}
+
+export const routerLink: {
+    (arg: string | IRouteOptions): Dom<HTMLAnchorElement>;
+    back: () => Dom<HTMLAnchorElement>;
+    forward: () => Dom<HTMLAnchorElement>;
+    go: (delta: number) => Dom<HTMLAnchorElement>;
+} = Object.assign((arg: string | IRouteOptions) => {
+    const { url } = Router.instance._parseRouteInfo(arg);
+    return dom.a.attr('href', url).text(url);
+}, (() => {
+    const gene = (type: 'back' | 'forward' | 'go') => {
+        return (i?: number) => dom.a.attr('href', 'javascript:void(0)')
+            .text(`${type}${typeof i === 'number' ? `(${i})` : ''}`)
+            .click(() => {
+                Router.instance[type](i!);
+            });
+    };
+    return {
+        back: gene('back'),
+        forward: gene('forward'),
+        go: gene('go'),
+    };
+})());
+
+
+export function useRouter () {
+    return Router.instance;
 }

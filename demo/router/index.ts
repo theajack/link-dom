@@ -3,12 +3,17 @@
  * @Date: 2025-09-07 18:22:26
  * @Description: Coding something
  */
-import { createRouter, routerView } from 'link-dom-router';
-import { dom, mount } from 'link-dom';
+import type { IRouteComponentArgs } from 'link-dom-router';
+import { createRouter, routerLink, routerView } from 'link-dom-router';
+import { dom, mount, reactive, watch } from 'link-dom';
+import { ref } from 'link-dom';
 
 
 const CompMain = () => {
-    return dom.div.text('Main');
+    const a = ref({ a: { b: 1 } });
+    return dom.div.text('Main').append(
+        dom.button.text(() => a.value.a.b).click(() => a.value = { a: { b: 2 } } ),
+    );
 };
 const CompA = () => {
     return [
@@ -39,13 +44,21 @@ const router = createRouter({
             component: CompA,
             children: [
                 {
+                    path: '/a',
+                    component: () => dom.div.text('a main'),
+                },
+                {
                     path: '/a/a1',
                     component: CompA1,
                 },
                 {
                     path: '/a/a2',
                     component: CompA2,
-                }
+                },
+                {
+                    path: '/a/404',
+                    component: () => dom.div.text('a404'),
+                },
             ]
         },
         {
@@ -55,12 +68,59 @@ const router = createRouter({
         {
             path: '/c',
             component: () => dom.div.text('CompC'),
-        }
+        },
+        {
+            path: '/x/:name/:#age/:!male',
+            meta: { test: 'x' },
+            component: ({ query, param, meta, route, path }) => {
+                console.log(`test:query`, query);
+                console.log(`test:param`, param);
+                console.log(`test:meta`, meta);
+                console.log(`test:route`, route);
+                console.log(`test:path`, path);
+                return dom.div.text('CompX').children(
+                    dom.div.text(`query: ${JSON.stringify(query)}`),
+                    dom.div.text(`param: ${JSON.stringify(param)}`),
+                    dom.div.text(`meta: ${JSON.stringify(meta)}`),
+                );
+            },
+        },
+        {
+            path: '/404',
+            component: () => dom.div.text('404'),
+        },
     ]
 });
 
 const App = () => {
-    return routerView();
+    return dom.div.children(
+        dom.div.style({
+            display: 'flex',
+            gap: '10px',
+        }).children(
+            routerLink('/'),
+            routerLink('/a'),
+            routerLink('/a/a1'),
+            routerLink('/a/a2'),
+            routerLink('/b'),
+            routerLink('/c'),
+            routerLink('/x/tack/31/true?a=1'),
+            // routerLink('/x/123/456?name=zs&age=18&male=true'),
+            routerLink.back(),
+            routerLink.forward(),
+            routerLink.go(-2)
+        ),
+        routerView(),
+    );
 };
 
 mount(App(), 'body');
+
+window.router = router;
+
+watch(router.currentPath, (val) => {
+    console.log('router.currentPath', val);
+});
+watch(() => router.query, (val) => {
+    console.log('router.query', val);
+});

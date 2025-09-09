@@ -204,7 +204,13 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     get childrenLength () {
         return this.el.children.length;
     }
-    children () {
+    children (...doms: IChild[]) {
+        if (doms.length > 0) {
+            if (this.el.childNodes.length > 0) {
+                this.empty();
+            }
+            return this.append(...doms);
+        }
         const n = this.childrenLength;
         const list: Dom[] = [];
         for (let i = 0; i < n; i++) {
