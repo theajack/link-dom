@@ -5,9 +5,10 @@
  */
 
 import type { IElement } from 'link-dom-shared';
-import { NodeType, SSRContainer, SSREleType, SSRText } from './base';
+import { HyContainer, HyText } from './base';
+import { NodeType } from '../utils';
 
-export class SSRStyle {
+export class HyStyle {
     map: Record<string, string> = {};
     setProperty (name: string, value: string, important: string) {
         // ! 此处 !important 前面需要加一个空格
@@ -15,7 +16,7 @@ export class SSRStyle {
     }
 }
 
-export class ClassList {
+export class HyClassList {
     set: Set<string> = new Set();
     add (name: string) {
         this.set.add(name);
@@ -44,10 +45,9 @@ export class ClassList {
     }
 }
 
-export class SSRElement extends SSRContainer implements IElement {
-    type = SSREleType.Element;
+export class HyElement extends HyContainer implements IElement {
     nodeType = NodeType.ELEMENT_NODE;
-    classList: ClassList = new ClassList();
+    classList: HyClassList = new HyClassList();
     toHtml (): string {
         if (this._outerHTML) return this._outerHTML;
         let html = `<${this.tagName}${this.classList.toString()}`;
@@ -66,15 +66,22 @@ export class SSRElement extends SSRContainer implements IElement {
     }
     [prop: string]: any;
     tagName: string;
-    style = new SSRStyle();
+    style = new HyStyle();
     constructor (tagName: string) {
         super();
         this.tagName = tagName;
     }
 
+    _eventsListeners: Map<Function, [string, any]> = new Map();
+
     // 事件只需注册 无需处理
-    addEventListener (): void {}
-    removeEventListener (): void {}
+    addEventListener (name: string, handler: any, options: any): void {
+        this._eventsListeners.set(handler, [ name, options ]);
+    }
+    removeEventListener (name: string, handler: any): void {
+        this._eventsListeners.delete(handler);
+    }
+
     attr: Record<string, string> = {};
     setAttribute (name: string, value: string): void {
         this.attr[name] = value;
@@ -85,7 +92,7 @@ export class SSRElement extends SSRContainer implements IElement {
     getAttribute (name: string): string {
         return this.attr[name];
     }
-    // SSREle
+    // HyEle
     set className (value: string) {
         this.classList.setClass(value);
     }
@@ -104,7 +111,7 @@ export class SSRElement extends SSRContainer implements IElement {
     get value () { return this._attr('value'); }
 
     set innerHTML (value: string) {
-        this.children = [ new SSRText(value) ];
+        this.children = [ new HyText(value) ];
     }
     get innerHTML () { return this.toInnerHtml(); }
 

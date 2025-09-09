@@ -4,6 +4,8 @@
  * @Description: Coding something
  */
 
+import type { RendererType } from './utils';
+
 
 export interface ITextNode {
     get textContent(): string;
@@ -43,7 +45,9 @@ export interface IElement<T extends IElement = any> extends IFragment<T> {
     [prop: string]: any;
 }
 
+
 export interface IRenderer {
+    type: RendererType;
     querySelector (selector: string): IElement|null,
     querySelectorAll (selector: string): IElement[],
     createElement (tag?: string): IElement,

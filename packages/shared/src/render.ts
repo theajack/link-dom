@@ -4,12 +4,13 @@
  * @Description: Coding something
  */
 
-import type { IComment, IElement, IFragment, IRenderer, ITextNode } from './type';
-import { isWeb } from './utils';
+import { type IComment, type IElement, type IFragment, type IRenderer, type ITextNode } from './type';
+import { isWeb, RendererType } from './utils';
 
 export let Renderer: IRenderer;
 
 const defaultRenderer: IRenderer = {
+    type: RendererType.Web,
     querySelector (selector: string) {
         return document.querySelector(selector) as any as IElement|null;
     },
@@ -44,4 +45,10 @@ export function resetRenderer () {
 
 if (isWeb) {
     resetRenderer();
+}
+
+export function checkHydrateEl (dom: {el: any}) {
+    if (dom.el.__hydrate === true) {
+        dom.el.dom = dom;
+    }
 }

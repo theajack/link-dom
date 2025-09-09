@@ -3,10 +3,10 @@
  * @Date: 2025-09-08 23:37:37
  * @Description: Coding something
  */
-import { setRender, ssr, hydration, isSSR } from 'link-dom-ssr';
+import { setRender, ssr, hydrate, isSSR } from 'link-dom-ssr';
 import { ref, dom, mount, ctrl } from 'link-dom';
 
-function CounterDeepRef () {
+function CounterDeepRef (data: {a:1}) {
     const store = ref({
         count: 0,
         count2: 3
@@ -67,7 +67,7 @@ setRender('ssr');
 console.log(CounterDeepRef.toString());
 
 
-const a = ssr(CounterDeepRef)();
+const a = ssr(CounterDeepRef)({ a: 1 });
 
 console.log(a);
 
@@ -76,9 +76,9 @@ document.body.innerHTML = a;
 
 setRender('web');
 // mount(CounterDeepRef(), document.body);
-hydration(CounterDeepRef(), 'a1');
+hydrate(CounterDeepRef(), 'a1');
 
-hydration(CounterDeepRef());
+hydrate(CounterDeepRef());
 
 const id = 0;
 

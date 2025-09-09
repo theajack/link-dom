@@ -50,3 +50,8 @@ export function raw (data: any) {
 }
 
 export const isWeb = typeof document !== 'undefined' && document.head?.constructor.name === 'HTMLHeadElement';
+
+export enum RendererType {
+    Web,
+    SSR,
+}

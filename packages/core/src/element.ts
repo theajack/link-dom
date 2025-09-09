@@ -7,7 +7,7 @@ import type { IReactiveLike } from './type.d';
 import type { Join } from './join';
 import { isJoin } from './join';
 import type { IController } from './controller';
-import { Renderer } from 'link-dom-shared';
+import { Renderer, checkHydrateEl } from 'link-dom-shared';
 // eslint-disable-next-line no-undef
 type IEventKey = keyof DocumentEventMap;
 
@@ -18,6 +18,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     // eslint-disable-next-line no-undef
     constructor (key: (keyof HTMLElementTagNameMap)|T) {
         this.el = (typeof key === 'string' ? Renderer.createElement(key) : key) as T;
+        checkHydrateEl(this);
     }
     private _ur (key: string, val?: IReactiveLike<string|number>) {
         if (typeof val === 'undefined') {

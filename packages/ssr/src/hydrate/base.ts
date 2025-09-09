@@ -4,28 +4,18 @@
  * @Description: Coding something
  */
 
-import type { SSRElement } from './element';
+import type { Comment, Dom, Frag, Text } from 'link-dom';
+import { NodeType } from '../utils';
+import type { HyElement } from './element';
 import type { IComment, IFragment, ITextNode } from 'link-dom-shared';
 
-export enum SSREleType {
-    Element,
-    Text,
-    Comment,
-    Frag
-}
-
-export enum NodeType {
-    COMMENT_NODE = 8,
-    DOCUMENT_FRAGMENT_NODE = 11,
-    ELEMENT_NODE = 1,
-    TEXT_NODE = 3,
-}
-
-export abstract class SSRBase {
-    __is_ssr = true;
+export abstract class HyBase<T extends Comment|Text|Dom|Frag> {
+    dom: T;
+    __is_hydrate = true;
     nodeType: NodeType;
-    abstract toHtml (): string;
-    parentElement: SSRContainer|null = null;
+
+    abstract hydrate (el: Node): void;
+    parentElement: HyContainer|null = null;
     get parentNode (): any {
         return this.parentElement;
     }
@@ -42,7 +32,7 @@ export abstract class SSRBase {
         return this.parentElement?._prev(this);
     }
     get index () {
-        const parent = this.parentElement as SSRContainer;
+        const parent = this.parentElement as HyContainer;
         return !parent ? -1 : parent.children.indexOf(this);
     }
     abstract get innerText (): string;
@@ -53,22 +43,30 @@ export abstract class SSRBase {
     }
 }
 
-export class SSRContainer extends SSRBase {
-    toHtml (): string {
-        let html = '';
-        for (const item of this.children) {
-            html += item.toHtml();
+export class HyContainer extends HyBase<Frag> {
+    hydrate (el: HTMLElement) {
+        const childNodes = el.childNodes;
+
+        const len = this.children.length;
+        if (childNodes.length !== len) {
+            throw new Error('hydrate error');
+            debugger;
         }
-        return html;
+
+        for (let i = 0; i < len; i++) {
+            const item = this.children[i];
+            const node = childNodes[i];
+            item.hydrate(node);
+        }
     }
     get innerText () {
         return this.children.map(item => item.innerText).join('');
     }
     set innerText (text) {
-        this.children = [ new SSRText(text) ];
+        this.children = [ new HyText(text) ];
     }
-    children: SSRBase[] = [];
-    get childNodes (): SSRBase[] {
+    children: HyBase[] = [];
+    get childNodes (): HyBase[] {
         return this.children;
     }
     get firstChild () {
@@ -77,10 +75,10 @@ export class SSRContainer extends SSRBase {
     get lastChild () {
         return this.children[this.children.length - 1];
     }
-    appendChild (child: SSRBase): void {
+    appendChild (child: HyBase): void {
         child.parentElement = this;
         if (child.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
-            for (const item of (child as SSRFragment).children)
+            for (const item of (child as HyFragment).children)
                 this.appendChild(item);
         } else {
             this.children.push(child);
@@ -88,14 +86,14 @@ export class SSRContainer extends SSRBase {
         }
         // throw new Error('Method not implemented.');
     }
-    prepend (child: SSRBase) {
+    prepend (child: HyBase) {
         child.parentElement = this;
         this.children.unshift(child);
     }
-    insertBefore (node: SSRBase, child: SSRBase) {
+    insertBefore (node: HyBase, child: HyBase) {
         if (child.parentElement !== this) throw new Error('insertBefore error');
         if (child.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
-            for (const item of (child as SSRFragment).children)
+            for (const item of (child as HyFragment).children)
                 this.insertBefore(item, child);
         } else {
             node.parentElement = this;
@@ -105,38 +103,38 @@ export class SSRContainer extends SSRBase {
         return node;
     }
 
-    _removeChild (node: SSRBase) {
+    _removeChild (node: HyBase) {
         this.children.splice(this.getIndex(node), 1);
     }
-    _next (node: SSRBase) {
+    _next (node: HyBase) {
         return this.children[this.getIndex(node) + 1] || null;
     }
-    _prev (node: SSRBase) {
+    _prev (node: HyBase) {
         return this.children[this.getIndex(node) - 1] || null;
     }
 
-    private getIndex (node: SSRBase) {
+    private getIndex (node: HyBase) {
         if (node.parentElement !== this) throw new Error('removeChild error');
         const i = node.index;
         if (i === -1) throw new Error('removeChild error');
         return i;
     }
 
-    querySelector (selector: string): SSRElement|null {
+    querySelector (selector: string): HyElement|null {
         for (const child of this.children) {
             if (child.nodeType !== NodeType.ELEMENT_NODE) continue;
-            const el = child as SSRElement;
+            const el = child as HyElement;
             if (el._matchSelector(selector)) return el;
             const childResult = (el.querySelector(selector));
             if (childResult) return childResult;
         }
         return null;
     }
-    querySelectorAll (selector: string): SSRElement[] {
-        const list: SSRElement[] = [];
+    querySelectorAll (selector: string): HyElement[] {
+        const list: HyElement[] = [];
         for (const child of this.children) {
             if (child.nodeType !== NodeType.ELEMENT_NODE) continue;
-            const el = child as SSRElement;
+            const el = child as HyElement;
             if (el._matchSelector(selector)) {
                 list.push(el);
             }
@@ -147,7 +145,10 @@ export class SSRContainer extends SSRBase {
     }
 }
 
-export class SSRText extends SSRBase implements ITextNode {
+export class HyText extends HyBase implements ITextNode {
+    hydrate (el: Text) {
+        this.textContent = el.textContent!;
+    }
     _textContent: string = '';
     nodeType = NodeType.TEXT_NODE;
     get textContent (): string {
@@ -173,13 +174,13 @@ export class SSRText extends SSRBase implements ITextNode {
     }
 }
 
-export class SSRComment extends SSRText implements IComment {
+export class HyComment extends HyText implements IComment {
     nodeType = NodeType.COMMENT_NODE;
     toHtml (): string {
         return `<!--${this._textContent}-->`;
     }
 }
 
-export class SSRFragment extends SSRContainer implements IFragment<any> {
+export class HyFragment extends HyContainer implements IFragment<any> {
     nodeType = NodeType.DOCUMENT_FRAGMENT_NODE;
 }

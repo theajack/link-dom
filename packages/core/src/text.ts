@@ -8,7 +8,7 @@ import type { IChild } from './element';
 import type { IComputedLike, IReactive } from 'link-dom-reactive';
 import { useReactive } from './utils';
 import { LinkDomType, traverseChildren } from './utils';
-import { Renderer } from 'link-dom-shared';
+import { Renderer, checkHydrateEl } from 'link-dom-shared';
 
 export class Text {
     __ld_type = LinkDomType.Text;
@@ -18,6 +18,7 @@ export class Text {
         if (typeof val !== 'undefined') {
             this.text(val);
         }
+        checkHydrateEl(this);
     }
     text (val: string|number|boolean|IReactive) {
         useReactive(val, (v) => this.el.textContent = v);
@@ -38,6 +39,7 @@ export class Comment {
         if (typeof val !== 'undefined') {
             this.text(val);
         }
+        checkHydrateEl(this);
     }
     text (val: string|number|IComputedLike) {
         useReactive(val, (v) => this.el.textContent = v);
@@ -57,6 +59,7 @@ export class Frag {
     children: IChild[] = [];
     constructor () {
         this.el = Renderer.createFragment() as any;
+        checkHydrateEl(this);
     }
     append (...doms: IChild[]) {
         traverseChildren(doms, (dom, origin) => {
