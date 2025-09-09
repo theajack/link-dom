@@ -12,7 +12,6 @@ import { Renderer } from 'link-dom-shared';
 type IEventKey = keyof DocumentEventMap;
 
 export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[];
-
 export class Dom<T extends HTMLElement = HTMLElement> {
     __ld_type = LinkDomType.Dom;
     el: T;

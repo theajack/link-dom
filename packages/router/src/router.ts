@@ -54,8 +54,15 @@ class RouterState {
         return this._param;
     }
     routeList: IRouterInnerItem[] = [];
+    private _currentRoute: IRouterInnerItem;
+    
+    protected _setCurrentRoute (route: IRouterInnerItem) {
+        this._currentRoute = route;
+        DepUtil.trigger(this, 'currentRoute');
+    }
     get currentRoute () {
-        return this.routeList[this.routeList.length - 1];
+        DepUtil.add(this, 'currentRoute');
+        return this._currentRoute;
     }
 }
 
@@ -141,6 +148,7 @@ export class Router extends RouterState {
         // list 为route的路径，param为route所有url match参数
         const { list, param, matchedPaths } = this._matchRoutes(path, [ this.rootRoute ]);
         this.routeList = list;
+        this._setCurrentRoute(list[list.length - 1]);
         this._setQuery(searchToQuery(search));
         this._setParam(param);
         list.forEach((route, index) => {
@@ -230,13 +238,14 @@ export class Router extends RouterState {
     }
 
     _getRouteComponentArgs (): IRouteComponentArgs {
+        const _this = this;
         // debugger;
         return {
-            route: this.currentRoute,
-            query: this.query,
-            param: this.param,
-            path: this.path,
-            meta: this.currentRoute.meta,
+            get route() {return _this.currentRoute},
+            get query() {return _this.query},
+            get param() {return _this.param},
+            get path() {return _this.path},
+            get meta() {return _this.currentRoute.meta},
         };
     }
 }

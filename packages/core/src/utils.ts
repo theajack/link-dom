@@ -11,7 +11,7 @@ import { Text } from './text';
 
 import type { Dom } from './element';
 import { type Join, isJoin } from './join';
-import { Renderer } from 'link-dom-shared';
+import { Renderer, isWeb } from 'link-dom-shared';
 
 export enum LinkDomType {
     Dom,
@@ -144,7 +144,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             el = el.el;
         } else if (typeof el.__ld_type === 'number') {
             el = el.el;
-        } else if (!(dom instanceof Node)) {
+        } else if (!(dom instanceof Node) && !(dom?.__is_ssr)) {
             // @ts-ignore
             el = Renderer.createTextNode(`${dom}`);
         }

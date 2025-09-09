@@ -6,4 +6,3 @@
 
 export * from './element';
 export * from './base';
-export * from './other';

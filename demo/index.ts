@@ -9,8 +9,8 @@ import {
     deepAssign, deepClone, raw
 } from 'link-dom';
 import { useRenderer, type CustomElement } from 'link-dom-render';
-// import './ssr';
-import './router';
+import './ssr';
+// import './router';
 // import './comp-use';
 
 

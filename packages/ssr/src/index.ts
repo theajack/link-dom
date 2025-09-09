@@ -6,4 +6,6 @@
 export * from './utils';
 export * from './type.d';
 
-export { ssr } from './ssr';
+export { ssr, setRender, isSSR } from './ssr';
+
+export { hydration } from './hydration';

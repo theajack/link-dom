@@ -72,16 +72,17 @@ const router = createRouter({
         {
             path: '/x/:name/:#age/:!male',
             meta: { test: 'x' },
-            component: ({ query, param, meta, route, path }) => {
-                console.log(`test:query`, query);
-                console.log(`test:param`, param);
-                console.log(`test:meta`, meta);
-                console.log(`test:route`, route);
-                console.log(`test:path`, path);
+            component: (data) => {
+                console.log(`test:query`, data.query);
+                console.log(`test:param`, data.param);
+                console.log(`test:meta`, data.meta);
+                console.log(`test:route`, data.route);
+                console.log(`test:path`, data.path);
                 return dom.div.text('CompX').children(
-                    dom.div.text(`query: ${JSON.stringify(query)}`),
-                    dom.div.text(`param: ${JSON.stringify(param)}`),
-                    dom.div.text(`meta: ${JSON.stringify(meta)}`),
+                    dom.div.text(()=>`query: ${JSON.stringify(data.query)}`),
+                    dom.div.text(()=>`param: ${JSON.stringify(data.param)}`),
+                    dom.div.text(()=>`meta: ${JSON.stringify(data.meta)}`),
+                    dom.div.text(()=>`meta: ${JSON.stringify(data.query.a)}`),
                 );
             },
         },
@@ -124,3 +125,15 @@ watch(router.currentPath, (val) => {
 watch(() => router.query, (val) => {
     console.log('router.query', val);
 });
+
+
+window._t = ()=>{
+    const a = document.createElement('div')
+    let btn = document.createElement('button')
+    a.innerText = 'xxx'
+    a.appendChild(btn)
+    btn.innerText = 'btn'
+    btn.onclick = ()=>console.log('bbb')
+    a.onclick = ()=>console.log('aaa')
+    return a
+}

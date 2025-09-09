@@ -4,11 +4,10 @@
  * @Description: Coding something
  */
 import type { IComment, IElement, IFragment, ITextNode } from 'link-dom-shared';
-import { defineRenderer, isWeb } from 'link-dom-shared';
-import type { SSRBase } from './ssr-el';
+import { defineRenderer, isWeb, resetRenderer } from 'link-dom-shared';
 import { SSRComment, SSRElement, SSRFragment, SSRText } from './ssr-el';
-import type { Dom } from 'link-dom';
-import { SSR_ATTR, getSSRId } from './utils';
+import { dom, LinkDomType, type Dom, type Frag, type IChild } from 'link-dom';
+import { SSR_ATTR, SSR_SIZE, getSSRId } from './utils';
 
 class Document {
     _body: SSRElement;
@@ -29,38 +28,57 @@ class Document {
 
 export let document: Document;
 
-if (!isWeb()) {
+const defaultRenderer = {
+    createElement (tag: string = 'div') {
+        return new SSRElement(tag);
+    },
+    querySelector: function (selector: string): IElement<any> | null {
+        return document.body.querySelector(selector);
+    },
+    querySelectorAll: function (selector: string): IElement<any>[] {
+        return document.body.querySelectorAll(selector);
+    },
+    createTextNode: function (text?: string | undefined): ITextNode {
+        return new SSRText(text || '');
+    },
+    createComment: function (text?: string | undefined): IComment {
+        return new SSRComment(text || '');
+    },
+    createFragment: function (): IFragment<any> {
+        return new SSRFragment();
+    },
+    addStyle: function (v: any): void {
+        document.head.appendChild(v);
+    }
+};
 
+export let isSSR = false;
+
+export function setRender (name: 'web'|'ssr') {
+    if (name === 'web') {
+        resetRenderer();
+        isSSR = false;
+    } else if (name === 'ssr') {
+        defineRenderer(defaultRenderer);
+        isSSR = true;
+    } else {
+        isSSR = false;
+    }
+}
+
+if (!isWeb) {
     document = new Document();
-    defineRenderer({
-        createElement (tag: string = 'div') {
-            return new SSRElement(tag);
-        },
-        querySelector: function (selector: string): IElement<any> | null {
-            return document.body.querySelector(selector);
-        },
-        querySelectorAll: function (selector: string): IElement<any>[] {
-            return document.body.querySelectorAll(selector);
-        },
-        createTextNode: function (text?: string | undefined): ITextNode {
-            return new SSRText(text || '');
-        },
-        createComment: function (text?: string | undefined): IComment {
-            return new SSRComment(text || '');
-        },
-        createFragment: function (): IFragment<any> {
-            return new SSRFragment();
-        },
-        addStyle: function (v: any): void {
-            document.head.appendChild(v);
-        }
-    });
+    setRender('ssr');
 }
 
 // 渲染过程 此部分代码在服务端运行
 // @ts-ignore
-export function ssr (dom: Dom<SSRBase>, id?: string) {
-    id = getSSRId(id);
-    dom.attr(SSR_ATTR, id);
-    return dom.el.toHtml();
+export function ssr (comp: IChild) {
+    const frag = dom.frag;
+    let count = 1;
+    if (Array.isArray(comp)) count = comp.length;
+    else if (comp?.__ld_type === LinkDomType.Frag) count = (comp as Frag).children.length;
+    frag.append(dom.div.style('display', 'none').attr(SSR_SIZE, count), comp);
+    // @ts-ignore
+    return frag.el.toHtml();
 }

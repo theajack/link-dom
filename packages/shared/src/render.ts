@@ -42,6 +42,6 @@ export function resetRenderer () {
     defineRenderer(defaultRenderer);
 }
 
-if (isWeb()) {
+if (isWeb) {
     resetRenderer();
 }

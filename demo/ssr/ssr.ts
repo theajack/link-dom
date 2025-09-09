@@ -6,6 +6,8 @@
 // import { comp } from 'link-dom';
 // import { useSSR } from 'link-dom-ssr';
 
+// import {setRender} from "packages/ssr/src";
+
 // useSSR();
 
 // const a = (() => {

@@ -34,20 +34,34 @@
  *
  * 难点1：如何将服务端组件生成的html内容与客户端水合过程相关联
  *  通过顺序和节点校验来确认
+ * // 函数tostring 会因为打包方式不同大致不具有唯一性
  * 难点2：如何保证服务端客户端组件状态、逻辑一致
+ *  水合过程中 直接对旧节点进行绑定状态和事件 不引起浏览器重绘
  */
 
 let ssr: any, Comp: any, Comp2: any, hydration: any;
 
+function comp () {
+    useServer(() => {
+
+    });
+    useClient(() => {
+
+    });
+}
+
 function servePart (data) {
+
     return `
-        <div>${ssr(Comp(data), 'c1')}</div>
-        <div>${ssr(Comp2(data), 'c2')}</div>
+        <div>${ssr(Comp(data))}</div>
+        <div>${ssr(Comp).render(data)}</div>
+        <div>${ssr(Comp2(data))}</div>
     `;
 }
 
 
 function clientPart (data: any) {
-    hydration(Comp2(data), 'c1');
-    hydration(Comp(data), 'c2');
+    hydration(Comp2(data));
+    hydration(Comp2).render(data);
+    hydration(Comp(data));
 }

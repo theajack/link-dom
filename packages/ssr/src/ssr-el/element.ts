@@ -5,13 +5,13 @@
  */
 
 import type { IElement } from 'link-dom-shared';
-import { SSRContainer, SSREleType } from './base';
-import { SSRText } from './other';
+import { NodeType, SSRContainer, SSREleType, SSRText } from './base';
 
 export class SSRStyle {
-    [prop: string]: any;
+    map: Record<string, string> = {};
     setProperty (name: string, value: string, important: string) {
-        this[name] = `${value}${important ? '!important' : ''}`;
+        // ! 此处 !important 前面需要加一个空格
+        this.map[name] = `${value}${important ? ' !important' : ''}`;
     }
 }
 
@@ -37,7 +37,7 @@ export class ClassList {
     }
     toString () {
         if (!this.set.size) return '';
-        return ` class="${Array.from(this.set).join(' ')}`;
+        return ` class="${Array.from(this.set).join(' ')}"`;
     }
     setClass (v: string) {
         this.set = new Set(v.split(' ').filter(item => !!item));
@@ -46,17 +46,20 @@ export class ClassList {
 
 export class SSRElement extends SSRContainer implements IElement {
     type = SSREleType.Element;
+    nodeType = NodeType.ELEMENT_NODE;
     classList: ClassList = new ClassList();
     toHtml (): string {
         if (this._outerHTML) return this._outerHTML;
         let html = `<${this.tagName}${this.classList.toString()}`;
-        for (const key in Object.keys(this.style)) {
-            html += ` style="${key}: ${this.style[key]}"`;
+        const map = this.style.map;
+        const keys = Object.keys(map);
+        if (keys.length > 0) {
+            html += ` style="${keys.map(key => `${key}: ${map[key]};`).join(' ')}"`;
         }
         for (const key in this.attr) {
             html += ` ${key}="${this.attr[key]}"`;
         }
-        return `${html}>${this.toInnerHtml()}<${this.tagName}>`;
+        return `${html}>${this.toInnerHtml()}</${this.tagName}>`;
     }
     private toInnerHtml (): string {
         return super.toHtml();
@@ -72,7 +75,7 @@ export class SSRElement extends SSRContainer implements IElement {
     // 事件只需注册 无需处理
     addEventListener (): void {}
     removeEventListener (): void {}
-    attr: Record<string, string>;
+    attr: Record<string, string> = {};
     setAttribute (name: string, value: string): void {
         this.attr[name] = value;
     }
@@ -81,24 +84,6 @@ export class SSRElement extends SSRContainer implements IElement {
     }
     getAttribute (name: string): string {
         return this.attr[name];
-    }
-    remove (): void {
-        this.parentElement?._removeChild(this);
-    }
-    get parentNode (): any {
-        return this.parentElement;
-    }
-    get nextSibling (): any {
-        return this.nextElementSibling;
-    }
-    get nextElementSibling (): any {
-        return this.parentElement?._next(this);
-    }
-    get previousSibling (): any {
-        return this.previousElementSibling;
-    }
-    get previousElementSibling (): any {
-        return this.parentElement?._prev(this);
     }
     // SSREle
     set className (value: string) {

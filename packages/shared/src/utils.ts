@@ -49,6 +49,4 @@ export function raw (data: any) {
     return deepClone(data);
 }
 
-export function isWeb () {
-    return typeof document !== 'undefined' && document.head?.constructor.name === 'HTMLHeadElement';
-}
+export const isWeb = typeof document !== 'undefined' && document.head?.constructor.name === 'HTMLHeadElement';
