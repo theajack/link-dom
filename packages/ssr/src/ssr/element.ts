@@ -8,6 +8,7 @@ import type { IElement } from 'link-dom-shared';
 import { SSRContainer, SSRText } from './base';
 import { NodeType } from '../utils';
 import type { Dom } from 'link-dom';
+import { isSSR } from './render';
 
 export class SSRStyle {
     map: Record<string, string> = {};
@@ -51,6 +52,10 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
     classList: ClassList = new ClassList();
     hydrate (el: HTMLElement): void {
         super.hydrate(el);
+        // 遍历 _eventsListeners
+        for (const [ handler, [ name, options ] ] of this._eventsListeners) {
+            el.addEventListener(name as any, handler as any, options);
+        }
     }
     toHtml (): string {
         if (this._outerHTML) return this._outerHTML;
@@ -75,10 +80,15 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
         super();
         this.tagName = tagName;
     }
-
-    // 事件只需注册 无需处理
-    addEventListener (): void {}
-    removeEventListener (): void {}
+    _eventsListeners: Map<Function, [string, any]> = new Map();
+    addEventListener (name: string, handler: any, options: any): void {
+        if (isSSR) return;
+        this._eventsListeners.set(handler, [ name, options ]);
+    }
+    removeEventListener (name: string, handler: any): void {
+        if (isSSR) return;
+        this._eventsListeners.delete(handler);
+    }
     attr: Record<string, string> = {};
     setAttribute (name: string, value: string): void {
         this.attr[name] = value;
@@ -118,6 +128,10 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
     }
     set outerHTML (value: string) {
         this._outerHTML = value;
+    }
+    get textContent () {return this.innerText;}
+    set textContent (value: string) {
+        this.innerText = value;
     }
 
     // 暂时只实现一些简单的选择器

@@ -8,7 +8,7 @@ import type { IChild } from '../element';
 import { Frag } from '../text';
 import { LinkDomType } from '../utils';
 import { Marker, createMarkerNode, removeBetween } from './_marker';
-import { OriginTarget, deepAssign, isArrayOrJson } from 'link-dom-shared';
+import { OriginTarget, checkHydrateMarker, deepAssign, isArrayOrJson } from 'link-dom-shared';
 import { setArrayListeners, isRef, ref, type Ref, watch } from 'link-dom-reactive';
 
 class ForChild<T=any> {
@@ -86,7 +86,7 @@ export class For <T=any> {
     private _isDeep = false;
     private _generator: (item: T, index: Ref<number>)=>IChild;
 
-    private endMarker: Node;
+    end: Node;
 
     private _clearWatch: ()=>void;
 
@@ -101,7 +101,7 @@ export class For <T=any> {
             if (!this._isDeep) {
                 this._clearWatch = watch(_list, (v) => {
                     this._list = v;
-                    console.log('set list');
+                    // console.log('set list');
                     this.resetList();
                 });
             }
@@ -110,15 +110,17 @@ export class For <T=any> {
         }
         this._generator = _generator;
         this._initChildren();
+
+        checkHydrateMarker(this);
     }
 
     private resetList () {
         if (this.children.length > 0) {
-            removeBetween(this.children[0].marker.start, this.endMarker);
+            removeBetween(this.children[0].marker.start, this.end);
         }
-        const parent = this.endMarker.parentNode!;
+        const parent = this.end.parentNode!;
         this.frag = this._initListFrag();
-        parent.insertBefore(this.frag.el, this.endMarker);
+        parent.insertBefore(this.frag.el, this.end);
     }
 
     private newChild (data: T, index: number) {
@@ -132,12 +134,12 @@ export class For <T=any> {
         return child;
     }
     _updateItem (index: number, data: T) {
-        console.log('updateItem', index, this._list.length, data);
+        // console.log('updateItem', index, this._list.length, data);
         if (index >= this._list.length) {
             const frag = new Frag();
             frag.append(this.newChild(data, index).frag);
-            const parent = this.endMarker.parentNode!;
-            parent.insertBefore(frag.el, this.endMarker);
+            const parent = this.end.parentNode!;
+            parent.insertBefore(frag.el, this.end);
             return;
         }
 
@@ -150,11 +152,11 @@ export class For <T=any> {
     _newItem (index: number, data: T) {
         const frag = new Frag();
         const cc = this.children, n = cc.length;
-        let marker = this.endMarker, markerIndex = index;
+        let marker = this.end, markerIndex = index;
         while (index < n && !cc[markerIndex]) {
             markerIndex ++;
         }
-        marker = cc[markerIndex]?.marker.start || this.endMarker;
+        marker = cc[markerIndex]?.marker.start || this.end;
         frag.append(this.newChild(data, index).frag);
         const parent = marker.parentNode!;
         parent.insertBefore(frag.el, marker);
@@ -171,8 +173,8 @@ export class For <T=any> {
     private _initChildren () {
         this.frag = this._initListFrag();
         // 后面加一个结尾
-        this.endMarker = createMarkerNode('for-end');
-        this.frag.append(this.endMarker);
+        this.end = createMarkerNode('for-end');
+        this.frag.append(this.end);
         this.el = this.frag.el;
     }
 
@@ -203,10 +205,10 @@ export class For <T=any> {
     destroy () {
         this._clearWatch?.();
         if (this.children.length > 0) {
-            removeBetween(this.children[0].marker.start, this.endMarker);
+            removeBetween(this.children[0].marker.start, this.end);
         }
         // @ts-ignore
-        this.endMarker.remove();
+        this.end.remove();
     }
 }
 

@@ -3,12 +3,12 @@
  * @Date: 2025-09-01 20:06:25
  * @Description: Coding something
  */
-import { Renderer } from 'link-dom-shared';
+import { checkHydrateMarker, Renderer } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
 
 export class Marker {
 
-    static GlobalMarkerMap = new WeakMap<any, Set<Marker>>();
+    // static GlobalMarkerMap = new WeakMap<any, Set<Marker>>();
     __ld_type = LinkDomType.Marker;
 
     start: Node;
@@ -31,6 +31,8 @@ export class Marker {
         if (end) {
             this.end = createMarkerNode(endText);
         }
+        checkHydrateMarker(this);
+
         this._clearSelf = clearSelf;
     }
 

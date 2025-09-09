@@ -42,6 +42,7 @@ export class If {
 
     private frag: Frag;
 
+    // todo 这个是否会在ssr中受影响
     private _el: DocumentFragment;
 
     private marker: Marker;

@@ -7,56 +7,8 @@
 
 import { dom, type IChild } from 'link-dom';
 import { SSR_SIZE } from '../utils';
-import type { IComment, IElement, IFragment, IRenderer, ITextNode } from 'link-dom-shared';
-import { RendererType } from 'link-dom-shared';
-import { HyElement } from './element';
-import { HyComment, HyFragment, HyText } from './base';
-
-
-class Document {
-    _body: HyElement;
-    get body () {
-        if (!this._body) {
-            this._body = new HyElement('body');
-        }
-        return this._body;
-    }
-    _head: HyElement;
-    get head () {
-        if (!this._head) {
-            this._head = new HyElement('head');
-        }
-        return this._head;
-    }
-}
-
-export let doc: Document;
-
-const defaultRenderer: IRenderer = {
-    type: RendererType.Hydrate,
-    createElement (tag: string = 'div') {
-        return new HyElement(tag);
-    },
-    querySelector: function (selector: string): IElement<any> | null {
-        return doc.body.querySelector(selector);
-    },
-    querySelectorAll: function (selector: string): IElement<any>[] {
-        return doc.body.querySelectorAll(selector);
-    },
-    createTextNode: function (text?: string | undefined): ITextNode {
-        return new HyText(text || '');
-    },
-    createComment: function (text?: string | undefined): IComment {
-        return new HyComment(text || '');
-    },
-    createFragment: function (): IFragment<any> {
-        return new HyFragment();
-    },
-    addStyle: function (v: any): void {
-        document.head.appendChild(v);
-    }
-};
-
+import { setRender } from '../ssr/render';
+import type { SSRBase } from 'src/ssr/base';
 
 let ssrNodes: HTMLElement[]|null = null;
 
@@ -89,15 +41,33 @@ function initSSRNodes () {
 // }
 
 // 水合过程 此部分在客户端运行
-export function hydrate <T extends any[]> (comp: (...args: T)=>IChild): Node[]  {
-    const clientFrag = dom.div.append(node);
-    const childNodes = Array.from(clientFrag.el.childNodes);
-    const nodes = findSSRNodes(childNodes);
-    const n = nodes.length;
-    // console.time();
-    for (let i = 0; i < n; i++) {
-        (nodes[i] as Element).replaceWith(childNodes[i]);
-        // 待优化
+export function hydrate <T extends any[]> (comp: (...args: T)=>IChild): ((...args: T) => void)  {
+
+    return (...args: T) => {
+        console.time();
+        setRender('hydrate');
+        initSSRNodes();
+
+        const value = comp(...(args || []));
+        const clientFrag = dom.div.append(value);
+
+        // debugger;
+        const childNodes = Array.from(clientFrag.el.childNodes);
+        const nodes = findSSRNodes(childNodes);
+
+        const size = childNodes.length;
+
+        for (let i = 0; i < size; i++) {
+            const child = childNodes[i] as any as SSRBase;
+            child.hydrate(nodes[i]);
+        }
+        // const n = nodes.length;
+        // for (let i = 0; i < n; i++) {
+        //     (nodes[i] as Element).replaceWith(childNodes[i]);
+        //     // 待优化
+        // };
+        setRender('web');
+        console.timeEnd();
     };
     // console.timeEnd();
     // // const ssrFrag = dom.div.append(nodes);

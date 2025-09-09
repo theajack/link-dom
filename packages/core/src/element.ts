@@ -132,20 +132,19 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     style (name: IStyleKey|string): string;
     style <T extends IStyleKey>(name: T, value: IStyle[T]): this;
     style (name: IStyleKey|IStyle|string, value?: any): string|this {
-        const style = this.el.style;
         if (typeof value !== 'undefined') {
             // @ts-ignore
             useReactive(value, (v) => {
                 // @ts-ignore
                 const { important, cssValue, cssKey } = formatCssKV(name, v);
-                style.setProperty(cssKey, cssValue, important);
+                this.el.style.setProperty(cssKey, cssValue, important);
             });
 
             return this;
         }
         if (typeof name === 'string') {
             // @ts-ignore
-            return style[name] as string;
+            return this.el.style[name] as string;
         }
         // @ts-ignore
         for (const k in name) {

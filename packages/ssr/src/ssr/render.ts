@@ -12,6 +12,11 @@ import { SSR_SIZE } from '../utils';
 
 class Document {
     _body: SSRElement;
+    static instance: Document;
+    constructor () {
+        if (Document.instance) return Document.instance;
+        Document.instance = this;
+    }
     get body () {
         if (!this._body) {
             this._body = new SSRElement('body');
@@ -29,7 +34,8 @@ class Document {
 
 export let doc: Document;
 
-export const isHydrating = false;
+export let isSSR = false;
+export let isHydrating = false;
 
 const defaultRenderer: IRenderer = {
     type: RendererType.SSR,
@@ -52,31 +58,32 @@ const defaultRenderer: IRenderer = {
         return new SSRFragment();
     },
     addStyle: function (v: any): void {
-        document.head.appendChild(v);
+        doc.head.appendChild(v);
     }
 };
 
-export let isSSR = false;
-
-export function setRender (name: 'web'|'ssr') {
+export function setRender (name: 'web'|'ssr'|'hydrate') {
+    isSSR = isHydrating = false;
     if (name === 'web') {
         resetRenderer();
-        isSSR = false;
     } else if (name === 'ssr') {
-        if (!doc) doc = new Document();
+        doc = new Document();
         defineRenderer(defaultRenderer);
         isSSR = true;
-    } else {
-        isSSR = false;
+    } else if (name === 'hydrate') {
+        doc = document as any;
+        defineRenderer(defaultRenderer);
+        isHydrating = true;
     }
 }
+
 
 // 渲染过程 此部分代码在服务端运行
 // @ts-ignore
 export function ssr <T extends any[]> (comp: (...args: T)=>IChild): (...args: T)=>string  {
     return (...args: T) => {
         setRender('ssr');
-        const value = comp(...args);
+        const value = comp(...(args || []));
         const frag = dom.frag;
         let count = 1;
         if (Array.isArray(value)) count = value.length;

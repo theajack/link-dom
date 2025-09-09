@@ -8,15 +8,26 @@ import type { Comment, Dom, Frag, Text } from 'link-dom';
 import { NodeType } from '../utils';
 import type { SSRElement } from './element';
 import type { IComment, IFragment, ITextNode } from 'link-dom-shared';
+import { isHydrating } from './render';
 
 export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
     dom: T;
     __is_ssr = true;
+    __is_hydrate = false;
     nodeType: NodeType;
     abstract toHtml (): string;
+    constructor () {
+        if (isHydrating) {
+            this.__is_hydrate = true;
+        }
+    }
     hydrate (el: any) {
         // 部分text这里没有dom
-        if (!this.dom) throw new Error('dom is not set');
+        if (!this.dom) {
+            // console.log('not dom', this);
+            return;
+        }
+        // 指定真实的dom节点
         this.dom.el = el;
     }
 
@@ -52,13 +63,16 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
     hydrate (el: HTMLElement) {
         super.hydrate(el);
         const childNodes = el.childNodes;
-        const len = this.children.length;
+        // const curChildren = this.flatChildren();
+        const curChildren = this.children;
+        const len = curChildren.length;
+        debugger;
         if (childNodes.length !== len) {
             throw new Error('hydrate error');
             // debugger;
         }
         for (let i = 0; i < len; i++) {
-            const item = this.children[i];
+            const item = curChildren[i];
             const node = childNodes[i];
             item.hydrate(node);
         }
@@ -71,7 +85,12 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
         return html;
     }
     get innerText () {
-        return this.children.map(item => item.innerText).join('');
+        let text = '';
+        for (const item of this.childNodes) {
+            if (item.nodeType === NodeType.COMMENT_NODE) continue;
+            text += item.innerText;
+        }
+        return text;
     }
     set innerText (text) {
         this.children = [ new SSRText(text) ];
@@ -99,7 +118,13 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
     }
     prepend (child: SSRBase) {
         child.parentElement = this;
-        this.children.unshift(child);
+        if (child.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
+            for (const item of (child as SSRFragment).children)
+                this.prepend(item);
+        } else {
+            this.children.unshift(child);
+            // onElementMounted(child, this);
+        }
     }
     insertBefore (node: SSRBase, child: SSRBase) {
         if (child.parentElement !== this) throw new Error('insertBefore error');
@@ -182,8 +207,34 @@ export class SSRText extends SSRBase<Text> implements ITextNode {
     }
 }
 
-export class SSRComment extends SSRText implements IComment {
+// @ts-ignore
+export class SSRComment extends SSRBase<Comment> implements IComment {
+    _textContent: string = '';
     nodeType = NodeType.COMMENT_NODE;
+    markerType: ''|'start'|'end';
+    hydrate (el: any): void {
+        // 部分text这里没有dom
+        if (!this.markerType) {
+            // console.log('not dom', this);
+            // debugger;
+            // throw new Error('dom is not set');
+            return;
+        }
+        // 指定真实的dom节点
+        this.dom[this.markerType] = el;
+    }
+    constructor (textContent: string) {
+        super();
+        this.textContent = textContent;
+    }
+    get textContent (): string {
+        return this._textContent;
+    }
+    set textContent (text: string) {
+        // @ts-ignore
+        if (typeof text !== 'string') text = text.toString();
+        this._textContent = text;
+    }
     toHtml (): string {
         return `<!--${this._textContent}-->`;
     }

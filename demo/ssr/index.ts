@@ -3,37 +3,48 @@
  * @Date: 2025-09-08 23:37:37
  * @Description: Coding something
  */
-import { setRender, ssr, hydrate, isSSR } from 'link-dom-ssr';
-import { ref, dom, mount, ctrl } from 'link-dom';
+import { ssr, hydrate, isSSR } from 'link-dom-ssr';
+import { ref, dom, mount, ctrl, watch, computed } from 'link-dom';
 
-function CounterDeepRef (data: {a:1}) {
+function CounterDeepRef (data: {a:number}) {
+    console.log('CounterDeepRef', data);
     const store = ref({
         count: 0,
         count2: 3
     });
-    const list = ref([ 1, 2, 3 ]);
+
+    const arr: number[] = [];
+
+    for (let i = 0; i < 10000; i++) {
+        arr.push(i);
+    }
+
+
+    const list = ref(arr);
 
 
     console.warn('isSSR', isSSR);
 
-    // const countAdd1 = computed(() => store.value.count + 1);
-    // const countAddX = computed(() => store.value.count + countAdd1.value + 1);
-    // countAdd1.sub((v: any) => {
-    //     console.log(v, countAdd1.value);
-    // });
+    const countAdd1 = computed(() => store.value.count + 1);
+    const countAddX = computed(() => store.value.count + countAdd1.value + 1);
+    watch(countAdd1, (v: any) => {
+        console.log('countAdd1', v, countAdd1.value);
+    });
+    watch(countAddX, (v: any) => {
+        console.log('countAddX', v, countAdd1.value);
+    });
 
-    // watch(store.value.count, (v, old) => {
-    //     console.log('store.value.count', v, old);
-    // });
+    watch(() => store.value.count, (v, old) => {
+        console.log('store.value.count', v, old);
+    });
     const v = dom.div.style('borderBottom', '2px solid #000').append(
-        // dom.button.text(() => `count is ${store.value.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.value.count2 + 1}; a=${store.value.count}`)
-        //     .click(() => {
-        //         store.value.count++;
-        //         store.value.count2++;
-        //     }),
-        ctrl.for(list, (item, index) => {
-            return dom.div.text(() => `${index.value}: ${item}`);
-        }),
+        data.a,
+        dom.button.text(() => `count is ${store.value.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.value.count2 + 1}; a=${store.value.count}`)
+            .click(() => {
+                store.value.count++;
+                store.value.count2++;
+                list.value.push(store.value.count);
+            }),
         dom.button.class('a b').addClass('x')
             .attr('x', () => store.value.count)
             .text(() => `count is ${store.value.count}; ${22} +1=${store.value.count2 + 1}; a=${store.value.count}`)
@@ -42,11 +53,6 @@ function CounterDeepRef (data: {a:1}) {
                 store.value.count2++;
                 list.value.push(store.value.count);
             }),
-        ctrl.if(() => store.value.count % 2 === 1, () => {
-            return dom.div.text(() => `奇数 count=${store.value.count}`);
-        }).else(() => {
-            return dom.div.text(() => `偶数 count=${store.value.count}`);
-        }),
         dom.div.append(() => store.value.count),
         dom.div.append(() => store.value.count),
         // dom.div.append(countAdd1),
@@ -54,31 +60,50 @@ function CounterDeepRef (data: {a:1}) {
             .show(() => store.value.count % 2 === 1),
         dom.div.text(() => `count=${store.value.count}`)
             .style('color', () => `${store.value.count % 2 === 1 ? 'red' : 'green!important'}`)
-            .style('cursor', () => `${store.value.count % 2 === 1 ? 'pointer' : 'text'}`)
+            .style('cursor', () => `${store.value.count % 2 === 1 ? 'pointer' : 'text'}`),
+        ctrl.if(() => store.value.count % 2 === 1, () => {
+            return [
+                dom.div.text(() => `奇数 count=${store.value.count}`),
+                dom.div.text(() => `奇数 count=${store.value.count}`)
+            ];
+        }).else(() => {
+            return dom.div.text(() => `偶数 count=${store.value.count}`);
+        }),
+        ctrl.for(list, (item, index) => {
+            return dom.div.text(() => `${index.value}: ${item}`);
+        }),
     );
 
-    store.value.count = 1;
+    // store.value.count = 1;
 
     return v;
 }
 
-setRender('ssr');
 
-console.log(CounterDeepRef.toString());
-
-
-const a = ssr(CounterDeepRef)({ a: 1 });
-
-console.log(a);
-
-document.body.innerHTML = a;
+// console.log(CounterDeepRef.toString());
 
 
-setRender('web');
-// mount(CounterDeepRef(), document.body);
-hydrate(CounterDeepRef(), 'a1');
+// const a = ssr(CounterDeepRef)({ a: 1 });
+// const b = ssr(CounterDeepRef)({ a: 2 });
+// console.log(a);
+// document.body.innerHTML = a + b;
 
-hydrate(CounterDeepRef());
+function replace () {
+    console.time();
+    const el = CounterDeepRef({ a: 1 });
+    const frag = dom.frag.append(el);
+    const mark = document.querySelector('[ssr-n="1"]');
+    mark?.nextElementSibling?.replaceWith(frag.el.children[0]);
+    console.timeEnd();
+}
+
+// replace();
+
+
+mount(CounterDeepRef({ a: 1 }), document.body);
+// hydrate(CounterDeepRef)({ a: 1 });
+// hydrate(CounterDeepRef)({ a: 2 });
+
 
 const id = 0;
 
