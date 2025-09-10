@@ -3,12 +3,12 @@
  * @Date: 2025-09-05 22:26:21
  * @Description: Coding something
  */
-import type { IReactiveLike } from 'src/type.d';
+import type { IReactiveLike } from '../type.d';
 import { If } from './if';
 import { getReactiveValue } from '../utils';
 import type { IChild } from '../element';
 import { LinkDomType } from '../utils';
-import type { Frag } from 'src/text';
+import type { Frag } from '../text';
 export class Switch {
     __ld_type = LinkDomType.Switch;
     private if: If;

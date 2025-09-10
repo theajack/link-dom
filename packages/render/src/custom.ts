@@ -1,4 +1,4 @@
-import { defineRenderer, type IElement } from 'link-dom-shared';
+import { defineRenderer, RendererType, type IElement } from 'link-dom-shared';
 import type { ICustomRender, IListener } from './type';
 
 export enum ElementType {
@@ -137,6 +137,7 @@ export class CustomElement implements IElement {
 export function useRenderer (customRender: ICustomRender = {}) {
     Object.assign(CustomHacker, customRender);
     defineRenderer({
+        type: RendererType.Custom,
         querySelector (selector) {
             return CustomElement.Root?._findName(selector) || null;
         },

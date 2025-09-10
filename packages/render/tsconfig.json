@@ -10,5 +10,5 @@
   },
   "include": [
     "src"
-, "../shared/src/render.ts"]
+  ]
 }

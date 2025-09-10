@@ -12,17 +12,22 @@ import { OriginTarget, ProxyTarget, deepAssign, deepClone, raw } from 'link-dom-
 export function observe (
     exp: ()=>any,
     fn: (newValue: any, oldValue: any)=>void,
-    onvalue?: (value: any)=>void
+    onvalue?: (value: any)=>void,
+    // el?: HTMLElement
 ) {
     if (typeof exp !== 'function') return () => {};
     // console.log('debug observe', fn);
     DepUtil.inCollecting = true;
+    // debugger;
+    // DepUtil.CurEl = el || null;
     const value = exp();
     onvalue?.(value);
+    // DepUtil.CurEl = null;
     DepUtil.inCollecting = false;
     let deps = Array.from(DepUtil.Temp);
     DepUtil.Temp.clear();
     for (const dep of deps) {
+        // dep.collect(exp, { fn, value, exp });
         dep.collect(exp, { fn, value });
     }
     return () => {

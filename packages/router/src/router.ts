@@ -55,7 +55,7 @@ class RouterState {
     }
     routeList: IRouterInnerItem[] = [];
     private _currentRoute: IRouterInnerItem;
-    
+
     protected _setCurrentRoute (route: IRouterInnerItem) {
         this._currentRoute = route;
         DepUtil.trigger(this, 'currentRoute');
@@ -241,11 +241,11 @@ export class Router extends RouterState {
         const _this = this;
         // debugger;
         return {
-            get route() {return _this.currentRoute},
-            get query() {return _this.query},
-            get param() {return _this.param},
-            get path() {return _this.path},
-            get meta() {return _this.currentRoute.meta},
+            get route () {return _this.currentRoute;},
+            get query () {return _this.query;},
+            get param () {return _this.param;},
+            get path () {return _this.path;},
+            get meta () {return _this.currentRoute.meta;},
         };
     }
 }

@@ -227,6 +227,7 @@ export class SSRComment extends SSRBase<Comment> implements IComment {
         super();
         this.textContent = textContent;
     }
+    innerText: string;
     get textContent (): string {
         return this._textContent;
     }

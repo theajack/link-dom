@@ -5,13 +5,15 @@
  */
 interface DepItem {
     fn: (newValue: any, oldValue: any)=>void,
-    value: any
+    value: any,
+    // exp: ()=>any
 }
 
 export const DepUtil = {
     // {target: {key: dep}}
     Global: new WeakMap() as WeakMap<any, Map<string|symbol, Dep>>,
     Temp: new Set() as Set<Dep>,
+    CurEl: null as HTMLElement|null,
     inCollecting: false,
     _latest: {} as { target: any, key: string|symbol },
     setLatest (target: any, key: string|symbol = 'value') {
@@ -56,8 +58,13 @@ export const DepUtil = {
     },
 };
 
+// window.depu = DepUtil;
+
 export class Dep {
-    list: Map<()=>any, DepItem> = new Map();
+    list: Map<any, DepItem> = new Map();
+    // collect (key: any, item: DepItem) {
+    //     this.list.set(exp, item);
+    // }
     collect (exp: ()=>any, item: DepItem) {
         this.list.set(exp, item);
     }

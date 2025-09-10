@@ -7,9 +7,16 @@ import fs from 'fs-extra';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 
-const packages = fs.readdirSync(
-    path.resolve(__dirname, '../packages')
-);
+let packages: string[] = [];
+
+if (process.argv[2]) {
+    packages = process.argv[2].split(',');
+} else {
+    packages = fs.readdirSync(
+        path.resolve(__dirname, '../packages')
+    );
+}
+
 
 console.log(packages);
 for (const name of packages) {

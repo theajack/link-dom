@@ -54,4 +54,5 @@ export const isWeb = typeof document !== 'undefined' && document.head?.construct
 export enum RendererType {
     Web,
     SSR,
+    Custom,
 }

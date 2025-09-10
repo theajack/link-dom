@@ -4,7 +4,6 @@
  * @Description: Coding something
  */
 export * from './utils';
-export * from './type.d';
 
 export { ssr, isSSR, isHydrating } from './ssr/render';
 

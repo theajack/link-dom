@@ -24,7 +24,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         if (typeof val === 'undefined') {
             return this.el[key];
         }
-        useReactive(val, (v) => this.el[key] = v);
+        this._useR(val, (v) => this.el[key] = v);
         return this;
     }
     class (): string;
@@ -91,7 +91,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
             return this.el.getAttribute(name) || '';
         }
 
-        useReactive(value, (v) => this.el.setAttribute(name, v));
+        this._useR(value, (v) => this.el.setAttribute(name, v));
         return this;
     }
     removeAttr (key: string) {
@@ -125,8 +125,12 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         if (!this.el.__xr_data) this.el.__xr_data = {};
         // @ts-ignore
 
-        useReactive(value, (v) => this.el.__xr_data[name] = v);
+        this._useR(value, (v) => this.el.__xr_data[name] = v);
         return this;
+    }
+    private _useR (v: any, apply: (v: any, isInit: boolean) => void) {
+        // useReactive(v, apply, this.el);
+        useReactive(v, apply);
     }
     style (name: IStyle|Record<string, any>): this;
     style (name: IStyleKey|string): string;
@@ -134,7 +138,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     style (name: IStyleKey|IStyle|string, value?: any): string|this {
         if (typeof value !== 'undefined') {
             // @ts-ignore
-            useReactive(value, (v) => {
+            this._useR(value, (v) => {
                 // @ts-ignore
                 const { important, cssValue, cssKey } = formatCssKV(name, v);
                 this.el.style.setProperty(cssKey, cssValue, important);
@@ -170,7 +174,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         if (typeof val === 'undefined') {
             return this.el.outerHTML;
         }
-        useReactive(val, (v) => {
+        this._useR(val, (v) => {
             this.html(v);
             this.el = this.el.children[0] as T;
         });
@@ -270,7 +274,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         return this.style('display', display as any);
     }
     show (visible: IReactiveLike<boolean>, display: IStyle['display'] = 'block') {
-        useReactive(visible, (v) => {
+        this._useR(visible, (v) => {
             this.display(v ? display : 'none');
         });
         return this;

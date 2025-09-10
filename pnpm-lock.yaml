@@ -103,6 +103,9 @@ importers:
 
   packages/ssr:
     dependencies:
+      link-dom:
+        specifier: workspace:*
+        version: link:../core
       link-dom-shared:
         specifier: workspace:*
         version: link:../shared

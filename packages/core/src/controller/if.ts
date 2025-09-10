@@ -77,7 +77,10 @@ export class If {
     private _clearWatch: ()=>void;
     __mounted () {
         console.log('test:if mounted');
-        this._initChildren();
+        // this._initChildren();
+        if (this.__mountedFn) {
+            this.frag.mounted(this.__mountedFn);
+        }
         this.frag?.__mounted?.(this.frag);
         this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
             const index = this.switchCase();
@@ -90,16 +93,19 @@ export class If {
                 if (index === -1) {
                     list = this.marker.clear();
                 } else {
-                    this.frag = this.scopes[index].toFrag();
-                    list = this.marker.replace(this.frag.el);
+                    const frag = this.scopes[index].toFrag();
+                    list = this.marker.replace(frag.el);
                 }
                 this.scopes[prev]?.store(list);
             }
         });
+        // @ts-ignore
+        this.frag = null;
     }
 
+    private __mountedFn?: (el: Frag)=>void;
     mounted (v: (el: Frag)=>void) {
-        this.frag.mounted(v);
+        this.__mountedFn = v;
         return this;
     }
     private _initChildren () {

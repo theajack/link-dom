@@ -11,7 +11,7 @@ import { Text } from './text';
 
 import type { Dom } from './element';
 import { type Join, isJoin } from './join';
-import { Renderer, isWeb } from 'link-dom-shared';
+import { Renderer } from 'link-dom-shared';
 
 export enum LinkDomType {
     Dom,
@@ -114,6 +114,7 @@ export function useReactive (v: any|IReactive<any>, apply: (v:any, isInit: boole
     }
     if (typeof (v) === 'function') {
         observe(v, v => { apply(v, false); }, v => { apply(v, true); });
+        // observe(v, v => { apply(v, false); }, v => { apply(v, true); }, el);
     } else {
         apply(v, true);
         return false;

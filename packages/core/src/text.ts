@@ -56,35 +56,43 @@ export class Comment {
 export class Frag {
     __ld_type = LinkDomType.Frag;
     el: DocumentFragment;
-    children: IChild[] = [];
     constructor () {
         this.el = Renderer.createFragment() as any;
         checkHydrateEl(this);
     }
     append (...doms: IChild[]) {
         traverseChildren(doms, (dom, origin) => {
-            this.children.push(origin);
+            if (!this._isMounted) this._children.push(origin);
             this.el.appendChild(dom);
         });
         return this;
     }
     prepend (...doms: IChild[]) {
         traverseChildren(doms, (dom, origin) => {
-            this.children.unshift(origin);
+            if (!this._isMounted) this._children.unshift(origin);
             this.el.prepend(dom);
         });
         return this;
     }
+
+    _children: IChild[] = [];
+    _isMounted = false;
+    get children () {
+        return this._isMounted ? this.el.children : this._children;
+    }
+    _mounted?: (el: Frag)=>void;
     // @ts-ignore
-    __mounted?: (el: Frag)=>void;
+    __mounted = (el: Frag) => {
+        this._children.forEach(child => {
+            // @ts-ignore
+            child.__mounted?.(child);
+        });
+        this._children = [];
+        this._mounted?.(el);
+        this._isMounted = true;
+    };
     mounted (v: (el: Frag)=>void) {
-        this.__mounted = (_this) => {
-            _this.children.forEach(child => {
-                // @ts-ignore
-                child.__mounted?.(child);
-            });
-            v(_this);
-        };
+        this._mounted = v;
         return this;
     }
 }

@@ -8,7 +8,7 @@
 import { dom, type IChild } from 'link-dom';
 import { SSR_SIZE } from '../utils';
 import { setRender } from '../ssr/render';
-import type { SSRBase } from 'src/ssr/base';
+import type { SSRBase } from '../ssr/base';
 
 let ssrNodes: HTMLElement[]|null = null;
 

@@ -21,6 +21,9 @@
     "rootDir": ".",
     "noEmit": false,
     "paths": {
+      "link-dom-reactive": ["./packages/reactive/src/index.ts"],
+      "link-dom-shared": ["./packages/shared/src/index.ts"],
+      "link-dom": ["./packages/core/src/index.ts"],
     },
     "noImplicitAny": false,
     "declaration": true, // 需要设置为 true 来支持类型

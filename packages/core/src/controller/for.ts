@@ -14,7 +14,7 @@ import { setArrayListeners, isRef, ref, type Ref, watch } from 'link-dom-reactiv
 class ForChild<T=any> {
     private _marker: Marker;
     index: Ref<number>;
-    // removed = false;
+    removed = false;
 
     private _frag: Frag;
 
@@ -112,6 +112,7 @@ export class For <T=any> {
         this._initChildren();
 
         checkHydrateMarker(this);
+        // window._for = this;
     }
 
     private resetList () {
@@ -192,12 +193,14 @@ export class For <T=any> {
         const child = this.children[index];
         if (child) {
             child.marker.clear();
+            child.removed = true;
         }
     }
 
     _clearEmptyChildren (length: number) {
         if (length >= this.children.length) return;
         this.children.splice(length).forEach(child => {
+            if (child.removed) return;
             child.marker.clear();
         });
     }

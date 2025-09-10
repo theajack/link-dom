@@ -8,69 +8,87 @@ import { ref, dom, mount, ctrl, watch, computed } from 'link-dom';
 
 function CounterDeepRef (data: {a:number}) {
     console.log('CounterDeepRef', data);
-    const store = ref({
-        count: 0,
-        count2: 3
-    });
+    // const store = ref({
+    //     count: 0,
+    //     count2: 3
+    // });
 
     const arr: number[] = [];
 
-    for (let i = 0; i < 10000; i++) {
-        arr.push(i);
-    }
-
+    // for (let i = 0; i < 20000; i++) {
+    //     arr.push(i);
+    // }
 
     const list = ref(arr);
 
+    window._list = list;
 
     console.warn('isSSR', isSSR);
 
-    const countAdd1 = computed(() => store.value.count + 1);
-    const countAddX = computed(() => store.value.count + countAdd1.value + 1);
-    watch(countAdd1, (v: any) => {
-        console.log('countAdd1', v, countAdd1.value);
-    });
-    watch(countAddX, (v: any) => {
-        console.log('countAddX', v, countAdd1.value);
-    });
+    // const countAdd1 = computed(() => store.value.count + 1);
+    // const countAddX = computed(() => store.value.count + countAdd1.value + 1);
+    // watch(countAdd1, (v: any) => {
+    //     console.log('countAdd1', v, countAdd1.value);
+    // });
+    // watch(countAddX, (v: any) => {
+    //     console.log('countAddX', v, countAdd1.value);
+    // });
 
-    watch(() => store.value.count, (v, old) => {
-        console.log('store.value.count', v, old);
-    });
+    // watch(() => store.value.count, (v, old) => {
+    //     console.log('store.value.count', v, old);
+    // });
+    let selected = ref(-1);
     const v = dom.div.style('borderBottom', '2px solid #000').append(
-        data.a,
-        dom.button.text(() => `count is ${store.value.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.value.count2 + 1}; a=${store.value.count}`)
-            .click(() => {
-                store.value.count++;
-                store.value.count2++;
-                list.value.push(store.value.count);
-            }),
-        dom.button.class('a b').addClass('x')
-            .attr('x', () => store.value.count)
-            .text(() => `count is ${store.value.count}; ${22} +1=${store.value.count2 + 1}; a=${store.value.count}`)
-            .click(() => {
-                store.value.count++;
-                store.value.count2++;
-                list.value.push(store.value.count);
-            }),
-        dom.div.append(() => store.value.count),
-        dom.div.append(() => store.value.count),
-        // dom.div.append(countAdd1),
-        dom.div.text(() => `count=${store.value.count}`)
-            .show(() => store.value.count % 2 === 1),
-        dom.div.text(() => `count=${store.value.count}`)
-            .style('color', () => `${store.value.count % 2 === 1 ? 'red' : 'green!important'}`)
-            .style('cursor', () => `${store.value.count % 2 === 1 ? 'pointer' : 'text'}`),
-        ctrl.if(() => store.value.count % 2 === 1, () => {
-            return [
-                dom.div.text(() => `奇数 count=${store.value.count}`),
-                dom.div.text(() => `奇数 count=${store.value.count}`)
-            ];
-        }).else(() => {
-            return dom.div.text(() => `偶数 count=${store.value.count}`);
+        // data.a,
+        // dom.button.text(() => `count is ${store.value.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.value.count2 + 1}; a=${store.value.count}`)
+        //     .click(() => {
+        //         store.value.count++;
+        //         store.value.count2++;
+        //         list.value.push(store.value.count);
+        //     }),
+        dom.button.text('clear').click(() => {
+            list.value = [];
         }),
+        dom.button.text('init').click(() => {
+            const arr = [] as any[];
+            for (let i = 0; i < 1; i++) {
+                arr.push(i);
+            }
+            console.time();
+            list.value = arr;
+            console.timeEnd();
+        }),
+        dom.button.text('clear selected').click(() => {
+            selected = null;
+        }),
+        // dom.button.class('a b').addClass('x')
+        //     .attr('x', () => store.value.count)
+        //     .text(() => `count is ${store.value.count}; ${22} +1=${store.value.count2 + 1}; a=${store.value.count}`)
+        //     .click(() => {
+        //         store.value.count++;
+        //         store.value.count2++;
+        //         list.value.push(store.value.count);
+        //     }),
+        // dom.div.append(() => store.value.count),
+        // dom.div.append(() => store.value.count),
+        // // dom.div.append(countAdd1),
+        // dom.div.text(() => `count=${store.value.count}`)
+        //     .show(() => store.value.count % 2 === 1),
+        // dom.div.text(() => `count=${store.value.count}`)
+        //     .style('color', () => `${store.value.count % 2 === 1 ? 'red' : 'green!important'}`)
+        //     .style('cursor', () => `${store.value.count % 2 === 1 ? 'pointer' : 'text'}`),
+        // ctrl.if(() => store.value.count % 2 === 1, () => {
+        //     return [
+        //         dom.div.text(() => `奇数 count=${store.value.count}`),
+        //         dom.div.text(() => `奇数 count=${store.value.count}`)
+        //     ];
+        // }).else(() => {
+        //     return dom.div.text(() => `偶数 count=${store.value.count}`);
+        // }),
         ctrl.for(list, (item, index) => {
-            return dom.div.text(() => `${index.value}: ${item}`);
+            return dom.div.style('color', () => (selected.value === item ? 'red' : 'green'))
+                .text(() => `${index.value}: ${item}`)
+                .click(() => { selected.value = item; });
         }),
     );
 
