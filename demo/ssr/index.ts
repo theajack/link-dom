@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import { ssr, hydrate, isSSR } from 'link-dom-ssr';
-import { ref, dom, mount, ctrl, watch, computed, reactive } from 'link-dom';
+import { ref, dom, mount, ctrl, watch, computed, reactive, join } from 'link-dom';
 
 function CounterDeepRef (data: {a:number}) {
     // console.log('CounterDeepRef', data);
@@ -13,7 +13,7 @@ function CounterDeepRef (data: {a:number}) {
     //     count2: 3
     // });
 
-    const arr: number[] = [];
+    const arr: {i: number}[] = [];
 
     // for (let i = 0; i < 20000; i++) {
     //     arr.push(i);
@@ -52,9 +52,9 @@ function CounterDeepRef (data: {a:number}) {
         dom.button.text('init').click(() => {
             console.time();
             // const arr = [] as any[];
-            for (let i = 0; i < 10000; i++) {
+            for (let i = 0; i < 4; i++) {
                 // arr.push(i);
-                list.value.push(i);
+                list.value.push({ i });
             }
             // list.value = arr;
             console.timeEnd();
@@ -86,11 +86,19 @@ function CounterDeepRef (data: {a:number}) {
         // }).else(() => {
         //     return dom.div.text(() => `偶数 count=${store.value.count}`);
         // }),
-        ctrl.for(list, (item) => {
-            return dom.div.style('color', () => (selected.value === item.value ? 'red' : 'green'))
-            // return dom.div
-                .text(() => `${item.value}: ${item.value}`)
-                .click(() => { selected.value = item.value; });
+        // ctrl.for(list, (item) => {
+        //     return dom.div.style('color', () => (selected.value === item.i ? 'red' : 'green'))
+        //     // return dom.div
+        //         .text(() => `${item.i}: ${item.i}`)
+        //         .click(() => { selected.value = item.i; });
+        // }),
+        ctrl.for(list, (item, index) => {
+            // debugger;
+            return dom.div.style('color', () => (selected.value === item.i ? 'red' : 'green'))
+                .text(() => `${index}: ${item.i}`)
+                .click(() => { selected.value = item.i; }).append(
+                    dom.span.text(() => index)
+                );
         }),
     );
 

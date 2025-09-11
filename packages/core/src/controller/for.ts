@@ -4,89 +4,13 @@
  * @Date: 2025-09-01 17:55:18
  * @Description: Coding something
  */
-import type { Dom, IChild } from '../element';
+import type { IChild } from '../element';
 import { Frag } from '../text';
 import { LinkDomType } from '../utils';
-import { Marker, createMarkerNode, removeBetween } from './_marker';
+import { createMarkerNode, removeBetween } from './_marker';
 import { OriginTarget, checkHydrateMarker, } from 'link-dom-shared';
-import type { Dep } from 'link-dom-reactive';
-import { setArrayListeners, isRef, ref, type Ref, watch, DepUtil, isDeepReactive } from 'link-dom-reactive';
-
-class ForChild<T=any> {
-    private _marker: Marker;
-    index: Ref<number>;
-    removed = false;
-
-    private _frag: Frag|Dom;
-
-    private _list: {dep: Dep, exp: ()=>any}[] = [];
-
-    collect (dep: Dep, exp: ()=>any) {
-        this._list.push({ dep, exp });
-    }
-
-    get frag () {
-        if (!this._frag) {
-            const el = this._generator(this.data, this.index);
-            if (typeof el.__ld_type !== 'number') {
-                this._frag = new Frag().append(el);
-            } else {
-                this._frag = el;
-            }
-            // 对于没有节点的frag 增加一个marker
-            if (this._frag.children.length === 0) {
-                this._frag.prepend(createMarkerNode());
-            }
-        }
-        return this._frag;
-    }
-
-    get marker () {
-        if (!this._marker) {
-            const f = this.frag;
-            const isFrag = f.__ld_type === LinkDomType.Frag;
-            let start: any;
-            if (isFrag) {
-                start = f.children[0]?.el;
-                if (!start) {
-                    start = createMarkerNode();
-                    f.prepend(start);
-                }
-            } else {
-                start = f.el;
-            }
-            this._marker = new Marker({ start, clearSelf: true });
-        }
-        return this._marker;
-    }
-
-    destroy () {
-        if (this.removed) return;
-        this._list.forEach(item => item.dep.remove(item.exp));
-        this._list = [];
-        this.marker.clear();
-        this.removed = true;
-    }
-
-    data: Ref<T>;
-    constructor (
-        private _generator: (item: Ref<T>, index: Ref<number>)=>IChild,
-        // private list: T[],
-        isDeep: boolean,
-        data: T,
-        index: number
-    ) {
-        if (isDeep) {
-            this.data = ref(data);
-            this.index = ref(index);
-        } else {
-            // @ts-ignore
-            this.data = { value: data };
-            // @ts-ignore
-            this.index = { value: index };
-        }
-    }
-}
+import { setArrayListeners, isRef, type Ref, watch, DepUtil, isDeepReactive } from 'link-dom-reactive';
+import { ForChild } from './for-child';
 
 export const ForGlobal = {
     Map: new WeakMap<any[], Set<For>>(),
@@ -131,7 +55,7 @@ export class For <T=any> {
     private children: ForChild[] = [];
 
     private _list: T[];
-    private _generator: (item: Ref<T>, index: Ref<number>)=>IChild;
+    private _generator: (item: Ref<T>, index: number)=>IChild;
 
     end: Node;
 
@@ -141,9 +65,9 @@ export class For <T=any> {
 
     constructor (
         _list: Ref<T[]>|T[],
-        _generator: (item: Ref<T>, index: Ref<number>)=>IChild,
+        _generator: (item: Ref<T>|T, index: number)=>IChild,
+        private itemRef = false,
     ) {
-
         if (isRef(_list)) {
             this._list = _list.value;
             ForGlobal.add(this._list, this);
@@ -179,7 +103,8 @@ export class For <T=any> {
             this._isDeep,
             // this._list,
             data,
-            index
+            index,
+            this.itemRef,
         );
         this.children[index] = child;
         return child;

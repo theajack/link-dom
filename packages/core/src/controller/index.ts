@@ -16,8 +16,14 @@ import { Show } from './show';
 export type IController = For | If | Switch;
 
 export const ctrl = {
-    for: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>, index: Ref<number>)=>IChild) => {
+    for: <T = any> (list: Ref<T[]>, fn: (item: T, index: number)=>IChild) => {
         return new For<T>(list, fn);
+    },
+    forRef: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>, index: number)=>IChild) => {
+        return new For<T>(list, fn, true);
+    },
+    forStatic: <T = any> (list: T[], fn: (item:T, index: number)=>IChild) => {
+        return list.map((item, index) => fn(item, index));
     },
     if (ref: IReactiveLike, gene: ()=>IChild) {
         return new If(ref, gene);
@@ -34,8 +40,5 @@ export const ctrl = {
         showDisplay?: IOptionStyle['display'],
     ) {
         return new Show(ref, gene, showDisplay);
-    },
-    forStatic: <T = any> (list: T[], fn: (item:T, index: number)=>IChild) => {
-        return list.map((item, index) => fn(item, index));
     },
 };
