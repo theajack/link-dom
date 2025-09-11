@@ -34,7 +34,7 @@ export class Computed<T=any> {
         observe(get, (v) => {
             this._value = v;
             DepUtil.trigger(this, 'value');
-        },  (value) => { this._value = value; });
+        }, (value) => { this._value = value; });
     }
 
     destroy () {

@@ -154,7 +154,7 @@ export class Router extends RouterState {
         list.forEach((route, index) => {
             if (route.routerView) {
                 // console.log(`test:set id=${route.routerView.id}`, route.routerView.path.value, matchedPaths[index + 1]);
-                console.log(`test:set`, route.routerView.path.value, matchedPaths[index + 1]);
+                // console.log(`test:set`, route.routerView.path.value, matchedPaths[index + 1]);
                 route.routerView.path.value = matchedPaths[index + 1];
             }
         });
@@ -230,7 +230,6 @@ export class Router extends RouterState {
         return history.back();
     }
     forward () {
-        debugger;
         return history.forward();
     }
     go (delta: number) {

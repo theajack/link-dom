@@ -4,10 +4,10 @@
  * @Description: Coding something
  */
 import { ssr, hydrate, isSSR } from 'link-dom-ssr';
-import { ref, dom, mount, ctrl, watch, computed } from 'link-dom';
+import { ref, dom, mount, ctrl, watch, computed, reactive } from 'link-dom';
 
 function CounterDeepRef (data: {a:number}) {
-    console.log('CounterDeepRef', data);
+    // console.log('CounterDeepRef', data);
     // const store = ref({
     //     count: 0,
     //     count2: 3
@@ -37,7 +37,7 @@ function CounterDeepRef (data: {a:number}) {
     // watch(() => store.value.count, (v, old) => {
     //     console.log('store.value.count', v, old);
     // });
-    let selected = ref(-1);
+    const selected = ref(-1);
     const v = dom.div.style('borderBottom', '2px solid #000').append(
         // data.a,
         // dom.button.text(() => `count is ${store.value.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.value.count2 + 1}; a=${store.value.count}`)
@@ -50,17 +50,18 @@ function CounterDeepRef (data: {a:number}) {
             list.value = [];
         }),
         dom.button.text('init').click(() => {
-            const arr = [] as any[];
-            for (let i = 0; i < 1; i++) {
-                arr.push(i);
-            }
             console.time();
-            list.value = arr;
+            // const arr = [] as any[];
+            for (let i = 0; i < 10000; i++) {
+                // arr.push(i);
+                list.value.push(i);
+            }
+            // list.value = arr;
             console.timeEnd();
         }),
-        dom.button.text('clear selected').click(() => {
-            selected = null;
-        }),
+        // dom.button.text('clear selected').click(() => {
+        //     selected = null;
+        // }),
         // dom.button.class('a b').addClass('x')
         //     .attr('x', () => store.value.count)
         //     .text(() => `count is ${store.value.count}; ${22} +1=${store.value.count2 + 1}; a=${store.value.count}`)
@@ -85,10 +86,11 @@ function CounterDeepRef (data: {a:number}) {
         // }).else(() => {
         //     return dom.div.text(() => `偶数 count=${store.value.count}`);
         // }),
-        ctrl.for(list, (item, index) => {
-            return dom.div.style('color', () => (selected.value === item ? 'red' : 'green'))
-                .text(() => `${index.value}: ${item}`)
-                .click(() => { selected.value = item; });
+        ctrl.for(list, (item) => {
+            return dom.div.style('color', () => (selected.value === item.value ? 'red' : 'green'))
+            // return dom.div
+                .text(() => `${item.value}: ${item.value}`)
+                .click(() => { selected.value = item.value; });
         }),
     );
 

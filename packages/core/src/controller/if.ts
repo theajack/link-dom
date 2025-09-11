@@ -76,7 +76,7 @@ export class If {
     }
     private _clearWatch: ()=>void;
     __mounted () {
-        console.log('test:if mounted');
+        // console.log('test:if mounted');
         // this._initChildren();
         if (this.__mountedFn) {
             this.frag.mounted(this.__mountedFn);
@@ -84,7 +84,7 @@ export class If {
         this.frag?.__mounted?.(this.frag);
         this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
             const index = this.switchCase();
-            console.log('test:if switch', index, this.activeIndex);
+            // console.log('test:if switch', index, this.activeIndex);
             // console.log('if switch', index);
             if (index !== this.activeIndex) {
                 const prev = this.activeIndex;
@@ -113,7 +113,7 @@ export class If {
         this.frag = new Frag();
         this.frag.append(this.marker.start);
         const index = this.switchCase();
-        console.log('test:if switch1', index, this.activeIndex);
+        // console.log('test:if switch1', index, this.activeIndex);
         this.activeIndex = index;
         if (index >= 0) {
             this.frag.append(this.scopes[index].toFrag());

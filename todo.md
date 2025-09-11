@@ -17,5 +17,14 @@
 
 # BugFix
 
-- [ ] 简单值数组 + for 使用时无法响应式更新
-- [ ] for 中使用到外部ref时，dom被清空掉还是会有内存泄露
+- [x] 简单值数组 + for 使用时无法响应式更新
+- [x] for 中使用到外部ref时，dom被清空掉还是会有内存泄露
+
+
+## 性能优化
+
+- [ ] replace all rows
+- [ ] clear rows *
+- [ ] remove row
+
+## 内存优化

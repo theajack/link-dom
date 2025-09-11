@@ -13,16 +13,13 @@ export function observe (
     exp: ()=>any,
     fn: (newValue: any, oldValue: any)=>void,
     onvalue?: (value: any)=>void,
-    // el?: HTMLElement
 ) {
     if (typeof exp !== 'function') return () => {};
     // console.log('debug observe', fn);
     DepUtil.inCollecting = true;
     // debugger;
-    // DepUtil.CurEl = el || null;
     const value = exp();
     onvalue?.(value);
-    // DepUtil.CurEl = null;
     DepUtil.inCollecting = false;
     let deps = Array.from(DepUtil.Temp);
     DepUtil.Temp.clear();
@@ -74,13 +71,19 @@ function arraySort (this: any[], compare?: ((a: any, b: any)=>number)|undefined)
     return proxy;
 }
 
+// function arraySplice (this: any[], start: number, deleteCount?: number, ...items: any[]) {
+
+// }
+
 const listener = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
     clearEmpty (target: any, length: number) {},
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
     newItem (target: any, index: number, value: any) {},
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-    deleteIndex (target: any, index: number) {}
+    deleteIndex (target: any, index: number) {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    updateItem (target: any, index: number, value: any) {},
 };
 
 export function setArrayListeners (lns: typeof listener) {
@@ -102,6 +105,8 @@ export function reactive<T extends object = any> (data: T): T {
                     return arrayReverse.bind(target);
                 } else if (key === 'sort') {
                     return arraySort.bind(target);
+                // } else if (key === 'splice') {
+                //     return arraySplice.bind(target);
                 }
             }
             if (isArrayOrJson(value) && !value[ProxyTarget]) {
@@ -114,8 +119,11 @@ export function reactive<T extends object = any> (data: T): T {
             const origin = target[key];
             const isArrayLength = Array.isArray(target) && key === 'length';
             if (isArrayLength) {
-                DepUtil.trigger(target, key);
-                listener.clearEmpty(target, value);
+                if (origin !== value) {
+                    DepUtil.trigger(target, key);
+                    listener.clearEmpty(target, value);
+                }
+                return Reflect.set(target, key, value, receiver);
             }
             if (value === origin) return true;
             const isArrayIndex = isArrayItem(target, key);
@@ -126,6 +134,8 @@ export function reactive<T extends object = any> (data: T): T {
                 deepAssign(origin, value);
                 DepUtil.trigger(target, key);
                 return true;
+            } else {
+                (listener.updateItem(target, parseInt(key as string), value));
             }
             const result = Reflect.set(target, key, value, receiver);
             DepUtil.trigger(target, key);

@@ -54,7 +54,7 @@ export class RouterView {
             const cond = () => {
                 // console.trace(`test:rv cond id=${this.id}`, this.path.value, route.path.path);
                 // console.log(`test:rv cond id=${this.id}`, this.path.value, route.path.path);
-                console.log(`test:rv cond`, this.path.value, route.path.path);
+                // console.log(`test:rv cond`, this.path.value, route.path.path);
                 return this.path.value === route.path.path;
             };
             const comp = () => {
@@ -62,7 +62,7 @@ export class RouterView {
                     RouterCurrentComp = route.component;
                     RouterMap.set(RouterCurrentComp, route.routerView);
                 }
-                console.log(`test:args`, JSON.stringify(Router.instance.query));
+                // console.log(`test:args`, JSON.stringify(Router.instance.query));
                 // todo 这里可以加参数
                 return route.component(useRouter()._getRouteComponentArgs());
             };

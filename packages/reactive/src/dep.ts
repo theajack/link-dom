@@ -13,7 +13,7 @@ export const DepUtil = {
     // {target: {key: dep}}
     Global: new WeakMap() as WeakMap<any, Map<string|symbol, Dep>>,
     Temp: new Set() as Set<Dep>,
-    CurEl: null as HTMLElement|null,
+    // CurEl: null as HTMLElement|null,
     inCollecting: false,
     _latest: {} as { target: any, key: string|symbol },
     setLatest (target: any, key: string|symbol = 'value') {
@@ -56,16 +56,26 @@ export const DepUtil = {
     clear (target: any) {
         this.Global.delete(target);
     },
+
+    CurForChild: null as any,
 };
 
 // window.depu = DepUtil;
 
+// window.deps = [];
+
 export class Dep {
-    list: Map<any, DepItem> = new Map();
+    // constructor () {
+    //     window.deps.push(this);
+    // }
+    // list: WeakMap<any, DepItem> = new WeakMap();
+    list: Map<()=>any, DepItem> = new Map();
     // collect (key: any, item: DepItem) {
     //     this.list.set(exp, item);
     // }
     collect (exp: ()=>any, item: DepItem) {
+        // console.log('collect', item);
+        DepUtil.CurForChild?.collect(this, exp);
         this.list.set(exp, item);
     }
     trigger () {

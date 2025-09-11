@@ -66,7 +66,6 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
         // const curChildren = this.flatChildren();
         const curChildren = this.children;
         const len = curChildren.length;
-        debugger;
         if (childNodes.length !== len) {
             throw new Error('hydrate error');
             // debugger;

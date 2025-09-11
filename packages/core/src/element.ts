@@ -261,6 +261,12 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         });
         return this;
     }
+    prepend (...doms: IChild[]) {
+        traverseChildren(doms, (child) => {
+            this.el.prepend(child);
+        });
+        return this;
+    }
     // (dom: Dom) => void
     ref (v: Dom) {
         // @ts-ignore

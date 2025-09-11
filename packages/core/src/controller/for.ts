@@ -4,46 +4,87 @@
  * @Date: 2025-09-01 17:55:18
  * @Description: Coding something
  */
-import type { IChild } from '../element';
+import type { Dom, IChild } from '../element';
 import { Frag } from '../text';
 import { LinkDomType } from '../utils';
 import { Marker, createMarkerNode, removeBetween } from './_marker';
-import { OriginTarget, checkHydrateMarker, deepAssign, isArrayOrJson } from 'link-dom-shared';
-import { setArrayListeners, isRef, ref, type Ref, watch } from 'link-dom-reactive';
+import { OriginTarget, checkHydrateMarker, } from 'link-dom-shared';
+import type { Dep } from 'link-dom-reactive';
+import { setArrayListeners, isRef, ref, type Ref, watch, DepUtil, isDeepReactive } from 'link-dom-reactive';
 
 class ForChild<T=any> {
     private _marker: Marker;
     index: Ref<number>;
     removed = false;
 
-    private _frag: Frag;
+    private _frag: Frag|Dom;
+
+    private _list: {dep: Dep, exp: ()=>any}[] = [];
+
+    collect (dep: Dep, exp: ()=>any) {
+        this._list.push({ dep, exp });
+    }
 
     get frag () {
         if (!this._frag) {
-            this._frag = new Frag().append(this._generator(this.data, this.index));
-            this.marker;
+            const el = this._generator(this.data, this.index);
+            if (typeof el.__ld_type !== 'number') {
+                this._frag = new Frag().append(el);
+            } else {
+                this._frag = el;
+            }
+            // 对于没有节点的frag 增加一个marker
+            if (this._frag.children.length === 0) {
+                this._frag.prepend(createMarkerNode());
+            }
         }
         return this._frag;
     }
 
     get marker () {
         if (!this._marker) {
-            const first = this.frag.el.firstChild;
-            this._marker = new Marker({ start: first, clearSelf: true });
-            if (!first) {
-                this.frag.prepend(this._marker.start);
+            const f = this.frag;
+            const isFrag = f.__ld_type === LinkDomType.Frag;
+            let start: any;
+            if (isFrag) {
+                start = f.children[0]?.el;
+                if (!start) {
+                    start = createMarkerNode();
+                    f.prepend(start);
+                }
+            } else {
+                start = f.el;
             }
+            this._marker = new Marker({ start, clearSelf: true });
         }
         return this._marker;
     }
 
+    destroy () {
+        if (this.removed) return;
+        this._list.forEach(item => item.dep.remove(item.exp));
+        this._list = [];
+        this.marker.clear();
+        this.removed = true;
+    }
+
+    data: Ref<T>;
     constructor (
-        private _generator: (item: T, index: Ref<number>)=>IChild,
+        private _generator: (item: Ref<T>, index: Ref<number>)=>IChild,
         // private list: T[],
-        private data: T,
+        isDeep: boolean,
+        data: T,
         index: number
     ) {
-        this.index = ref(index);
+        if (isDeep) {
+            this.data = ref(data);
+            this.index = ref(index);
+        } else {
+            // @ts-ignore
+            this.data = { value: data };
+            // @ts-ignore
+            this.index = { value: index };
+        }
     }
 }
 
@@ -51,6 +92,8 @@ export const ForGlobal = {
     Map: new WeakMap<any[], Set<For>>(),
     add (list: any[], forItem: For) {
         list = list[OriginTarget] || list;
+
+        // ForGlobal.Map.set(list, forItem);
         let set = ForGlobal.Map.get(list);
         if (!set) {
             set = new Set();
@@ -66,9 +109,14 @@ setArrayListeners({
     },
     newItem (target: any[], index: number, data: any) {
         ForGlobal.Map.get(target)?.forEach(item => item._newItem(index, data));
+        // ForGlobal.Map.get(target)?._newItem(index, data);
     },
     clearEmpty (target: any[], length: number) {
+        // ForGlobal.Map.get(target)?._clearEmptyChildren(length);
         ForGlobal.Map.get(target)?.forEach(item => item._clearEmptyChildren(length));
+    },
+    updateItem (target: any[], index: number, data: any) {
+        ForGlobal.Map.get(target)?.forEach(item => item._updateItem(index, data));
     }
 });
 
@@ -83,31 +131,32 @@ export class For <T=any> {
     private children: ForChild[] = [];
 
     private _list: T[];
-    private _isDeep = false;
-    private _generator: (item: T, index: Ref<number>)=>IChild;
+    private _generator: (item: Ref<T>, index: Ref<number>)=>IChild;
 
     end: Node;
+
+    _isDeep = false;
 
     private _clearWatch: ()=>void;
 
     constructor (
         _list: Ref<T[]>|T[],
-        _generator: (item: T, index: Ref<number>)=>IChild,
+        _generator: (item: Ref<T>, index: Ref<number>)=>IChild,
     ) {
+
         if (isRef(_list)) {
             this._list = _list.value;
             ForGlobal.add(this._list, this);
-            this._isDeep = _list._deep;
-            if (!this._isDeep) {
-                this._clearWatch = watch(_list, (v) => {
-                    this._list = v;
-                    // console.log('set list');
-                    this.resetList();
-                });
-            }
+            this._clearWatch = watch(_list, (v) => {
+                this._list = v;
+                // console.log('set list');
+                this.resetList();
+            });
         } else {
             this._list = _list;
+            ForGlobal.add(this._list, this);
         }
+        this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
         this._initChildren();
 
@@ -127,6 +176,7 @@ export class For <T=any> {
     private newChild (data: T, index: number) {
         const child = new ForChild(
             this._generator,
+            this._isDeep,
             // this._list,
             data,
             index
@@ -137,30 +187,34 @@ export class For <T=any> {
     _updateItem (index: number, data: T) {
         // console.log('updateItem', index, this._list.length, data);
         if (index >= this._list.length) {
-            const frag = new Frag();
-            frag.append(this.newChild(data, index).frag);
-            const parent = this.end.parentNode!;
-            parent.insertBefore(frag.el, this.end);
+            this.insertChildNode(data, index, this.end);
             return;
         }
-
-        const isNewObj = isArrayOrJson(data);
-        const oldObj = isArrayOrJson(this._list[index]);
-        if (isNewObj && oldObj) {
-            deepAssign(this._list[index], data);
-        }
+        this.children[index].data.value = data;
     }
     _newItem (index: number, data: T) {
-        const frag = new Frag();
+        // console.trace('newItem', index, this._list.length, data);
         const cc = this.children, n = cc.length;
         let marker = this.end, markerIndex = index;
         while (index < n && !cc[markerIndex]) {
             markerIndex ++;
         }
         marker = cc[markerIndex]?.marker.start || this.end;
-        frag.append(this.newChild(data, index).frag);
+        this.insertChildNode(data, index, marker);
+    }
+
+    private insertChildNode (data: T, index: number, marker: Node) {
+        // console.time();
+        // const frag = new Frag();
+        const child = this.newChild(data, index);
+        DepUtil.CurForChild = child;
+        // console.log('insertChildNode', index, data);
+        // frag.append(child.frag);
         const parent = marker.parentNode!;
-        parent.insertBefore(frag.el, marker);
+        parent.insertBefore(child.frag.el, marker);
+        // console.log('insertChildNode end', index, data);
+        DepUtil.CurForChild = null;
+        // console.timeEnd();
     }
 
     get __mounted () {
@@ -191,17 +245,13 @@ export class For <T=any> {
 
     _deleteItem (index: number) {
         const child = this.children[index];
-        if (child) {
-            child.marker.clear();
-            child.removed = true;
-        }
+        child?.destroy();
     }
 
     _clearEmptyChildren (length: number) {
         if (length >= this.children.length) return;
         this.children.splice(length).forEach(child => {
-            if (child.removed) return;
-            child.marker.clear();
+            child.destroy();
         });
     }
 
