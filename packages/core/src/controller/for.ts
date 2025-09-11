@@ -41,6 +41,9 @@ setArrayListeners({
     },
     updateItem (target: any[], index: number, data: any) {
         ForGlobal.Map.get(target)?.forEach(item => item._updateItem(index, data));
+    },
+    isForArray (target: any[]) {
+        return ForGlobal.Map.has(target);
     }
 });
 
@@ -67,6 +70,7 @@ export class For <T=any> {
         _list: Ref<T[]>|T[],
         _generator: (item: Ref<T>|T, index: number)=>IChild,
         private itemRef = false,
+        private useIndex = true,
     ) {
         if (isRef(_list)) {
             this._list = _list.value;
@@ -169,6 +173,7 @@ export class For <T=any> {
     }
 
     _deleteItem (index: number) {
+        console.log('delete item', index);
         const child = this.children[index];
         child?.destroy();
     }
@@ -187,6 +192,11 @@ export class For <T=any> {
         }
         // @ts-ignore
         this.end.remove();
+    }
+
+
+    _splice () {
+
     }
 }
 

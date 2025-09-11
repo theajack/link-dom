@@ -13,7 +13,7 @@ function CounterDeepRef (data: {a:number}) {
     //     count2: 3
     // });
 
-    const arr: {i: number}[] = [];
+    const arr: {i: string}[] = [];
 
     // for (let i = 0; i < 20000; i++) {
     //     arr.push(i);
@@ -37,7 +37,7 @@ function CounterDeepRef (data: {a:number}) {
     // watch(() => store.value.count, (v, old) => {
     //     console.log('store.value.count', v, old);
     // });
-    const selected = ref(-1);
+    const selected = ref('');
     const v = dom.div.style('borderBottom', '2px solid #000').append(
         // data.a,
         // dom.button.text(() => `count is ${store.value.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.value.count2 + 1}; a=${store.value.count}`)
@@ -52,13 +52,14 @@ function CounterDeepRef (data: {a:number}) {
         dom.button.text('init').click(() => {
             console.time();
             // const arr = [] as any[];
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 3; i++) {
                 // arr.push(i);
-                list.value.push({ i });
+                list.value.push({ i: `item${i}` });
             }
             // list.value = arr;
             console.timeEnd();
         }),
+        dom.span.text(join`selected:${selected}`),
         // dom.button.text('clear selected').click(() => {
         //     selected = null;
         // }),
@@ -94,10 +95,22 @@ function CounterDeepRef (data: {a:number}) {
         // }),
         ctrl.for(list, (item, index) => {
             // debugger;
-            return dom.div.style('color', () => (selected.value === item.i ? 'red' : 'green'))
-                .text(() => `${index}: ${item.i}`)
-                .click(() => { selected.value = item.i; }).append(
-                    dom.span.text(() => index)
+            return dom.div.style('color', () => {
+                const v = selected.value === item.i ? 'red' : 'green';
+                console.log(`style color change:${v}`, index, selected.value, item.i);
+                return v;
+            })
+                .children(
+                    dom.span.text(() => `${index}: ${item.i}`).click(() => {
+                        console.time('select');
+                        selected.value = item.i;
+                        console.timeEnd('select');
+                    }),
+                    dom.button.text('×').click(() => {
+                        console.time('remove');
+                        list.value.splice(index, 1);
+                        console.timeEnd('remove');
+                    })
                 );
         }),
     );

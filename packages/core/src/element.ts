@@ -139,6 +139,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         if (typeof value !== 'undefined') {
             // @ts-ignore
             this._useR(value, (v) => {
+                debugger;
                 // @ts-ignore
                 const { important, cssValue, cssKey } = formatCssKV(name, v);
                 this.el.style.setProperty(cssKey, cssValue, important);

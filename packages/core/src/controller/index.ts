@@ -19,8 +19,14 @@ export const ctrl = {
     for: <T = any> (list: Ref<T[]>, fn: (item: T, index: number)=>IChild) => {
         return new For<T>(list, fn);
     },
+    forNoIndex: <T = any> (list: Ref<T[]>, fn: (item: T)=>IChild) => {
+        return new For<T>(list, fn, false, false);
+    },
     forRef: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>, index: number)=>IChild) => {
         return new For<T>(list, fn, true);
+    },
+    forRefNoIndex: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>)=>IChild) => {
+        return new For<T>(list, fn, true, false);
     },
     forStatic: <T = any> (list: T[], fn: (item:T, index: number)=>IChild) => {
         return list.map((item, index) => fn(item, index));

@@ -51,6 +51,7 @@ export const DepUtil = {
     trigger (target: any, key: string|symbol) {
         const dep = this.getDep(target, key);
         if (!dep) return;
+        // debugger;
         dep?.trigger();
     },
     clear (target: any) {
@@ -62,12 +63,13 @@ export const DepUtil = {
 
 // window.depu = DepUtil;
 
-// window.deps = [];
+window.deps = [];
 
 export class Dep {
-    // constructor () {
-    //     window.deps.push(this);
-    // }
+    constructor () {
+        window.deps.push(this);
+    }
+    static WeakMap = new WeakMap<()=>any, Set<Dep>>();
     // list: WeakMap<any, DepItem> = new WeakMap();
     list: Map<()=>any, DepItem> = new Map();
     // collect (key: any, item: DepItem) {
@@ -77,13 +79,30 @@ export class Dep {
         // console.log('collect', item);
         DepUtil.CurForChild?.collect(this, exp);
         this.list.set(exp, item);
+
+        let set = Dep.WeakMap.get(exp);
+        if (!set) {
+            set = new Set();
+            Dep.WeakMap.set(exp, set);
+        }
+        set.add(this);
     }
     trigger () {
         for (const [ exp, item ] of this.list) {
             const { fn, value } = item;
             const newValue = exp();
+            // debugger;
+            // todo 此处有bug value缓存的值不是最新的
             if (newValue !== value) {
                 fn(newValue, value);
+
+                // 能解决问题 但是会消耗更多内存 性能更低
+                Dep.WeakMap.get(exp)?.forEach(dep => {
+                    if (dep === this) return;
+                    dep.list.forEach(item => {
+                        item.value = newValue;
+                    });
+                });
             }
             item.value = newValue;
         }
