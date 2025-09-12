@@ -4,10 +4,10 @@
  * @Date: 2025-09-01 17:55:18
  * @Description: Coding something
  */
-import type { IChild } from '../element';
-import { Frag } from '../text';
-import { LinkDomType } from '../utils';
-import { createMarkerNode, removeBetween } from './_marker';
+import type { IChild } from '../../element';
+import { Frag } from '../../text';
+import { LinkDomType } from '../../utils';
+import { createMarkerNode, removeBetween } from '../_marker';
 import { OriginTarget, checkHydrateMarker, } from 'link-dom-shared';
 import { setArrayListeners, isRef, type Ref, watch, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';

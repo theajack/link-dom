@@ -4,10 +4,10 @@
  * @Date: 2025-09-11 20:56:49
  * @Description: Coding something
  */
-import type { Dom, IChild } from '../element';
-import { Frag } from '../text';
-import { LinkDomType } from '../utils';
-import { Marker, createMarkerNode } from './_marker';
+import type { Dom, IChild } from '../../element';
+import { Frag } from '../../text';
+import { LinkDomType } from '../../utils';
+import { Marker, createMarkerNode } from '../_marker';
 import type { Dep } from 'link-dom-reactive';
 import { ref, type Ref } from 'link-dom-reactive';
 

@@ -7,7 +7,7 @@
 import type { IChild } from '../element';
 import type { Ref } from 'link-dom-reactive';
 import type { IReactiveLike } from '../type.d';
-import { For } from './for';
+import { For } from './for/for';
 import { If } from './if';
 import { Switch } from './switch';
 import type { IOptionStyle } from '../type.d';

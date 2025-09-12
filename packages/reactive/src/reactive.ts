@@ -77,7 +77,6 @@ export function reactive<T extends object = any> (data: T): T {
             } else if (isArrayOrJson(origin) && isArrayOrJson(value)) {
                 // console.log('deepAssign', key);
                 // const result = Reflect.set(target, key, value, receiver);
-                debugger;
                 deepAssign(origin, value);
                 DepUtil.trigger(target, key);
                 return true;
