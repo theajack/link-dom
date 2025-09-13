@@ -30,6 +30,10 @@ export class Show {
     get el () {
         return this.frag.el;
     }
+    _marker: Node;
+    getMarker () {
+        return this._marker;
+    }
     private _clearWatch: ()=>void;
     constructor (
         ref: IReactiveLike<boolean>,
@@ -40,6 +44,7 @@ export class Show {
 
         const nodes: [HTMLElement, any][] = [];
         traverseChildren([ gene() ], (dom: HTMLElement) => {
+            if (!this._marker) this._marker = dom;
             this.frag.append(dom);
             let helper: any;
             if (dom.nodeType === Node.TEXT_NODE) {

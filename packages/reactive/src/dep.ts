@@ -62,7 +62,7 @@ export const DepUtil = {
     CurForChild: null as any,
 };
 
-window.depu = DepUtil;
+// window.depu = DepUtil;
 
 // window.deps = [];
 
@@ -72,19 +72,26 @@ export class Dep {
     // }
     // static WeakMap = new WeakMap<()=>any, Set<Dep>>();
     // list: WeakMap<any, DepItem> = new WeakMap();
+    // ! 因为需要遍历订阅者列表 所以无法使用WeakMap
+    // 所以需要手动在订阅者无效时 手动移除订阅者，不然会有内存泄露
+    // 但是这也会增加性能开销和内存占用
     list: Map<()=>any, DepItem> = new Map();
     // collect (key: any, item: DepItem) {
     //     this.list.set(exp, item);
     // }
     collect (exp: ()=>any, item: DepItem) {
         // console.log('collect', item);
+        // ! 此处为将for中的依赖收集起来 for移除后需要移除dep中的list 以释放内存
+        // ? 此处若是for-child中有if逻辑 还是可能会存在内存泄露，如 if未命中的分支中含有外部ref，此时无法获取到 CurForChild
+        // console.trace(exp.toString(), item.fn.toString());
+        // debugger;
         DepUtil.CurForChild?.collect(this, exp);
         this.list.set(exp, item);
 
         // let set = Dep.WeakMap.get(exp);
         // if (!set) {
         //     set = new Set();
-        //     Dep.WeakMap.set(exp, set);
+        //     Dep.WeakMap.set(exp,insertChildNode set);
         // }
         // set.add(this);
     }
@@ -93,19 +100,18 @@ export class Dep {
             const { fn, value } = item;
             const newValue = exp();
             // debugger;
-            // todo 此处有bug value缓存的值不是最新的
-            if (newValue !== value) {
-                fn(newValue, value);
-
-                // // 能解决问题 但是会消耗更多内存 性能更低
-                // Dep.WeakMap.get(exp)?.forEach(dep => {
-                //     if (dep === this) return;
-                //     dep.list.forEach(item => {
-                //         item.value = newValue;
-                //     });
-                // });
-            }
+            // 此处无需判断值是否相等，前置赋值时都已经判断过了
+            // if (newValue !== value || typeof value === 'object') {
+            fn(newValue, value);
             item.value = newValue;
+            // // 能解决问题 但是会消耗更多内存 性能更低
+            // Dep.WeakMap.get(exp)?.forEach(dep => {
+            //     if (dep === this) return;
+            //     dep.list.forEach(item => {
+            //         item.value = newValue;
+            //     });
+            // });
+            // }
         }
     }
     remove (exp: ()=>any) {

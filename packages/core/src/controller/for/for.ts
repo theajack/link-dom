@@ -9,9 +9,13 @@ import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';
 import { checkHydrateMarker, } from 'link-dom-shared';
-import { isRef, type Ref, watch, DepUtil, isDeepReactive } from 'link-dom-reactive';
+import { isRef, type Ref, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
+
+// class ForTpl {
+
+// }
 
 export class For <T=any> {
 
@@ -28,6 +32,12 @@ export class For <T=any> {
 
     end: Node;
 
+    start: Node;
+
+    getMarker () {
+        return this.start;
+    }
+
     _isDeep = false;
 
     private _clearWatch: ()=>void;
@@ -37,18 +47,9 @@ export class For <T=any> {
         _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         private itemRef = false,
     ) {
-        if (isRef(_list)) {
-            this._list = _list.value;
-            ForGlobal.add(this._list, this);
-            this._clearWatch = watch(_list, (v) => {
-                this._list = v;
-                // console.log('set list');
-                this.resetList();
-            });
-        } else {
-            this._list = _list;
-            ForGlobal.add(this._list, this);
-        }
+        // window._for = this;
+        this._list = (isRef(_list)) ? _list.value : _list;
+        ForGlobal.add(this._list, this);
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
         this._initChildren();
@@ -57,14 +58,14 @@ export class For <T=any> {
         // window._for = this;
     }
 
-    private resetList () {
-        if (this.children.length > 0) {
-            removeBetween(this.children[0].marker.start, this.end);
-        }
-        const parent = this.end.parentNode!;
-        this.frag = this._initListFrag();
-        parent.insertBefore(this.frag.el, this.end);
-    }
+    // private resetList () {
+    //     if (this.children.length > 0) {
+    //         removeBetween(this.children[0].marker.start, this.end);
+    //     }
+    //     const parent = this.end.parentNode!;
+    //     this.frag = this._initListFrag();
+    //     parent.insertBefore(this.frag.el, this.end);
+    // }
 
     private _useIndex = false;
     private useIndex = () => {
@@ -89,19 +90,22 @@ export class For <T=any> {
     _updateItem (index: number, data: T) {
         // console.log('updateItem', index, this._list.length, data);
         if (index >= this._list.length) {
+            // console.log('insertChildNode1', index, this._list.length, data);
             this.insertChildNode(data, index, this.end);
             return;
         }
+        debugger;
         this.children[index].data.value = data;
     }
     _newItem (index: number, data: T) {
-        // console.trace('newItem', index, this._list.length, data);
+        // console.log('newItem', index, this._list.length, data);
         const cc = this.children, n = cc.length;
         let marker = this.end, markerIndex = index;
         while (markerIndex < n && !cc[markerIndex]) {
             markerIndex ++;
         }
         marker = cc[markerIndex]?.marker.start || this.end;
+        // console.log('insertChildNode2', index, this._list.length, data);
         this.insertChildNode(data, index, marker);
     }
 
@@ -113,6 +117,8 @@ export class For <T=any> {
         // console.log('insertChildNode', index, data);
         // frag.append(child.frag);
         const parent = marker.parentNode!;
+        // @ts-ignore
+        child.frag.__mounted?.();
         parent.insertBefore(child.frag.el, marker);
         // console.log('insertChildNode end', index, data);
         DepUtil.CurForChild = null;
@@ -129,9 +135,10 @@ export class For <T=any> {
     }
     private _initChildren () {
         this.frag = this._initListFrag();
+        this.start = createMarkerNode('');
         // 后面加一个结尾
-        this.end = createMarkerNode('for-end');
-        this.frag.append(this.end);
+        this.end = createMarkerNode('');
+        this.frag.append(this.start, this.end);
         this.el = this.frag.el;
     }
 
@@ -212,11 +219,6 @@ export class For <T=any> {
         }
         // @ts-ignore
         this.end.remove();
-    }
-
-
-    _splice () {
-
     }
 }
 

@@ -13,13 +13,16 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 // import './router';
 // import './comp-use';
 
-import './for-move';
+// import './for-move';
+
+import './for-if';
 
 
 window.watch = watch;
 window.ref = ref;
 window.computed = computed;
 window.link = link;
+window.reactive = reactive;
 
 // (() => {
 

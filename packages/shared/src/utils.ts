@@ -9,9 +9,9 @@ export function isArrayOrJson (o: any) {
     return false;
 }
 
-export const OriginTarget = Symbol('OriginTarget');
-export const ProxyTarget = Symbol('ProxyTarget');
-export const DeepReader = Symbol('DeepReader');
+export const OriginTarget = Symbol('ot');
+export const ProxyTarget = Symbol('pt');
+export const Root = Symbol('rt');
 
 export function deepAssign (origin: any, value: any) {
     origin = origin[ProxyTarget] || origin;

@@ -5,7 +5,7 @@
  * @Date: 2025-09-01 21:28:27
  * @Description: Coding something
  */
-import { isArrayOrJson } from 'link-dom-shared';
+import { Root, isArrayOrJson } from 'link-dom-shared';
 import { DepUtil } from './dep';
 import { OriginTarget, ProxyTarget, deepAssign } from 'link-dom-shared';
 
@@ -22,6 +22,7 @@ export function observe (
     onvalue?.(value);
     DepUtil.inCollecting = false;
     let deps = Array.from(DepUtil.Temp);
+    // debugger;
     DepUtil.Temp.clear();
     for (const dep of deps) {
         // dep.collect(exp, { fn, value, exp });
@@ -68,15 +69,18 @@ export function reactive<T extends object = any> (data: T): T {
         get (target, key) {
             if (key === OriginTarget) return target;
             if (key === ProxyTarget || key === 'constructor') return target[key];
-            const value = target[key];
-            DepUtil.add(target, key);
             if (Array.isArray(target)) {
                 const result = listener.useArrayMethod(target, key);
                 if (result) {
                     return result;
                 }
             }
+            const value = target[key];
+            if (typeof value === 'function') return target[key];
+            DepUtil.add(target, key);
             if (isArrayOrJson(value) && !value[ProxyTarget]) {
+                // 标记root 后续可以在 for 循环中用户判断是否是内部ref
+                value[Root] = target[Root] || target; // ! 实测基本不会增加内存开销
                 target[key] = reactive(value);
             }
             return Reflect.get(target, key, target);
@@ -84,6 +88,7 @@ export function reactive<T extends object = any> (data: T): T {
         set (target, key, value, receiver) {
             // console.log('Proxy Set', target, key, value);
             const origin = target[key];
+            if (value === origin) return true;
             const isArrayLength = Array.isArray(target) && key === 'length';
             if (isArrayLength) {
                 if (origin !== value) {
@@ -92,20 +97,22 @@ export function reactive<T extends object = any> (data: T): T {
                 }
                 return Reflect.set(target, key, value, receiver);
             }
-            if (value === origin) return true;
             const isArrayIndex = isArrayItem(target, key);
             if (isArrayIndex && typeof origin === 'undefined') {
                 // value = reactive(deepClone(value));
                 value = reactive(value);
+                debugger;
                 (listener.newItem(target, parseInt(key as string), value));
             } else if (isArrayOrJson(origin) && isArrayOrJson(value)) {
                 if (listener.isForArray(origin[OriginTarget])) {
+                    // ! 在for场景中进行了优化 使用splice更高效
                     origin[ProxyTarget].splice(0, origin.length, ...value);
                 } else {
                     deepAssign(origin, value);
                 }
                 // console.log('deepAssign', key);
                 // const result = Reflect.set(target, key, value, receiver);
+                // debugger;
                 DepUtil.trigger(target, key);
                 return true;
             } else {

@@ -82,9 +82,9 @@ export class Frag {
     }
     _mounted?: (el: Frag)=>void;
     // @ts-ignore
-    __mounted = (el: Frag) => {
+    __mounted = (el: Frag = this) => {
+        if (this._isMounted) return;
         this._children.forEach(child => {
-            // @ts-ignore
             child.__mounted?.(child);
         });
         this._children = [];

@@ -13,17 +13,15 @@ function CounterDeepRef (data: {a:number}) {
     //     count2: 3
     // });
 
-    const arr: {i: string}[] = [];
+    // const arr: {i: string}[] = [];
 
     // for (let i = 0; i < 20000; i++) {
     //     arr.push(i);
     // }
 
-    const list = ref({
-        arr,
-    });
+    const list = ref([] as {i: string}[]);
 
-    window._list = list;
+    // window._list = list;
 
     console.warn('isSSR', isSSR);
 
@@ -58,17 +56,20 @@ function CounterDeepRef (data: {a:number}) {
         //         list.value.push(store.value.count);
         //     }),
         dom.button.text('clear').click(() => {
-            list.value.arr = [];
+            list.value = [];
         }),
         dom.button.text('init').click(() => {
             console.time();
             // const arr = [] as any[];
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 10000; i++) {
                 // arr.push(i);
-                list.value.arr.push({ i: `item${i}` });
+                list.value.push({ i: `item${i}` });
             }
             // list.value = arr;
             console.timeEnd();
+        }),
+        dom.button.text('reset').click(() => {
+            list.value = [ { i: 'test' }, { i: 'test2' } ];
         }),
         ctrl.await(mockAwait(), (data) => {
             return dom.div.text(`'data.a.b'=${data.a.b}`);
@@ -107,7 +108,7 @@ function CounterDeepRef (data: {a:number}) {
         //         .text(() => `${item.i}: ${item.i}`)
         //         .click(() => { selected.value = item.i; });
         // }),
-        ctrl.for(list.value.arr, (item, index) => {
+        ctrl.for(list, (item, index) => {
             // debugger;
             return dom.div.style('color', () => selected.value === item.i ? 'red' : 'green')
                 .children(
@@ -123,7 +124,7 @@ function CounterDeepRef (data: {a:number}) {
                     }),
                     dom.button.text('×').click(() => {
                         console.time('remove');
-                        list.value.arr.splice(index.value, 1);
+                        list.value.splice(index.value, 1);
                         console.timeEnd('remove');
                     })
                 );

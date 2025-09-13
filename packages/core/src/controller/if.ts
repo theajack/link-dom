@@ -56,6 +56,10 @@ export class If {
         return this._el;
     }
 
+    getMarker () {
+        return this.marker.start;
+    }
+
     constructor (
         ref: IReactiveLike<boolean>,
         gene: ()=>IChild,
@@ -76,6 +80,8 @@ export class If {
     }
     private _clearWatch: ()=>void;
     __mounted () {
+        if (!this.frag) return;
+        console.log('test:if mounted');
         // console.log('test:if mounted');
         // this._initChildren();
         if (this.__mountedFn) {
@@ -94,11 +100,13 @@ export class If {
                     list = this.marker.clear();
                 } else {
                     const frag = this.scopes[index].toFrag();
+                    frag.__mounted();
                     list = this.marker.replace(frag.el);
                 }
                 this.scopes[prev]?.store(list);
             }
         });
+        // debugger;
         // @ts-ignore
         this.frag = null;
     }

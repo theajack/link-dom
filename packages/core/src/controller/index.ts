@@ -5,7 +5,7 @@
  */
 
 import type { IChild } from '../element';
-import type { Ref } from 'link-dom-reactive';
+import { isReactive, type Ref } from 'link-dom-reactive';
 import type { IReactiveLike } from '../type.d';
 import { For } from './for/for';
 import { If } from './if';
@@ -20,11 +20,11 @@ export const ctrl = {
     for: <T = any> (list: Ref<T[]>|T[], fn: (item: T, index: {readonly value: number})=>IChild) => {
         return new For<T>(list, fn);
     },
-    forRef: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>, index: {readonly value: number})=>IChild) => {
+    forRef: <T = any> (list: Ref<T[]>|T[], fn: (item: Ref<T>, index: {readonly value: number})=>IChild) => {
         return new For<T>(list, fn, true);
     },
-    forStatic: <T = any> (list: T[], fn: (item:T, index: number)=>IChild) => {
-        return list.map((item, index) => fn(item, index));
+    forStatic: <T = any> (list: Ref<T[]>|T[], fn: (item:T, index: number)=>IChild) => {
+        return (isReactive(list) ? list.value : list).map((item, index) => fn(item, index));
     },
     if (ref: IReactiveLike, gene: ()=>IChild) {
         return new If(ref, gene);

@@ -27,6 +27,7 @@ export class Ref<T = any> {
         } else {
             this._value = v;
         }
+        // debugger;
         DepUtil.trigger(this, 'value');
     }
     _deep = false;

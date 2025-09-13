@@ -30,6 +30,10 @@ export class RouterView {
 
     path: Ref<string>;
 
+    getMarker () {
+        return this.if.getMarker();
+    }
+
     constructor () {
         const router = Router.instance;
         this.path = ref('');

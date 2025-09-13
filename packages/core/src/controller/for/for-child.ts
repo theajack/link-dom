@@ -31,9 +31,13 @@ export class ForChild<T=any> {
             } else {
                 this._frag = el;
             }
+            let container: any = this._frag;
+            if (!container.children) {
+                container = this._frag.el;
+            }
             // 对于没有节点的frag 增加一个marker
-            if (this._frag.children.length === 0) {
-                this._frag.prepend(createMarkerNode());
+            if (container.children.length === 0) {
+                container.prepend(createMarkerNode());
             }
         }
         return this._frag;
@@ -42,16 +46,21 @@ export class ForChild<T=any> {
     get marker () {
         if (!this._marker) {
             const f = this.frag;
-            const isFrag = f.__ld_type === LinkDomType.Frag;
+            const lg = f.__ld_type;
             let start: any;
-            if (isFrag) {
+            // debugger;
+            if (lg === LinkDomType.Frag) {
                 start = f.children[0]?.el;
                 if (!start) {
                     start = createMarkerNode();
                     f.prepend(start);
                 }
             } else {
-                start = f.el;
+                // if (f.getMarker) {
+                //     console.log(f.getMarker());
+                // }
+                // @ts-ignore
+                start = f.getMarker?.() || f.el;
             }
             this._marker = new Marker({ start, clearSelf: true });
         }

@@ -16,6 +16,9 @@ export class Switch {
         if (!this.if) throw new Error('switch must have case or default');
         return this.if.el;
     }
+    getMarker () {
+        return this.if.getMarker();
+    }
     constructor (private ref: IReactiveLike) {}
     case (cond: any|(any[])|(()=>any), gene: ()=>IChild) {
         const fn = () => {

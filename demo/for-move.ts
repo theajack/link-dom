@@ -3,7 +3,7 @@
  * @Date: 2025-09-12 11:18:44
  * @Description: Coding something
  */
-import { ctrl, dom, mount, ref } from 'link-dom';
+import { ctrl, dom, mount, ref, watch } from 'link-dom';
 
 function ForMoveTest () {
     const arr = ref([
@@ -15,7 +15,13 @@ function ForMoveTest () {
 
     const selected = ref('');
 
+    window._selected = selected;
     window.arr = arr;
+
+    watch(selected, (v1, v2) => {
+        console.log('selected change', v1, v2);
+    });
+
     let id = 0;
     return dom.div.children(
         dom.div.children(
