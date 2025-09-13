@@ -111,6 +111,11 @@ function CounterDeepRef (data: {a:number}) {
             // debugger;
             return dom.div.style('color', () => selected.value === item.i ? 'red' : 'green')
                 .children(
+                    ctrl.if(() => selected.value === item.i, () => {
+                        return dom.div.text('selected');
+                    }).else(() => {
+                        return dom.div.text('unselected');
+                    }),
                     dom.span.text(() => `${index.value}: ${item.i}`).click(() => {
                         console.time('select');
                         selected.value = item.i;

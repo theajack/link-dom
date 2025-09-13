@@ -62,7 +62,7 @@ export const DepUtil = {
     CurForChild: null as any,
 };
 
-// window.depu = DepUtil;
+window.depu = DepUtil;
 
 // window.deps = [];
 

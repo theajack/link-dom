@@ -207,6 +207,8 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     get childrenLength () {
         return this.el.children.length;
     }
+    children (): Dom[];
+    children (...doms: IChild[]): this;
     children (...doms: IChild[]) {
         if (doms.length > 0) {
             if (this.el.childNodes.length > 0) {

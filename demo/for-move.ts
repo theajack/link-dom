@@ -13,6 +13,8 @@ function ForMoveTest () {
         { name: 'd', age: 4 },
     ]);
 
+    const selected = ref('');
+
     window.arr = arr;
     let id = 0;
     return dom.div.children(
@@ -28,11 +30,17 @@ function ForMoveTest () {
             }),
         ),
         ctrl.for(arr, (item, index) => {
-            return dom.div.children(
-                dom.text(() => `index: ${index.value}; `),
-                dom.text(() => `name: ${item.name}; `),
-                dom.text(() => `age: ${item.age}; `),
-            );
+            return dom.div.style('color', () => selected.value === item.name ? 'red' : 'green')
+                .children(
+                    ctrl.if(() => selected.value === item.name, () => {
+                        return dom.div.text('selected');
+                    }).else(() => {
+                        return dom.div.text('unselected');
+                    }),
+                    dom.text(() => `index: ${index.value}; `),
+                    dom.text(() => `name: ${item.name}; `),
+                    dom.text(() => `age: ${item.age}; `),
+                ).click(() => {selected.value = item.name;});
         }),
     );
 
