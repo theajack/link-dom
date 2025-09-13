@@ -23,6 +23,7 @@ export enum LinkDomType {
     If,
     Switch,
     Show,
+    Await,
     Marker,
     RouterView,
 }

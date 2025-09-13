@@ -9,8 +9,7 @@ import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { Marker, createMarkerNode } from '../_marker';
 import type { Dep } from 'link-dom-reactive';
-import { ref, type Ref } from 'link-dom-reactive';
-
+import { DepUtil, ref, type Ref } from 'link-dom-reactive';
 
 export class ForChild<T=any> {
     private _marker: Marker;
@@ -68,14 +67,35 @@ export class ForChild<T=any> {
     }
 
     data: Ref<T>|T;
+
+    index: {readonly value: number};
+
+    indexUsed = false;
+
     constructor (
-        private _generator: (item: Ref<T>|T, index: number)=>IChild,
+        private _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         // private list: T[],
         isDeep: boolean,
         data: T,
-        private index: number,
+        private _index: number,
         itemRef: boolean,
+        useIndex?: ()=>void,
     ) {
         this.data = itemRef ? (isDeep ? ref(data) : { value: data } as Ref) : data;
+        const _this = this;
+        this.index = {
+            get value () {
+                useIndex?.();
+                DepUtil.add(this, 'value');
+                return _this._index;
+            }
+        };
+        // if (!window.fcChild)window.fcChild = [];
+        // window.fcChild.push(this);
+    }
+    setIndex (v: number) {
+        if (v === this._index) return;
+        this._index = v;
+        DepUtil.trigger(this.index, 'value');
     }
 }

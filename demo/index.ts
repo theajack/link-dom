@@ -10,8 +10,10 @@ import {
 } from 'link-dom';
 import { useRenderer, type CustomElement } from 'link-dom-render';
 import './ssr';
-// import './router';
+import './router';
 // import './comp-use';
+
+// import './for-move';
 
 
 window.watch = watch;

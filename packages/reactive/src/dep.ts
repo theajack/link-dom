@@ -23,6 +23,7 @@ export const DepUtil = {
     },
     getLatest () { return this._latest; },
     add (target: any, key: string|symbol, sub = false) {
+        // console.log(target, key);
         this.setLatest(target, key);
         if (!this.inCollecting && !sub) return null;
         let dep: Dep;
@@ -63,13 +64,13 @@ export const DepUtil = {
 
 // window.depu = DepUtil;
 
-window.deps = [];
+// window.deps = [];
 
 export class Dep {
-    constructor () {
-        window.deps.push(this);
-    }
-    static WeakMap = new WeakMap<()=>any, Set<Dep>>();
+    // constructor () {
+    //     window.deps.push(this);
+    // }
+    // static WeakMap = new WeakMap<()=>any, Set<Dep>>();
     // list: WeakMap<any, DepItem> = new WeakMap();
     list: Map<()=>any, DepItem> = new Map();
     // collect (key: any, item: DepItem) {
@@ -80,12 +81,12 @@ export class Dep {
         DepUtil.CurForChild?.collect(this, exp);
         this.list.set(exp, item);
 
-        let set = Dep.WeakMap.get(exp);
-        if (!set) {
-            set = new Set();
-            Dep.WeakMap.set(exp, set);
-        }
-        set.add(this);
+        // let set = Dep.WeakMap.get(exp);
+        // if (!set) {
+        //     set = new Set();
+        //     Dep.WeakMap.set(exp, set);
+        // }
+        // set.add(this);
     }
     trigger () {
         for (const [ exp, item ] of this.list) {
@@ -96,13 +97,13 @@ export class Dep {
             if (newValue !== value) {
                 fn(newValue, value);
 
-                // 能解决问题 但是会消耗更多内存 性能更低
-                Dep.WeakMap.get(exp)?.forEach(dep => {
-                    if (dep === this) return;
-                    dep.list.forEach(item => {
-                        item.value = newValue;
-                    });
-                });
+                // // 能解决问题 但是会消耗更多内存 性能更低
+                // Dep.WeakMap.get(exp)?.forEach(dep => {
+                //     if (dep === this) return;
+                //     dep.list.forEach(item => {
+                //         item.value = newValue;
+                //     });
+                // });
             }
             item.value = newValue;
         }

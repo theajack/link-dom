@@ -7,8 +7,7 @@
  */
 import { isArrayOrJson } from 'link-dom-shared';
 import { DepUtil } from './dep';
-import { OriginTarget, ProxyTarget, deepAssign, deepClone } from 'link-dom-shared';
-import { listener, useArrayMethod } from './array';
+import { OriginTarget, ProxyTarget, deepAssign } from 'link-dom-shared';
 
 export function observe (
     exp: ()=>any,
@@ -37,6 +36,30 @@ export function observe (
     };
 }
 
+export const listener = {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    clearEmpty (target: any, length: number) {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    newItem (target: any, index: number, value: any) {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    deleteIndex (target: any, index: number) {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    updateItem (target: any, index: number, value: any) {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    isForArray (target: any[]) {return false;},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    useArrayMethod (target: any[], key: string|symbol) {return null as any;},
+};
+
+export function replaceArray (target: any[], data: any[]) {
+    // todo
+    const fn = listener.useArrayMethod(target, 'splice');
+    fn?.call(target, 0, target.length, ...data);
+}
+
+export function setArrayListeners (lns: typeof listener) {
+    Object.assign(listener, lns);
+}
 export function reactive<T extends object = any> (data: T): T {
     if (data[OriginTarget]) return data;
     if (data[ProxyTarget]) return data[ProxyTarget];
@@ -48,7 +71,7 @@ export function reactive<T extends object = any> (data: T): T {
             const value = target[key];
             DepUtil.add(target, key);
             if (Array.isArray(target)) {
-                const result = useArrayMethod(key, target);
+                const result = listener.useArrayMethod(target, key);
                 if (result) {
                     return result;
                 }
@@ -72,12 +95,17 @@ export function reactive<T extends object = any> (data: T): T {
             if (value === origin) return true;
             const isArrayIndex = isArrayItem(target, key);
             if (isArrayIndex && typeof origin === 'undefined') {
-                value = reactive(deepClone(value));
+                // value = reactive(deepClone(value));
+                value = reactive(value);
                 (listener.newItem(target, parseInt(key as string), value));
             } else if (isArrayOrJson(origin) && isArrayOrJson(value)) {
+                if (listener.isForArray(origin[OriginTarget])) {
+                    origin[ProxyTarget].splice(0, origin.length, ...value);
+                } else {
+                    deepAssign(origin, value);
+                }
                 // console.log('deepAssign', key);
                 // const result = Reflect.set(target, key, value, receiver);
-                deepAssign(origin, value);
                 DepUtil.trigger(target, key);
                 return true;
             } else {

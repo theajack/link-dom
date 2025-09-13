@@ -19,7 +19,9 @@ function CounterDeepRef (data: {a:number}) {
     //     arr.push(i);
     // }
 
-    const list = ref(arr);
+    const list = ref({
+        arr,
+    });
 
     window._list = list;
 
@@ -37,8 +39,17 @@ function CounterDeepRef (data: {a:number}) {
     // watch(() => store.value.count, (v, old) => {
     //     console.log('store.value.count', v, old);
     // });
+
+    const mockAwait = () => {
+        return new Promise<{a:{b: number}}>(resolve => {
+            setTimeout(() => {
+                resolve({ a: { b: 1 } });
+            }, 1000);
+        });
+    };
+
     const selected = ref('');
-    const v = dom.div.style('borderBottom', '2px solid #000').append(
+    const v = dom.div.style('borderBottom', '2px solid #000').children(
         // data.a,
         // dom.button.text(() => `count is ${store.value.count}; ${22} cx=${countAddX.value} computed=${countAdd1.value} +1=${store.value.count2 + 1}; a=${store.value.count}`)
         //     .click(() => {
@@ -47,17 +58,20 @@ function CounterDeepRef (data: {a:number}) {
         //         list.value.push(store.value.count);
         //     }),
         dom.button.text('clear').click(() => {
-            list.value = [];
+            list.value.arr = [];
         }),
         dom.button.text('init').click(() => {
             console.time();
             // const arr = [] as any[];
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 10; i++) {
                 // arr.push(i);
-                list.value.push({ i: `item${i}` });
+                list.value.arr.push({ i: `item${i}` });
             }
             // list.value = arr;
             console.timeEnd();
+        }),
+        ctrl.await(mockAwait(), (data) => {
+            return dom.div.text(`'data.a.b'=${data.a.b}`);
         }),
         dom.span.text(join`selected:${selected}`),
         // dom.button.text('clear selected').click(() => {
@@ -93,22 +107,18 @@ function CounterDeepRef (data: {a:number}) {
         //         .text(() => `${item.i}: ${item.i}`)
         //         .click(() => { selected.value = item.i; });
         // }),
-        ctrl.for(list, (item, index) => {
+        ctrl.for(list.value.arr, (item, index) => {
             // debugger;
-            return dom.div.style('color', () => {
-                const v = selected.value === item.i ? 'red' : 'green';
-                console.log(`style color change:${v}`, index, selected.value, item.i);
-                return v;
-            })
+            return dom.div.style('color', () => selected.value === item.i ? 'red' : 'green')
                 .children(
-                    dom.span.text(() => `${index}: ${item.i}`).click(() => {
+                    dom.span.text(() => `${index.value}: ${item.i}`).click(() => {
                         console.time('select');
                         selected.value = item.i;
                         console.timeEnd('select');
                     }),
                     dom.button.text('×').click(() => {
                         console.time('remove');
-                        list.value.splice(index, 1);
+                        list.value.arr.splice(index.value, 1);
                         console.timeEnd('remove');
                     })
                 );
@@ -167,4 +177,4 @@ const test = () => {
     return div;
 };
 
-window.a = test;
+// window.a = test;

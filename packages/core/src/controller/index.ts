@@ -12,21 +12,16 @@ import { If } from './if';
 import { Switch } from './switch';
 import type { IOptionStyle } from '../type.d';
 import { Show } from './show';
+import { Await } from './async';
 
 export type IController = For | If | Switch;
 
 export const ctrl = {
-    for: <T = any> (list: Ref<T[]>, fn: (item: T, index: number)=>IChild) => {
+    for: <T = any> (list: Ref<T[]>|T[], fn: (item: T, index: {readonly value: number})=>IChild) => {
         return new For<T>(list, fn);
     },
-    forNoIndex: <T = any> (list: Ref<T[]>, fn: (item: T)=>IChild) => {
-        return new For<T>(list, fn, false, false);
-    },
-    forRef: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>, index: number)=>IChild) => {
+    forRef: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>, index: {readonly value: number})=>IChild) => {
         return new For<T>(list, fn, true);
-    },
-    forRefNoIndex: <T = any> (list: Ref<T[]>, fn: (item: Ref<T>)=>IChild) => {
-        return new For<T>(list, fn, true, false);
     },
     forStatic: <T = any> (list: T[], fn: (item:T, index: number)=>IChild) => {
         return list.map((item, index) => fn(item, index));
@@ -47,4 +42,8 @@ export const ctrl = {
     ) {
         return new Show(ref, gene, showDisplay);
     },
+    // 异步控制器
+    await<T> (data: Promise<T>, fn: (v: T)=>IChild) {
+        return new Await(data, fn);
+    }
 };

@@ -79,10 +79,10 @@ const router = createRouter({
                 console.log(`test:route`, data.route);
                 console.log(`test:path`, data.path);
                 return dom.div.text('CompX').children(
-                    dom.div.text(()=>`query: ${JSON.stringify(data.query)}`),
-                    dom.div.text(()=>`param: ${JSON.stringify(data.param)}`),
-                    dom.div.text(()=>`meta: ${JSON.stringify(data.meta)}`),
-                    dom.div.text(()=>`meta: ${JSON.stringify(data.query.a)}`),
+                    dom.div.text(() => `query: ${JSON.stringify(data.query)}`),
+                    dom.div.text(() => `param: ${JSON.stringify(data.param)}`),
+                    dom.div.text(() => `meta: ${JSON.stringify(data.meta)}`),
+                    dom.div.text(() => `meta: ${JSON.stringify(data.query.a)}`),
                 );
             },
         },
@@ -127,13 +127,13 @@ watch(() => router.query, (val) => {
 });
 
 
-window._t = ()=>{
-    const a = document.createElement('div')
-    let btn = document.createElement('button')
-    a.innerText = 'xxx'
-    a.appendChild(btn)
-    btn.innerText = 'btn'
-    btn.onclick = ()=>console.log('bbb')
-    a.onclick = ()=>console.log('aaa')
-    return a
-}
+window._t = () => {
+    const a = document.createElement('div');
+    const btn = document.createElement('button');
+    a.innerText = 'xxx';
+    a.appendChild(btn);
+    btn.innerText = 'btn';
+    btn.onclick = () => console.log('bbb');
+    a.onclick = () => console.log('aaa');
+    return a;
+};

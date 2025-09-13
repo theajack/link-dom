@@ -4,8 +4,8 @@
  * @Description: Coding something
  */
 
-import { isArrayOrJson, deepAssign } from 'link-dom-shared';
-import { reactive } from './reactive';
+import { isArrayOrJson, deepAssign, OriginTarget } from 'link-dom-shared';
+import { listener, reactive } from './reactive';
 import { DepUtil } from './dep';
 import { isReactive } from './computed';
 export class Ref<T = any> {
@@ -18,7 +18,12 @@ export class Ref<T = any> {
     set value (v) {
         if (v === this._value) return;
         if (this.isDeep(v)) {
-            deepAssign(this._value, v);
+            if (listener.isForArray(this._value?.[OriginTarget] as any)) {
+                // @ts-ignore
+                this._value.splice(0, this._value.length, ...v);
+            } else {
+                deepAssign(this._value, v);
+            }
         } else {
             this._value = v;
         }
@@ -30,6 +35,9 @@ export class Ref<T = any> {
         this._deep = _deep;
         if (!this.isDeep(_value)) {
             this._value = _value;
+            // if (Array.isArray(_value)) {
+            //     listen;
+            // }
         } else {
             this._value = reactive(_value as object) as T;
         }

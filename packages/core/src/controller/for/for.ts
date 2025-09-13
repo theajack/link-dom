@@ -8,44 +8,10 @@ import type { IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';
-import { OriginTarget, checkHydrateMarker, } from 'link-dom-shared';
-import { setArrayListeners, isRef, type Ref, watch, DepUtil, isDeepReactive } from 'link-dom-reactive';
+import { checkHydrateMarker, } from 'link-dom-shared';
+import { isRef, type Ref, watch, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
-
-export const ForGlobal = {
-    Map: new WeakMap<any[], Set<For>>(),
-    add (list: any[], forItem: For) {
-        list = list[OriginTarget] || list;
-
-        // ForGlobal.Map.set(list, forItem);
-        let set = ForGlobal.Map.get(list);
-        if (!set) {
-            set = new Set();
-            ForGlobal.Map.set(list, set);
-        }
-        set.add(forItem);
-    },
-};
-
-setArrayListeners({
-    deleteIndex (target: any[], index: number) {
-        ForGlobal.Map.get(target)?.forEach(item => item._deleteItem(index));
-    },
-    newItem (target: any[], index: number, data: any) {
-        ForGlobal.Map.get(target)?.forEach(item => item._newItem(index, data));
-        // ForGlobal.Map.get(target)?._newItem(index, data);
-    },
-    clearEmpty (target: any[], length: number) {
-        // ForGlobal.Map.get(target)?._clearEmptyChildren(length);
-        ForGlobal.Map.get(target)?.forEach(item => item._clearEmptyChildren(length));
-    },
-    updateItem (target: any[], index: number, data: any) {
-        ForGlobal.Map.get(target)?.forEach(item => item._updateItem(index, data));
-    },
-    isForArray (target: any[]) {
-        return ForGlobal.Map.has(target);
-    }
-});
+import { ForGlobal } from './for-util';
 
 export class For <T=any> {
 
@@ -58,7 +24,7 @@ export class For <T=any> {
     private children: ForChild[] = [];
 
     private _list: T[];
-    private _generator: (item: Ref<T>, index: number)=>IChild;
+    private _generator: (item: Ref<T>, index: {readonly value: number})=>IChild;
 
     end: Node;
 
@@ -68,9 +34,8 @@ export class For <T=any> {
 
     constructor (
         _list: Ref<T[]>|T[],
-        _generator: (item: Ref<T>|T, index: number)=>IChild,
+        _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         private itemRef = false,
-        private useIndex = true,
     ) {
         if (isRef(_list)) {
             this._list = _list.value;
@@ -101,6 +66,13 @@ export class For <T=any> {
         parent.insertBefore(this.frag.el, this.end);
     }
 
+    private _useIndex = false;
+    private useIndex = () => {
+        this._useIndex = true;
+        // @ts-ignore
+        this.useIndex = null;
+    };
+
     private newChild (data: T, index: number) {
         const child = new ForChild(
             this._generator,
@@ -109,6 +81,7 @@ export class For <T=any> {
             data,
             index,
             this.itemRef,
+            this.useIndex,
         );
         this.children[index] = child;
         return child;
@@ -125,7 +98,7 @@ export class For <T=any> {
         // console.trace('newItem', index, this._list.length, data);
         const cc = this.children, n = cc.length;
         let marker = this.end, markerIndex = index;
-        while (index < n && !cc[markerIndex]) {
+        while (markerIndex < n && !cc[markerIndex]) {
             markerIndex ++;
         }
         marker = cc[markerIndex]?.marker.start || this.end;
@@ -173,9 +146,56 @@ export class For <T=any> {
     }
 
     _deleteItem (index: number) {
-        console.log('delete item', index);
+        // console.log('delete item', index);
         const child = this.children[index];
         child?.destroy();
+    }
+
+    _removeDoms (start: number, count: number) {
+        for (let i = start; i < start + count; i++) {
+            this.children[i]?.destroy();
+        }
+        this.children.splice(start, count);
+        this._updateIndex(start + count - 1);
+    }
+    _addDoms (start: number, count: number) {
+        for (let i = start; i < start + count; i++) {
+            this.children.splice(i, 0, null as any);
+            this._newItem(i, this._list[i]);
+        }
+        this._updateIndex(start + count);
+    }
+    _swapDom (i: number, j: number) {
+        const ci = this.children[i];
+        const cj = this.children[j];
+
+        let iMarker = this.children[i + 1].marker.start;
+        const parent = iMarker.parentElement!;
+        if (j === i + 1) {
+            iMarker = ci.marker.start;
+        } else {
+            ci.marker.clear().forEach(node => {
+                parent.insertBefore(node, cj.marker.start);
+            });
+        }
+        cj.marker.clear().forEach(node => {
+            parent.insertBefore(node, iMarker);
+        });
+        if (this._useIndex) {
+            ci.setIndex(j);
+            cj.setIndex(i);
+        }
+        this.children[i] = cj;
+        this.children[j] = ci;
+    }
+
+    private _updateIndex (start: number) {
+        if (!this._useIndex) return;
+        // console.log('updateIndex', start);
+        const n = this.children.length;
+        for (let i = start; i < n; i++) {
+            this.children[i].setIndex(i);
+        }
     }
 
     _clearEmptyChildren (length: number) {
