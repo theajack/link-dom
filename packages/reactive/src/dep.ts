@@ -85,15 +85,9 @@ export class Dep {
         // ? 此处若是for-child中有if逻辑 还是可能会存在内存泄露，如 if未命中的分支中含有外部ref，此时无法获取到 CurForChild
         // console.trace(exp.toString(), item.fn.toString());
         // debugger;
+
         DepUtil.CurForChild?.collect(this, exp);
         this.list.set(exp, item);
-
-        // let set = Dep.WeakMap.get(exp);
-        // if (!set) {
-        //     set = new Set();
-        //     Dep.WeakMap.set(exp,insertChildNode set);
-        // }
-        // set.add(this);
     }
     trigger () {
         for (const [ exp, item ] of this.list) {
@@ -104,14 +98,6 @@ export class Dep {
             // if (newValue !== value || typeof value === 'object') {
             fn(newValue, value);
             item.value = newValue;
-            // // 能解决问题 但是会消耗更多内存 性能更低
-            // Dep.WeakMap.get(exp)?.forEach(dep => {
-            //     if (dep === this) return;
-            //     dep.list.forEach(item => {
-            //         item.value = newValue;
-            //     });
-            // });
-            // }
         }
     }
     remove (exp: ()=>any) {

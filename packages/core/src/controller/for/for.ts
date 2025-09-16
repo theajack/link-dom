@@ -8,7 +8,7 @@ import type { IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';
-import { checkHydrateMarker, } from 'link-dom-shared';
+import { OriginTarget, checkHydrateMarker, } from 'link-dom-shared';
 import { isRef, type Ref, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
@@ -56,6 +56,8 @@ export class For <T=any> {
 
         checkHydrateMarker(this);
         // window._for = this;
+
+        DepUtil.CurForChild?.addForEl(this);
     }
 
     // private resetList () {
@@ -84,6 +86,17 @@ export class For <T=any> {
             this.itemRef,
             this.useIndex,
         );
+
+        // 处理简单值类型 ref set和原始数据同步
+        if (this.itemRef && this._isDeep && typeof data !== 'object') {
+            DepUtil.sub(child.data, 'value', (newValue) => {
+                const index = child.index.value;
+                const target = this._list[OriginTarget];
+                target[index] = newValue;
+                DepUtil.trigger(target, `${index}`);
+            });
+        }
+
         this.children[index] = child;
         return child;
     }
@@ -213,9 +226,14 @@ export class For <T=any> {
     }
 
     destroy () {
+
         this._clearWatch?.();
         if (this.children.length > 0) {
             removeBetween(this.children[0].marker.start, this.end);
+            this.children.forEach(child => {
+                child.destroy();
+            });
+            this.children = [];
         }
         // @ts-ignore
         this.end.remove();

@@ -14,8 +14,9 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 // import './comp-use';
 
 // import './for-move';
-
-import './for-if';
+// import './if-mem';
+import './if-mem';
+// import './for-if';
 
 
 window.watch = watch;
@@ -126,8 +127,6 @@ function Counter () {
 
 
 function Counter2 () {
-
-
     const store = ref({
         count: 0,
     });

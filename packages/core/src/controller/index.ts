@@ -12,7 +12,7 @@ import { If } from './if';
 import { Switch } from './switch';
 import type { IOptionStyle } from '../type.d';
 import { Show } from './show';
-import { Await } from './async';
+import { Await } from './await';
 
 export type IController = For | If | Switch;
 

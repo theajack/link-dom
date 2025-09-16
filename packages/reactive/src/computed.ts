@@ -29,9 +29,10 @@ export class Computed<T=any> {
         this._set(v);
     }
 
+    private _clearWatch: ()=>void;
     constructor (get: IComputeFn<T>, set?: (v: T)=>void) {
         this._set = set;
-        observe(get, (v) => {
+        this._clearWatch = observe(get, (v) => {
             this._value = v;
             DepUtil.trigger(this, 'value');
         }, (value) => { this._value = value; });
@@ -39,6 +40,7 @@ export class Computed<T=any> {
 
     destroy () {
         DepUtil.clear(this);
+        this._clearWatch();
     }
 }
 

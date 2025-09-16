@@ -7,32 +7,43 @@
 import type { IChild } from '../element';
 import { Frag } from '../text';
 import { LinkDomType } from '../utils';
-import { watch } from 'link-dom-reactive';
+import { DepUtil, watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
 import type { IReactiveLike } from '../type.d';
+import type { ForChild } from './for/for-child';
 
 // 用来存放if隐藏时的对象，不影响内部响应式操作
 class IfScope {
 
     frag: Frag;
 
+    scope: ForChild|null = null;
+
     constructor (
         public ref: IReactiveLike,
         private gene: ()=>IChild,
     ) {
+        this.scope = DepUtil.CurForChild;
     }
 
     toFrag (): Frag {
         if (!this.frag) {
+            DepUtil.CurForChild = this.scope;
             this.frag = new Frag().append(this.gene());
+            DepUtil.CurForChild = null;
         }
         return this.frag;
     }
 
     store (list: Node[]): void {
-        this.frag = new Frag().append(list);
+        this.frag.append(list);
     }
+
+    // destroy () {
+    //     // @ts-ignore
+    //     this.ref = this.gene = this.scope = this.frag = null;
+    // }
 }
 
 
@@ -64,6 +75,7 @@ export class If {
         ref: IReactiveLike<boolean>,
         gene: ()=>IChild,
     ) {
+        DepUtil.CurForChild?.addForEl(this);
         this._addCond(ref, gene);
         this.marker = new Marker();
     }
@@ -81,7 +93,6 @@ export class If {
     private _clearWatch: ()=>void;
     __mounted () {
         if (!this.frag) return;
-        console.log('test:if mounted');
         // console.log('test:if mounted');
         // this._initChildren();
         if (this.__mountedFn) {

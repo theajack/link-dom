@@ -20,7 +20,7 @@ export class Await {
         _generator: (data: any)=>IChild,
     ) {
         this.start = createMarkerNode();
-        this.el = new Frag().append(this.start);
+        this.el = new Frag().append(this.start).el;
         _promise.then(data => {
             const child = _generator(data);
             const frag = new Frag().append(child);

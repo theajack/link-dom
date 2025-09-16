@@ -12,6 +12,14 @@ import type { Dep } from 'link-dom-reactive';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';
 
 export class ForChild<T=any> {
+
+    private forEls: {destroy: ()=>void}[];
+
+    addForEl (item: {destroy: ()=>void}) {
+        if (!this.forEls) this.forEls = [];
+        this.forEls.push(item);
+    }
+
     private _marker: Marker;
     removed = false;
 
@@ -73,6 +81,8 @@ export class ForChild<T=any> {
         this._list = [];
         this.marker.clear();
         this.removed = true;
+
+        this.forEls?.forEach(el => el.destroy());
     }
 
     data: Ref<T>|T;
@@ -90,6 +100,7 @@ export class ForChild<T=any> {
         itemRef: boolean,
         useIndex?: ()=>void,
     ) {
+        // debugger;
         this.data = itemRef ? (isDeep ? ref(data) : { value: data } as Ref) : data;
         const _this = this;
         this.index = {

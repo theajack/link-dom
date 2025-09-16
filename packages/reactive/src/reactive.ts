@@ -101,7 +101,6 @@ export function reactive<T extends object = any> (data: T): T {
             if (isArrayIndex && typeof origin === 'undefined') {
                 // value = reactive(deepClone(value));
                 value = reactive(value);
-                debugger;
                 (listener.newItem(target, parseInt(key as string), value));
             } else if (isArrayOrJson(origin) && isArrayOrJson(value)) {
                 if (listener.isForArray(origin[OriginTarget])) {

@@ -42,7 +42,7 @@ setArrayListeners({
         return ForGlobal.Map.has(target);
     },
     useArrayMethod (target: any[], key: string|symbol) {
-        return Map[key]?.bind(target) || null;
+        return FnMap[key]?.bind(target) || null;
     }
 });
 
@@ -56,7 +56,7 @@ function triggerSub (arr: any[], key: string|symbol) {
     }
 }
 
-const Map = {
+const FnMap = {
     reverse (this: any[]) {
         const arr = this;
         // const proxy = this[ProxyTarget] || this;
@@ -78,7 +78,7 @@ const Map = {
     sort (this: any[], compare?: ((a: any, b: any)=>number)|undefined) {
         const arr = this[OriginTarget] || this;
         const proxy = this[ProxyTarget] || this;
-        let origin: WeakMap<any, any> = new WeakMap();
+        let origin: Map<any, any> = new Map();
         let proxy2 = new Proxy(arr, {
             set (target, key, value) {
             // 将 index = key 的值设置为value

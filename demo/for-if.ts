@@ -9,7 +9,7 @@ function Test () {
 
     const arr = reactive([ 1, 2, 3, 2 ]);
 
-    const selected = ref(0);
+    const selected = ref(2);
 
     const value2 = ref('xxx');
 
