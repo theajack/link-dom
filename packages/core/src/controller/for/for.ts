@@ -107,7 +107,7 @@ export class For <T=any> {
             this.insertChildNode(data, index, this.end);
             return;
         }
-        debugger;
+        // debugger;
         this.children[index].data.value = data;
     }
     _newItem (index: number, data: T) {
