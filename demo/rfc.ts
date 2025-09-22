@@ -4,21 +4,25 @@
  * @Description: Coding something
  */
 
+const dom: any = {};
 
 dom.div({
-    text: '',
-    html: '',
-    attr: {},
-    class: '',
-    style: {},
-    children: [
-    ]
-});
+
+}, [
+
+]);
 
 dom.div.text('')
     .attr({})
     .class('')
     .style({})
     .children(
-
+        dom.text(''),
+        dom.div.text('')
+            .attr({})
+            .class('')
+            .style({})
+            .children(
+                dom.text(''),
+            )
     );

@@ -6,6 +6,7 @@
  * @Description: Coding something
  */
 import { Root, isArrayOrJson } from 'link-dom-shared';
+import type { Dep } from './dep';
 import { DepUtil } from './dep';
 import { OriginTarget, ProxyTarget, deepAssign } from 'link-dom-shared';
 
@@ -21,20 +22,22 @@ export function observe (
     const value = exp();
     onvalue?.(value);
     DepUtil.inCollecting = false;
-    let deps = Array.from(DepUtil.Temp);
-    // debugger;
-    DepUtil.Temp.clear();
-    for (const dep of deps) {
-        // dep.collect(exp, { fn, value, exp });
-        dep.collect(exp, { fn, value });
+
+    if (DepUtil.Temp.size > 0) {
+        let cache: Dep[] = [];
+        DepUtil.Temp.forEach(dep => {
+            dep.collect(exp, fn, value);
+            cache.push(dep);
+        });
+        DepUtil.Temp.clear();
+        return () => {
+            cache.forEach(dep => dep.remove(exp));
+            // @ts-ignore
+            cache = null;
+        };
     }
-    return () => {
-        for (const dep of deps) {
-            dep.remove(exp);
-        }
-        // @ts-ignore
-        deps = null; exp = null;
-    };
+    DepUtil.Temp.clear();
+    return () => {};
 }
 
 export const listener = {

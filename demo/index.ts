@@ -19,6 +19,26 @@ import './if-mem';
 // import './for-if';
 
 
+// const value = reactive({ value: 1 });
+
+
+// const list = reactive([
+//     { a: 1 },
+//     { a: 2 },
+//     { a: 3 }
+// ]);
+
+
+// list.forEach((item, index) => {
+//     console.log(item.a, index);
+//     watch(() => item.a === value.value, (newValue, oldValue) => {
+//         console.log(`${item.a};${index}:observe`, newValue, oldValue);
+//     });
+// });
+
+// window.list = list;
+
+
 window.watch = watch;
 window.ref = ref;
 window.computed = computed;

@@ -18,7 +18,7 @@ function CounterDeepRef () {
         dom.button.text('init').click(() => {
             console.time();
             // const arr = [] as any[];
-            for (let i = 0; i < 50000; i++) {
+            for (let i = 0; i < 20000; i++) {
                 // arr.push(i);
                 list.value.push({ i });
             }
