@@ -45,12 +45,9 @@ export class Show {
         const nodes: [HTMLElement, any][] = [];
         traverseChildren([ gene() ], (dom: HTMLElement) => {
             if (!this._marker) this._marker = dom;
-            this.frag.append(dom);
             let helper: any;
             if (dom.nodeType === Node.TEXT_NODE) {
                 helper = createMarkerNode('');
-                // @ts-ignore
-                dom._bro = helper;
                 this.frag.append(dom, helper);
             } else {
                 helper = getDefaultStyle(dom, showDisplay);

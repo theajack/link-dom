@@ -4,7 +4,7 @@
  * @Date: 2025-09-01 17:55:18
  * @Description: Coding something
  */
-import type { IChild } from '../../element';
+import type  { IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';

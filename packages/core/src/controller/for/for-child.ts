@@ -89,8 +89,6 @@ export class ForChild<T=any> {
 
     index: {readonly value: number};
 
-    indexUsed = false;
-
     constructor (
         private _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         // private list: T[],

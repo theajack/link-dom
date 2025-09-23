@@ -15,7 +15,8 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 
 // import './for-move';
 // import './if-mem';
-import './if-mem';
+// import './if-mem';
+import './shallow';
 // import './for-if';
 
 
