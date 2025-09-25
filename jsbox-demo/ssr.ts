@@ -9,7 +9,8 @@ import { ref, dom, ctrl, join, collectRef, mount } from 'link-dom';
 function CommonComponent (data: {label: string}[]) {
     const list = ref(data);
     const selected = ref('label2');
-    return dom.div.style('borderBottom', '2px solid #000').children(
+    let id = 0;
+    const root = dom.div.style('borderBottom', '2px solid #000').children(
         dom.button.text('clear').click(() => {
             list.value = [];
         }),
@@ -22,6 +23,9 @@ function CommonComponent (data: {label: string}[]) {
         }),
         dom.button.text('reset').click(() => {
             list.value = [ { label: 'test' }, { label: 'test2' } ];
+        }),
+        dom.button.text('add').click(() => {
+            list.value.push({ label: `item${id++}` });
         }),
         dom.span.text(join`selected:${selected}`),
         ctrl.for(list, (item, index) => {
@@ -39,6 +43,8 @@ function CommonComponent (data: {label: string}[]) {
                 );
         }),
     );
+    window.root = root;
+    return root;
 }
 
 
@@ -51,6 +57,7 @@ function CommonComponent (data: {label: string}[]) {
 //         })
 //     );
 // }
+// mount(CommonComponent([ { label: 'label1' }, { label: 'label2' } ]), '#app');
 
 function SSRDemo () {
     // const data = { count: 3 };

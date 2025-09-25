@@ -54,6 +54,7 @@ if (isWeb) {
 
 export function checkHydrateEl (dom: {el: any}) {
     if (dom.el.__is_hydrate === true) {
+        console.log(dom);
         dom.el.dom = dom;
         // console.log('hydrate', dom.el);
     // } else {
@@ -61,16 +62,21 @@ export function checkHydrateEl (dom: {el: any}) {
     }
 }
 export function checkHydrateMarker (marker: {start?: any, end?: any}) {
+    let hydrate = false;
+
     if (marker.start?.__is_hydrate === true) {
         marker.start.dom = marker;
         marker.start.markerType = 'start';
         // console.log('hydrate', marker.start);
+        hydrate = true;
     }
 
     if (marker.end?.__is_hydrate === true) {
         marker.end.dom = marker;
         marker.end.markerType = 'end';
+        hydrate = true;
     }
+    return hydrate;
 }
 
 

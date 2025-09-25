@@ -8,8 +8,9 @@ import type  { IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';
-import { OriginTarget, checkHydrateMarker, } from 'link-dom-shared';
-import { isRef, type Ref, DepUtil, isDeepReactive } from 'link-dom-reactive';
+import { OriginTarget, RenderStatus, checkHydrateMarker, } from 'link-dom-shared';
+import type { Ref } from 'link-dom-reactive';
+import { isRef, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
 
@@ -49,15 +50,19 @@ export class For <T=any> {
     ) {
         // window._for = this;
         this._list = (isRef(_list)) ? _list.value : _list;
-        ForGlobal.add(this._list, this);
+        console.log('init for');
+
+
+        if (!RenderStatus.isSSR) {
+            ForGlobal.add(this._list, this);
+        }
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
         this._initChildren();
 
-        checkHydrateMarker(this);
-        // window._for = this;
-
-        DepUtil.CurForChild?.addForEl(this);
+        if (!RenderStatus.isSSR) {
+            DepUtil.CurForChild?.addForEl(this);
+        }
     }
 
     // private resetList () {
@@ -151,6 +156,7 @@ export class For <T=any> {
         this.start = createMarkerNode('');
         // 后面加一个结尾
         this.end = createMarkerNode('');
+        checkHydrateMarker(this);
         this.frag.append(this.start, this.end);
         this.el = this.frag.el;
     }
@@ -160,7 +166,9 @@ export class For <T=any> {
         const list = this._list;
         const size = list.length;
         for (let i = 0; i < size; i++) {
-            frag.append(this.newChild(list[i], i).frag);
+            const child = this.newChild(list[i], i);
+            debugger;
+            frag.append(child.frag);
         }
         return frag;
     }

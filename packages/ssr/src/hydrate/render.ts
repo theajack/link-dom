@@ -44,6 +44,7 @@ function initSSRNodes () {
 export function hydrate <T extends any[]> (comp: (...args: T)=>IChild): ((...args: T) => void)  {
 
     return (...args: T) => {
+        debugger;
         console.time();
         setRender('hydrate');
         initSSRNodes();
@@ -59,6 +60,7 @@ export function hydrate <T extends any[]> (comp: (...args: T)=>IChild): ((...arg
 
         for (let i = 0; i < size; i++) {
             const child = childNodes[i] as any as SSRBase;
+            debugger;
             child.hydrate(nodes[i]);
         }
         setRender('web');

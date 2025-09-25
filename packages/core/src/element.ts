@@ -98,16 +98,16 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         this.el.removeAttribute(key);
         return this;
     }
-    private __xr_funcs: Record<string, (...args: any[]) => any> = {};
-    func(k: string): (...args: any[]) => any;
-    func(k: string, v: (...args: any[]) => any): this;
-    func (k: string, v?: (...args: any[]) => any) {
-        if (typeof v === 'undefined') {
-            return this.__xr_funcs[k];
-        }
-        this.__xr_funcs[k] = v;
-        return this;
-    }
+    // private __xr_funcs: Record<string, (...args: any[]) => any> = {};
+    // func(k: string): (...args: any[]) => any;
+    // func(k: string, v: (...args: any[]) => any): this;
+    // func (k: string, v?: (...args: any[]) => any) {
+    //     if (typeof v === 'undefined') {
+    //         return this.__xr_funcs[k];
+    //     }
+    //     this.__xr_funcs[k] = v;
+    //     return this;
+    // }
     data (name: Record<string, any>): this;
     data (name: string): any|null;
     data (name: string, value: any): this;

@@ -34,6 +34,9 @@ class IfScope {
         this.scope = DepUtil.CurForChild;
         this.id = id++;
         window.a[this.id] = this;
+        // if (RenderStatus.isHydrating) {
+        //     debugger;
+        // }
     }
 
     toFrag (): Frag {

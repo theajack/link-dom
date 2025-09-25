@@ -30,7 +30,7 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
             // console.log('not dom', this);
             return;
         }
-        // 指定真实的dom节点
+        // 指定真实的dom节点: 将SSRElement替换为真实dom节点
         this.dom.el = el;
     }
 
