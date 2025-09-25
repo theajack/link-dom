@@ -1,7 +1,7 @@
 {
-    "name": "demo",
+    "name": "link-dom",
     "private": true,
-    "version": "0.0.0",
+    "version": "0.1.0",
     "scripts": {
         "dev": "vite -m=dev",
         "build:demo": "vite build -m=demo",

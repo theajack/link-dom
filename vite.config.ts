@@ -108,9 +108,14 @@ const babelPlugin = () => (
     })
 );
 function SDKlibConfig (pkgName: string): Partial<LibraryOptions> {
+    let name = '';
+    const Map = {
+        'core': 'link-dom',
+    };
+    name = Map[pkgName] || `${Map.core}-${pkgName}`;
     return {
-        name: upcaseFirstLetter(pkgName), // 包名
-        formats: [ 'es', 'iife' ], // 打包模式，默认是es和umd都打
+        name: upcaseFirstLetter(name), // 包名
+        formats: [ 'es', 'iife', 'cjs' ], // 打包模式，默认是es和umd都打
         fileName: (format: string) => `${pkgName}.${format}.min.js`,
     };
 }

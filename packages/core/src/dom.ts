@@ -252,6 +252,7 @@ export function mount (node: IMountDom|IMountDom[]|IChild, parent: string|HTMLEl
         // ! Custom render 处理
         el = new Dom(el);
     }
+    if (typeof node === 'function') node = node();
     Array.isArray(node) ? el.append(...node) : el.append(node);
 }
 

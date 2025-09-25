@@ -16,9 +16,10 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 // import './for-move';
 // import './if-mem';
 // import './if-mem';
-import './shallow';
+// import './shallow';
 // import './for-if';
 
+import '../jsbox-demo';
 
 // const value = reactive({ value: 1 });
 
