@@ -31,11 +31,14 @@ export class ForChild<T=any> {
         this._list.push({ dep, exp });
     }
 
+    private _start: any = null;
+
     get frag () {
         if (!this._frag) {
             const el = this._generator(this.data, this.index);
             if (typeof el.__ld_type !== 'number') {
                 this._frag = new Frag().append(el);
+                this._start = this._frag.children[0];
             } else {
                 this._frag = el;
             }
@@ -58,7 +61,7 @@ export class ForChild<T=any> {
             let start: any;
             // debugger;
             if (lg === LinkDomType.Frag) {
-                start = f.children[0]?.el;
+                start = this._start?.el;
                 if (!start) {
                     start = createMarkerNode();
                     f.prepend(start);
@@ -70,7 +73,7 @@ export class ForChild<T=any> {
                 // @ts-ignore
                 start = f.getMarker?.() || f.el;
             }
-            this._marker = new Marker({ start, clearSelf: true });
+            this._marker = new Marker({ start, clearSelf: true, end: false });
         }
         return this._marker;
     }
@@ -106,7 +109,9 @@ export class ForChild<T=any> {
                 useIndex?.();
                 DepUtil.add(this, 'value');
                 return _this._index;
-            }
+            },
+            // @ts-ignore
+            __isReactive: true,
         };
         // if (!window.fcChild)window.fcChild = [];
         // window.fcChild.push(this);

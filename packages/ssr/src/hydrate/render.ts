@@ -61,11 +61,6 @@ export function hydrate <T extends any[]> (comp: (...args: T)=>IChild): ((...arg
             const child = childNodes[i] as any as SSRBase;
             child.hydrate(nodes[i]);
         }
-        // const n = nodes.length;
-        // for (let i = 0; i < n; i++) {
-        //     (nodes[i] as Element).replaceWith(childNodes[i]);
-        //     // 待优化
-        // };
         setRender('web');
         console.timeEnd();
     };

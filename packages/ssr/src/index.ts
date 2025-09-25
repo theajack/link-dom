@@ -5,6 +5,6 @@
  */
 export * from './utils';
 
-export { ssr, isSSR, isHydrating } from './ssr/render';
+export { ssr } from './ssr/render';
 
 export { hydrate } from './hydrate/render';

@@ -4,20 +4,23 @@
  * @Description: Coding something
  */
 
-import type { Comment, Dom, Frag, Text } from 'link-dom';
+import type { Dom } from 'link-dom';
+import { Comment } from 'link-dom';
+import { Frag, Text } from 'link-dom';
 import { NodeType } from '../utils';
 import type { SSRElement } from './element';
-import type { IComment, IFragment, ITextNode } from 'link-dom-shared';
-import { isHydrating } from './render';
+import { RenderStatus, type IComment, type IFragment, type ITextNode } from 'link-dom-shared';
+
 
 export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
     dom: T;
     __is_ssr = true;
     __is_hydrate = false;
     nodeType: NodeType;
-    abstract toHtml (): string;
+    abstract toHtml (isSingle: boolean): string;
+    abstract toDom (): Frag|Dom|Text|Comment;
     constructor () {
-        if (isHydrating) {
+        if (RenderStatus.isHydrating) {
             this.__is_hydrate = true;
         }
     }
@@ -60,12 +63,20 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
 }
 
 export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
+    toDom () {
+        const frag = new Frag();
+        for (const item of this.children) {
+            frag.append(item.toDom?.() || item);
+        }
+        return frag;
+    }
     hydrate (el: HTMLElement) {
         super.hydrate(el);
         const childNodes = el.childNodes;
         // const curChildren = this.flatChildren();
         const curChildren = this.children;
         const len = curChildren.length;
+
         if (childNodes.length !== len) {
             throw new Error('hydrate error');
             // debugger;
@@ -73,13 +84,22 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
         for (let i = 0; i < len; i++) {
             const item = curChildren[i];
             const node = childNodes[i];
-            item.hydrate(node);
+            // @ts-ignore
+            if (node?.tagName === 'ST') {
+                // ! 此处只能web平台使用了
+                const text: any = document.createTextNode((item as any).textContent);
+                node.replaceWith(text);
+                item.hydrate(text);
+            } else {
+                item.hydrate(node);
+            }
         }
     }
     toHtml (): string {
         let html = '';
+        const isSingle = this.children.length <= 1;
         for (const item of this.children) {
-            html += item.toHtml();
+            html += item.toHtml(isSingle);
         }
         return html;
     }
@@ -105,10 +125,15 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
         return this.children[this.children.length - 1];
     }
     appendChild (child: SSRBase): void {
-        child.parentElement = this;
+        if (child.__is_ssr) {
+            child.parentElement = this;
+        }
         if (child.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
-            for (const item of (child as SSRFragment).children)
+            for (const item of (child as SSRFragment).children) {
                 this.appendChild(item);
+            }
+            // ! frag 被append之后 内部元素需要清空
+            (child as SSRFragment).children = [];
         } else {
             this.children.push(child);
             // onElementMounted(child, this);
@@ -116,7 +141,9 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
         // throw new Error('Method not implemented.');
     }
     prepend (child: SSRBase) {
-        child.parentElement = this;
+        if (child.__is_ssr) {
+            child.parentElement = this;
+        }
         if (child.nodeType === NodeType.DOCUMENT_FRAGMENT_NODE) {
             for (const item of (child as SSRFragment).children)
                 this.prepend(item);
@@ -131,7 +158,9 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
             for (const item of (child as SSRFragment).children)
                 this.insertBefore(item, child);
         } else {
-            node.parentElement = this;
+            if (node.__is_ssr) {
+                node.parentElement = this;
+            }
             this.children.splice(child.index, 0, node);
             // onElementMounted(node, this);
         }
@@ -197,8 +226,12 @@ export class SSRText extends SSRBase<Text> implements ITextNode {
     set innerText (text: string) {
         this.textContent = text;
     }
-    toHtml (): string {
-        return this.textContent;
+    toHtml (isSingle: boolean): string {
+        // 此处为了保证多个text节点在水合是可以被回复，使用一个标签替换
+        return isSingle ? this.textContent : `<st>${this.textContent}</st>`;
+    }
+    toDom (): Text {
+        return new Text(this._textContent);
     }
     constructor (textContent: string) {
         super();
@@ -237,6 +270,9 @@ export class SSRComment extends SSRBase<Comment> implements IComment {
     }
     toHtml (): string {
         return `<!--${this._textContent}-->`;
+    }
+    toDom (): Comment {
+        return new Comment(this._textContent);
     }
 }
 

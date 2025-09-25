@@ -1,5 +1,5 @@
 import { type IReactive } from 'link-dom-reactive';
-import type { IAttrKey, IEventObject, IStyle, IStyleKey } from './type.d';
+import type { IAttrKey, IEventAttributes, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
 import { LinkDomType, formatCssKV, traverseChildren, bind, useReactive } from './utils';
 import { queryBase } from './dom';
 import type { Comment, Frag, Text } from './text';
@@ -9,9 +9,9 @@ import { isJoin } from './join';
 import type { IController } from './controller';
 import { Renderer, checkHydrateEl } from 'link-dom-shared';
 // eslint-disable-next-line no-undef
-type IEventKey = keyof DocumentEventMap;
 
 export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[];
+// @ts-ignore
 export class Dom<T extends HTMLElement = HTMLElement> {
     __ld_type = LinkDomType.Dom;
     el: T;
@@ -223,13 +223,13 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         }
         return list;
     }
-    click (value: IEventObject<this>) {
+    click (value: IEventObject<MouseEvent, this>) {
         return this.on('click', value);
     }
-    on (name: Partial<Record<IEventKey, IEventObject<this>>>): this;
-    on (name: IEventKey, value?: IEventObject<this>): this;
+    on (name: IEventAttributes): this;
+    on <T extends IEventKey>(name: T, value?: IEventObject<DocumentEventMap[T], this>): this;
     // eslint-disable-next-line no-undef
-    on (name: IEventKey|Partial<Record<IEventKey, IEventObject<this>>>, value?: IEventObject<this>) {
+    on <T extends IEventKey> (name: T|IEventAttributes, value?: IEventObject<DocumentEventMap[T], this>) {
         if (typeof name === 'object') {
             for (const k in name) {
                 // @ts-ignore
@@ -244,7 +244,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
                 value(e, this);
             });
         } else {
-            const handle = (e: Event) => {
+            const handle = (e: any) => {
                 // @ts-ignore
                 if (value.self && e.target !== dom) return;
                 if (value!.stop) e.stopPropagation();

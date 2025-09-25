@@ -24,7 +24,7 @@ export class Marker {
     constructor ({
         start, end = true, clearSelf = false, startText = '', endText = ''
     }: {
-        start?: Node|null, end?: true, clearSelf?: boolean,
+        start?: Node|null, end?: boolean, clearSelf?: boolean,
         startText?: string, endText?: string
     } = {}) {
         this.start = start || createMarkerNode(startText);

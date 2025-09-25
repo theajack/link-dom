@@ -21,19 +21,20 @@
 - [x] for 中使用到外部ref时，dom被清空掉还是会有内存泄露
 - [x] sort style 有bug
 - [x] forRef 简单值数组的同步问题
+- [ ] 修复 hydrate 中 for、if、show的兼容问题
 
 
 ## 性能优化
 
-- [ ] replace all rows
-- [ ] clear rows *
-- [ ] remove row
+- [x] replace all rows
+- [x] clear rows *
+- [x] remove row
 - [ ] for 使用一个模版，先对模版改动，然后对实际dom渲染
 
 ## 内存优化
 
 - [x] 内存泄漏
-- [ ] 内存占用
+- [x] 内存占用
 
 
 

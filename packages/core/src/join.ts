@@ -50,5 +50,6 @@ export function isJoin (v: any): v is Join {
 }
 
 export function join (strs: TemplateStringsArray, ...values: (IReactive|string|number|boolean)[]): Join {
+    // console.log(isSSR);
     return new Join(strs, values);
 }

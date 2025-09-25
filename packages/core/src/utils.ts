@@ -61,6 +61,7 @@ export function bind (el: Dom, v: IReactive|string|number|boolean) {
             el.el.checked = v;
             return;
         }
+        value = v;
         el.value(v);
     };
     setValue(value);
@@ -77,7 +78,6 @@ export function bind (el: Dom, v: IReactive|string|number|boolean) {
     };
     const modStore = () => {
         let newValue = getValue();
-
         if (newValue === value) return;
         if (vType === 'number' && newValue === '') newValue = 0;
         value = newValue;

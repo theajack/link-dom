@@ -21,43 +21,7 @@ export function collectRef <E extends HTMLElement = HTMLElement, T extends strin
     return refs;
 }
 
-const DomNames = [
-    'a', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'canvas', 'code', 'pre', 'table', 'th', 'td', 'tr', 'video', 'audio',
-    'ol', 'select', 'option', 'p', 'i', 'iframe', 'img', 'input', 'label', 'ul', 'li', 'span', 'textarea', 'form', 'br', 'tbody',
-    'object', 'progress', 'section', 'slot', 'small', 'strong', 'sub', 'summary', 'sup', 'template',
-    'title', 'var', 'style', 'meta', 'head', 'link', 'svg', 'script', 'svg',
-] as const;
-
-// eslint-disable-next-line no-undef
-type HTMLMap = HTMLElementTagNameMap & {
-    svg: HTMLElement, // SVGElement
-};
-
-type TDomName = keyof HTMLMap;
-
-interface IDom {
-    <T extends TDomName>(name: T): Dom<HTMLMap[T]>;
-    (name: HTMLElement): Dom;
-    <T extends TDomName>(name: T): Dom<HTMLMap[T]>;
-    (name: string): Dom;
-}
-
-type IDoms = {
-    [tagName in TDomName]: Dom<HTMLMap[tagName]>;
-}
-
-interface IEle {
-    text: Text & {
-        (v: string|number|IComputedLike): Text;
-    },
-    frag: Frag,
-    comment: Comment & {
-        (v: string|number|IComputedLike): Comment;
-    },
-    fromHTML: <T extends HTMLElement = HTMLElement>(v: string)=>Dom<T>,
-    query: typeof query,
-    find: <T extends HTMLElement = HTMLElement> (selector: string)=>Dom<T>,
-}
+type TDomName = keyof HTMLElementTagNameMap;
 
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
@@ -84,43 +48,30 @@ export function queryBase (selector: string, one = false, parent: any = Renderer
     return res;
 }
 
-// @ts-ignore
-export const dom: IDom & IDoms & IEle = (() => {
-    const builder = (name: any) => new Dom(name);
-    const pps: any = {
-        frag: { get: () => new Frag() },
-        text: {
-            get: () => {
-                const fn = (v: any) => new Text(v);
-                fn.text = fn;
-                return fn;
-            }
-        },
-        comment: {
-            get: () => {
-                const fn = (v: any) => new Comment(v);
-                fn.text = fn;
-                return fn;
-            }
-        },
-        fromHTML: {
-            get: () => {
-                return (v: string) => dom.div.html(v).firstChild();
-            }
-        },
-        query: { get: () => query },
-        find: { get: () => {
-            return (v: string) => query(v, true);
-        } }
-    };
-    DomNames.forEach(name => {
-        pps[name] = {
-            get: () => builder(name)
-        };
-    });
-    Object.defineProperties(builder, pps);
-    return builder;
-})();
+export const dom: {
+    [prop in TDomName]: Dom<HTMLElementTagNameMap[prop]>;
+} & {
+    text: (v: string|number|IComputedLike) => Text,
+    comment:(v: string|number|IComputedLike) => Comment,
+    frag: Frag,
+    fromHTML: <T extends HTMLElement = HTMLElement>(v: string)=>Dom<T>,
+    query: typeof query,
+    find: <T extends HTMLElement = HTMLElement> (selector: string)=>Dom<T>,
+} = new Proxy({}, {
+    get (target, key) {
+        if (target[key]) return target[key];
+        switch (key) {
+            case 'text': target[key] = (v: any) => new Text(v); break;
+            case 'comment': target[key] = (v: any) => new Comment(v); break;
+            case 'frag': return new Frag();
+            case 'fromHTML': target[key] = (v: string) => dom.div.html(v).firstChild(); break;
+            case 'query': return query;
+            case 'find': return find;
+            default: return new Dom(key as TDomName);
+        }
+        return target[key];
+    },
+}) as any;
 
 type IGlobalStyle = {
     [prop in string]: IStyle|string|number|IReactive<string|number>|IGlobalStyle|Join;
@@ -246,13 +197,14 @@ export function mount (node: IMountDom|IMountDom[]|IChild, parent: string|HTMLEl
     let el: any = parent;
     if (typeof parent === 'string') {
         el = queryBase(parent, true);
-    } else if (parent instanceof HTMLElement) {
-        el = new Dom(parent);
-    } else if (el.__isCustomEl == true) {
-        // ! Custom render 处理
+    } else {
         el = new Dom(el);
     }
-    if (typeof node === 'function') node = node();
+    if (typeof node === 'function') {
+        node = node();
+    } else if (Array.isArray(node)) {
+        node = node.map(item => typeof item === 'function' ? item() : item);
+    }
     Array.isArray(node) ? el.append(...node) : el.append(node);
 }
 

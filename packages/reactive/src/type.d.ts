@@ -15,4 +15,4 @@ export type IComputedWatch = ((
     key?: string
 ) => void);
 
-export type IReactive<T=any> = IComputedLike<T> | Ref<T> | Link<T>;
+export type IReactive<T=any> = IComputedLike<T> | Ref<T> | Link<T>|{readonly value: T; };

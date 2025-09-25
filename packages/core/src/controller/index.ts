@@ -26,7 +26,7 @@ export const ctrl = {
     forStatic: <T = any> (list: Ref<T[]>|T[], fn: (item:T, index: number)=>IChild) => {
         return (isReactive(list) ? list.value : list).map((item, index) => fn(item, index));
     },
-    if (ref: IReactiveLike, gene: ()=>IChild) {
+    if (ref: IReactiveLike, gene: (()=>IChild)|IChild) {
         return new If(ref, gene);
     },
     switch (ref: IReactiveLike) {
@@ -37,7 +37,7 @@ export const ctrl = {
     },
     show (
         ref: IReactiveLike<boolean>,
-        gene: ()=>IChild,
+        gene: (()=>IChild)|IChild,
         showDisplay?: IOptionStyle['display'],
     ) {
         return new Show(ref, gene, showDisplay);

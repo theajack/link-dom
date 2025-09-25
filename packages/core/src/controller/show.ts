@@ -37,13 +37,14 @@ export class Show {
     private _clearWatch: ()=>void;
     constructor (
         ref: IReactiveLike<boolean>,
-        gene: ()=>IChild,
+        gene: (()=>IChild)|IChild,
         showDisplay?: IOptionStyle['display'],
     ) {
         this.frag = new Frag();
         DepUtil.CurForChild?.addForEl(this);
         const nodes: [HTMLElement, any][] = [];
-        traverseChildren([ gene() ], (dom: HTMLElement) => {
+        const el = typeof gene === 'function' ? gene() : gene;
+        traverseChildren([ el ], (dom: HTMLElement) => {
             if (!this._marker) this._marker = dom;
             let helper: any;
             if (dom.nodeType === Node.TEXT_NODE) {

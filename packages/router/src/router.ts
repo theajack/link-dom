@@ -68,9 +68,9 @@ class RouterState {
 
 export class Router extends RouterState {
 
-    rootRoute: IRouterInnerItem;
+    private rootRoute: IRouterInnerItem;
 
-    route404: IRouterInnerItem | null = null;
+    // private route404: IRouterInnerItem | null = null;
 
     // 用于执行name到route的路由匹配
     private _flatMap: Record<string, IRouterInnerItem> = {};
@@ -115,9 +115,9 @@ export class Router extends RouterState {
                 route.routerView = new RouterView();
                 route.children = this._initRoutes(item.children!, route.routerView);
             }
-            if (item.path === '/404') {
-                this.route404 = route;
-            }
+            // if (item.path === '/404') {
+            //     this.route404 = route;
+            // }
             if (item.name) {
                 if (this._flatMap[item.name]) throw new Error(`duplicate route name: ${item.name}`);
                 this._flatMap[item.name] = route;
@@ -217,7 +217,7 @@ export class Router extends RouterState {
         }
         return { data, url: finalPath };
     }
-    _routeToUrl (url: string, state?: Record<string, any>, mode?: 'push'|'replace') {
+    private _routeToUrl (url: string, state?: Record<string, any>, mode?: 'push'|'replace') {
         if (this.mode === 'hash') {
             // location.href = finalPath;
             location.hash = url;

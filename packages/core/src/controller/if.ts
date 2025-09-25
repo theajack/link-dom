@@ -12,6 +12,11 @@ import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
 import type { IReactiveLike } from '../type.d';
 import type { ForChild } from './for/for-child';
+import { RenderStatus } from 'link-dom-shared';
+
+let id = 0;
+
+window.a = {};
 
 // 用来存放if隐藏时的对象，不影响内部响应式操作
 class IfScope {
@@ -20,18 +25,31 @@ class IfScope {
 
     scope: ForChild|null = null;
 
+    id: number;
+
     constructor (
         public ref: IReactiveLike,
-        private gene: ()=>IChild,
+        private gene: (()=>IChild)|IChild,
     ) {
         this.scope = DepUtil.CurForChild;
+        this.id = id++;
+        window.a[this.id] = this;
     }
 
     toFrag (): Frag {
+        console.log(this.id, RenderStatus.isHydrating, RenderStatus.isSSR);
         if (!this.frag) {
             DepUtil.CurForChild = this.scope;
-            this.frag = new Frag().append(this.gene());
+
+            const el = typeof this.gene === 'function' ? this.gene() : this.gene;
+            this.frag = new Frag().append(el);
             DepUtil.CurForChild = null;
+        } else {
+            // @ts-ignore
+            if (!RenderStatus.isHydrating && this.frag.el.__is_hydrate) {
+                // @ts-ignore
+                this.frag.el = this.frag.el.toDom().el;
+            }
         }
         return this.frag;
     }
@@ -73,20 +91,20 @@ export class If {
 
     constructor (
         ref: IReactiveLike<boolean>,
-        gene: ()=>IChild,
+        gene: (()=>IChild)|IChild,
     ) {
         DepUtil.CurForChild?.addForEl(this);
         this._addCond(ref, gene);
         this.marker = new Marker();
     }
-    elif (ref: IReactiveLike<boolean>, gene: ()=>IChild) {
+    elif (ref: IReactiveLike<boolean>, gene: (()=>IChild)|IChild) {
         return this._addCond(ref, gene);
     }
-    private _addCond (ref: IReactiveLike<boolean>, gene: ()=>IChild) {
+    private _addCond (ref: IReactiveLike<boolean>, gene: (()=>IChild)|IChild) {
         this.scopes.push(new IfScope(ref, gene));
         return this;
     }
-    else (gene: ()=>IChild) {
+    else (gene: (()=>IChild)|IChild) {
         this._addCond(true, gene);
         return this;
     }

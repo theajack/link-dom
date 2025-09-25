@@ -9,6 +9,11 @@ import { isWeb, RendererType } from './utils';
 
 export let Renderer: IRenderer;
 
+export const RenderStatus = {
+    isSSR: false,
+    isHydrating: false,
+};
+
 const defaultRenderer: IRenderer = {
     type: RendererType.Web,
     querySelector (selector: string) {
@@ -65,5 +70,39 @@ export function checkHydrateMarker (marker: {start?: any, end?: any}) {
     if (marker.end?.__is_hydrate === true) {
         marker.end.dom = marker;
         marker.end.markerType = 'end';
+    }
+}
+
+
+export class ClassList {
+    set: Set<string> = new Set();
+    add (name: string) {
+        this.set.add(name);
+    }
+    remove (name: string) {
+        this.set.delete(name);
+    }
+    contains (name: string) {
+        return this.set.has(name);
+    }
+    toggle (name: string, force?: boolean | undefined) {
+        const add = !!force || !this.set.has(name);
+        this.set[add ? 'add' : 'delete'](name);
+        return add;
+    }
+    toString () {
+        if (!this.set.size) return '';
+        return ` class="${Array.from(this.set).join(' ')}"`;
+    }
+    setClass (v: string) {
+        this.set = new Set(v.split(' ').filter(item => !!item));
+    }
+}
+
+export class Style {
+    [prop: string]: any;
+    setProperty (name: string, value: string, important: string) {
+        // ! 此处 !important 前面需要加一个空格
+        this[name] = `${value}${important ? ' !important' : ''}`;
     }
 }

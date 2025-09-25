@@ -22,8 +22,11 @@ const CustomHacker: ICustomRender = {
 export class CustomElement implements IElement {
     static Root: CustomElement|null = null;
     type = ElementType.Element;
-    style: Record<string, any> = {}; // mock
-    __isCustomEl = true;
+    style: Record<string, any> = {
+        setProperty: (name: string, value: any) => {
+            this.style[name] = value;
+        }
+    }; // mock
     tagName = '';
     innerText = '';
     _attributes: Record<string, any> = {};
@@ -48,7 +51,13 @@ export class CustomElement implements IElement {
     _classList: Set<string> = new Set();
     classList = {
         add: (name: string) => {this._classList.add(name);},
-        remove: (name: string) => {this._classList.delete(name);}
+        remove: (name: string) => {this._classList.delete(name);},
+        toggle: (name: string, force?: boolean) => {
+            const add = !!force || !this._classList.has(name);
+            this._classList[add ? 'add' : 'delete'](name);
+            return add;
+        },
+        contains: (name: string) => this._classList.has(name),
     };
     get className () {
         return Array.from(this._classList).join(' ');
@@ -134,7 +143,7 @@ export class CustomElement implements IElement {
     }
 }
 
-export function useRenderer (customRender: ICustomRender = {}) {
+export function useRenderer<IEle extends CustomElement> (customRender: ICustomRender<IEle> = {}) {
     Object.assign(CustomHacker, customRender);
     defineRenderer({
         type: RendererType.Custom,

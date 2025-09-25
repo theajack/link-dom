@@ -4,48 +4,10 @@
  * @Description: Coding something
  */
 
-import type { IElement } from 'link-dom-shared';
+import  { ClassList, Style, type IElement, RenderStatus } from 'link-dom-shared';
 import { SSRContainer, SSRText } from './base';
 import { NodeType } from '../utils';
 import type { Dom } from 'link-dom';
-import { isSSR } from './render';
-
-export class SSRStyle {
-    map: Record<string, string> = {};
-    setProperty (name: string, value: string, important: string) {
-        // ! 此处 !important 前面需要加一个空格
-        this.map[name] = `${value}${important ? ' !important' : ''}`;
-    }
-}
-
-export class ClassList {
-    set: Set<string> = new Set();
-    add (name: string) {
-        this.set.add(name);
-    }
-    remove (name: string) {
-        this.set.delete(name);
-    }
-    contains (name: string) {
-        return this.set.has(name);
-    }
-    toggle (name: string, force?: boolean | undefined) {
-        if (typeof force === 'undefined') {
-            if (this.set.has(name)) this.set.delete(name);
-            else this.set.add(name);
-        } else {
-            if (force) this.set.add(name);
-            else this.set.delete(name);
-        }
-    }
-    toString () {
-        if (!this.set.size) return '';
-        return ` class="${Array.from(this.set).join(' ')}"`;
-    }
-    setClass (v: string) {
-        this.set = new Set(v.split(' ').filter(item => !!item));
-    }
-}
 
 export class SSRElement extends SSRContainer<Dom> implements IElement {
     nodeType = NodeType.ELEMENT_NODE;
@@ -60,7 +22,7 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
     toHtml (): string {
         if (this._outerHTML) return this._outerHTML;
         let html = `<${this.tagName}${this.classList.toString()}`;
-        const map = this.style.map;
+        const map = this.style;
         const keys = Object.keys(map);
         if (keys.length > 0) {
             html += ` style="${keys.map(key => `${key}: ${map[key]};`).join(' ')}"`;
@@ -75,18 +37,18 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
     }
     [prop: string]: any;
     tagName: string;
-    style = new SSRStyle();
+    style = new Style();
     constructor (tagName: string) {
         super();
         this.tagName = tagName;
     }
     _eventsListeners: Map<Function, [string, any]> = new Map();
     addEventListener (name: string, handler: any, options: any): void {
-        if (isSSR) return;
+        if (RenderStatus.isSSR) return;
         this._eventsListeners.set(handler, [ name, options ]);
     }
     removeEventListener (name: string, handler: any): void {
-        if (isSSR) return;
+        if (RenderStatus.isSSR) return;
         this._eventsListeners.delete(handler);
     }
     attr: Record<string, string> = {};

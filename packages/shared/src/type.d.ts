@@ -33,6 +33,8 @@ export interface IElement<T extends IElement = any> extends IFragment<T> {
     classList: {
         add(name: string): void;
         remove(name: string): void;
+        toggle(name: string, force?: boolean): boolean;
+        contains(name: string): boolean;
     }
     remove(): void;
     get parentElement(): T|null;

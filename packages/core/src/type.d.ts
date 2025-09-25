@@ -63,93 +63,15 @@ type INumberStyle = {
 // capture：使用事件的捕获模式；
 // self：只有event.target是当前操作的元素时才触发事件；
 type TEventDecorator = 'prevent' | 'stop' | 'capture' | 'once' | 'self';
-export type IEventObject<T extends Dom = Dom> = ((e: Event, dom: T)=>any) | ({
-    listener?: (e: Event, dom: T)=>any;
+export type IEventObject<E extends Event = Event, T extends Dom = Dom> = ((e: Event, dom: T)=>any) | ({
+    listener?: (e: E, dom: T)=>any;
 } & {
 [decorator in TEventDecorator]?: boolean;
 })
-export interface IEventAttributes {
-    onclick?: IEventObject;
-    onmousedown?: IEventObject;
-    onmouseenter?: IEventObject;
-    onmouseleave?: IEventObject;
-    onmousemove?: IEventObject;
-    onmouseover?: IEventObject;
-    onmouseup?: IEventObject;
-    ontouchend?: IEventObject;
-    ontouchmove?: IEventObject;
-    ontouchstart?: IEventObject;
-    onwheel?: IEventObject;
-    oninput?: IEventObject;
-    onchange?: IEventObject;
-    onfullscreenchange?: IEventObject;
-    onfullscreenerror?: IEventObject;
-    oncopy?: IEventObject;
-    oncut?: IEventObject;
-    onpaste?: IEventObject;
-    onabort?: IEventObject;
-    onauxclick?: IEventObject;
-    onbeforeinput?: IEventObject;
-    onblur?: IEventObject;
-    oncanplay?: IEventObject;
-    oncanplaythrough?: IEventObject;
-    onclose?: IEventObject;
-    oncompositionend?: IEventObject;
-    oncompositionstart?: IEventObject;
-    oncompositionupdate?: IEventObject;
-    oncontextmenu?: IEventObject;
-    oncuechange?: IEventObject;
-    ondblclick?: IEventObject;
-    ondrag?: IEventObject;
-    ondragend?: IEventObject;
-    ondragenter?: IEventObject;
-    ondragleave?: IEventObject;
-    ondragover?: IEventObject;
-    ondragstart?: IEventObject;
-    ondrop?: IEventObject;
-    ondurationchange?: IEventObject;
-    onemptied?: IEventObject;
-    onended?: IEventObject;
-    onerror?: IEventObject;
-    onfocus?: IEventObject;
-    onfocusin?: IEventObject;
-    onfocusout?: IEventObject;
-    onformdata?: IEventObject;
-    ongotpointercapture?: IEventObject;
-    oninvalid?: IEventObject;
-    onkeydown?: IEventObject;
-    onkeypress?: IEventObject;
-    onkeyup?: IEventObject;
-    onload?: IEventObject;
-    onloadeddata?: IEventObject;
-    onloadedmetadata?: IEventObject;
-    onloadstart?: IEventObject;
-    onlostpointercapture?: IEventObject;
-    onmouseout?: IEventObject;
-    onpause?: IEventObject;
-    onplay?: IEventObject;
-    onplaying?: IEventObject;
-    onpointercancel?: IEventObject;
-    onpointerdown?: IEventObject;
-    onpointerenter?: IEventObject;
-    onpointerleave?: IEventObject;
-    onpointermove?: IEventObject;
-    onpointerout?: IEventObject;
-    onpointerover?: IEventObject;
-    onpointerup?: IEventObject;
-    onprogress?: IEventObject;
-    onratechange?: IEventObject;
-    onreset?: IEventObject;
-    onresize?: IEventObject;
-    onscroll?: IEventObject;
-    onselect?: IEventObject;
-    onselectionchange?: IEventObject;
-    onselectstart?: IEventObject;
-    onsubmit?: IEventObject;
-    onsuspend?: IEventObject;
-    ontimeupdate?: IEventObject;
-    ontoggle?: IEventObject;
-    ontouchcancel?: IEventObject;
+export type IEventKey = keyof DocumentEventMap;
+
+export type IEventAttributes = {
+    [Key in keyof DocumentEventMap]?: IEventObject<DocumentEventMap[Key]>;
 }
 
 
