@@ -116,8 +116,8 @@ const FnMap = {
                 start += min;
                 if (removeCount > addCount) {
                     removeCount -= addCount;
-                    this.splice(start, removeCount);
                     fors?.forEach(item => item._removeDoms(start, removeCount));
+                    this.splice(start, removeCount);
                 // 从for里面删除
                 } else {
                     this.splice(start, 0, ...items.map(item => reactive(item)));

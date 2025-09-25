@@ -8,28 +8,14 @@ import type { Dom, IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { Marker, createMarkerNode } from '../_marker';
-import type { Dep } from 'link-dom-reactive';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';
 
 export class ForChild<T=any> {
-
-    private forEls: {destroy: ()=>void}[];
-
-    addForEl (item: {destroy: ()=>void}) {
-        if (!this.forEls) this.forEls = [];
-        this.forEls.push(item);
-    }
 
     private _marker: Marker;
     removed = false;
 
     private _frag: Frag|Dom;
-
-    private _list: {dep: Dep, exp: ()=>any}[] = [];
-
-    collect (dep: Dep, exp: ()=>any) {
-        this._list.push({ dep, exp });
-    }
 
     private _start: any = null;
 
@@ -80,12 +66,8 @@ export class ForChild<T=any> {
 
     destroy () {
         if (this.removed) return;
-        this._list.forEach(item => item.dep.remove(item.exp));
-        this._list = [];
         this.marker.clear();
         this.removed = true;
-
-        this.forEls?.forEach(el => el.destroy());
     }
 
     data: Ref<T>|T;

@@ -7,46 +7,39 @@
 import type { IChild } from '../element';
 import { Frag } from '../text';
 import { LinkDomType } from '../utils';
-import { DepUtil, watch } from 'link-dom-reactive';
+import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
 import type { IReactiveLike } from '../type.d';
-import type { ForChild } from './for/for-child';
 import { RenderStatus } from 'link-dom-shared';
 
-let id = 0;
+// let id = 0;
 
-window.a = {};
+// window.a = {};
 
 // 用来存放if隐藏时的对象，不影响内部响应式操作
 class IfScope {
 
     frag: Frag;
 
-    scope: ForChild|null = null;
-
-    id: number;
+    // id: number;
 
     constructor (
         public ref: IReactiveLike,
         private gene: (()=>IChild)|IChild,
     ) {
-        this.scope = DepUtil.CurForChild;
-        this.id = id++;
-        window.a[this.id] = this;
-        // if (RenderStatus.isHydrating) {
-        //     debugger;
-        // }
+    //     this.id = id++;
+    //     window.a[this.id] = this;
+    //     // if (RenderStatus.isHydrating) {
+    //     //     debugger;
+    //     // }
     }
 
     toFrag (): Frag {
-        console.log(this.id, RenderStatus.isHydrating, RenderStatus.isSSR);
+        // console.log(this.id, RenderStatus.isHydrating, RenderStatus.isSSR);
         if (!this.frag) {
-            DepUtil.CurForChild = this.scope;
-
             const el = typeof this.gene === 'function' ? this.gene() : this.gene;
             this.frag = new Frag().append(el);
-            DepUtil.CurForChild = null;
         } else {
             // @ts-ignore
             if (!RenderStatus.isHydrating && this.frag.el.__is_hydrate) {
@@ -96,7 +89,6 @@ export class If {
         ref: IReactiveLike<boolean>,
         gene: (()=>IChild)|IChild,
     ) {
-        DepUtil.CurForChild?.addForEl(this);
         this._addCond(ref, gene);
         this.marker = new Marker();
     }

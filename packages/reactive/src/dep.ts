@@ -4,6 +4,8 @@
  * @Description: Coding something
  */
 
+import { isArrayOrJson, OriginTarget } from 'link-dom-shared';
+
 type IDepExe = (newValue: any, oldValue: any)=>void;
 type IDepLis = ()=>void;
 
@@ -44,7 +46,7 @@ export const DepUtil = {
     sub (target: any, key: string|symbol, exe: IDepExe) {
         const dep = this.add(target, key, true);
         const lis = () => target[key];
-        dep!.collect(lis, exe, target[key]);
+        dep!.collect(lis, exe, target[key], []);
         return () => dep!.remove(lis);
     },
     trigger (target: any, key: string|symbol) {
@@ -56,11 +58,28 @@ export const DepUtil = {
     clear (target: any) {
         this.Global.delete(target);
     },
-
-    CurForChild: null as any,
+    // 当 元素从数组中移除或者属性从对象中移除时，需要清除依赖
+    clearDep (target: object, key: any) {
+        const map = this.Global.get(target);
+        if (map) {
+            const dep = map.get(key);
+            if (dep) {
+                dep.clear();
+                map.delete(key);
+            }
+            this.Global.delete(target);
+        }
+        const value = target[key];
+        if (isArrayOrJson(value)) {
+            const origin = value[OriginTarget] || value;
+            for (const k in origin) {
+                DepUtil.clearDep(origin, k);
+            }
+        }
+    }
 };
 
-// window.depu = DepUtil;
+window.depu = DepUtil;
 
 // window.deps = [];
 
@@ -73,18 +92,14 @@ export class Dep {
     // ! 因为需要遍历订阅者列表 所以无法使用WeakMap
     // 所以需要手动在订阅者无效时 手动移除订阅者，不然会有内存泄露
     // 但是这也会增加性能开销和内存占用
-    list: Map<IDepLis, [IDepExe, any]> = new Map();
+    list: Map<IDepLis, [IDepExe, any, Dep[]]> = new Map();
     // collect (key: any, item: DepItem) {
     //     this.list.set(exp, item);
     // }
-    collect (exp: IDepLis, exe: IDepExe, value: any) {
+    collect (exp: IDepLis, exe: IDepExe, value: any, deps: Dep[]) {
         // console.log('collect', item);
-        // ! 此处为将for中的依赖收集起来 for移除后需要移除dep中的list 以释放内存
-        // ? 此处若是for-child中有if逻辑 还是可能会存在内存泄露，如 if未命中的分支中含有外部ref，此时无法获取到 CurForChild
         // console.trace(exp.toString(), item.fn.toString());
-        // debugger;
-        DepUtil.CurForChild?.collect(this, exp);
-        this.list.set(exp, [ exe, value ]);
+        this.list.set(exp, [ exe, value, deps ]);
     }
     trigger () {
         for (const [ lis, info ] of this.list) {
@@ -98,5 +113,15 @@ export class Dep {
     }
     remove (lis: IDepLis) {
         this.list.delete(lis);
+    }
+    clear () {
+        for (const [ lis, info ] of this.list) {
+            for (const dep of info[2]) {
+                if (dep !== this) dep.remove(lis);
+            }
+        }
+        this.list.clear();
+        // @ts-ignore
+        this.list = null;
     }
 }

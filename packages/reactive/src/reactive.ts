@@ -26,7 +26,7 @@ export function observe (
     if (DepUtil.Temp.size > 0) {
         let cache: Dep[] = [];
         DepUtil.Temp.forEach(dep => {
-            dep.collect(exp, fn, value);
+            dep.collect(exp, fn, value, cache);
             cache.push(dep);
         });
         DepUtil.Temp.clear();

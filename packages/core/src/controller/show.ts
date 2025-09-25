@@ -7,7 +7,7 @@ import type { IChild } from '../element';
 import { Frag } from '../text';
 import type { IOptionStyle, IReactiveLike } from '../type.d';
 import { LinkDomType, traverseChildren } from '../utils';
-import { DepUtil, watch } from 'link-dom-reactive';
+import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { createMarkerNode } from './_marker';
 
@@ -41,7 +41,6 @@ export class Show {
         showDisplay?: IOptionStyle['display'],
     ) {
         this.frag = new Frag();
-        DepUtil.CurForChild?.addForEl(this);
         const nodes: [HTMLElement, any][] = [];
         const el = typeof gene === 'function' ? gene() : gene;
         traverseChildren([ el ], (dom: HTMLElement) => {

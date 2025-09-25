@@ -13,6 +13,7 @@ import type { Ref } from 'link-dom-reactive';
 import { isRef, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
+import { getTarget } from 'link-dom-reactive/src/reactive';
 
 // class ForTpl {
 
@@ -50,8 +51,7 @@ export class For <T=any> {
     ) {
         // window._for = this;
         this._list = (isRef(_list)) ? _list.value : _list;
-        console.log('init for');
-
+        // console.log('init for');
 
         if (!RenderStatus.isSSR) {
             ForGlobal.add(this._list, this);
@@ -59,10 +59,6 @@ export class For <T=any> {
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
         this._initChildren();
-
-        if (!RenderStatus.isSSR) {
-            DepUtil.CurForChild?.addForEl(this);
-        }
     }
 
     // private resetList () {
@@ -131,7 +127,6 @@ export class For <T=any> {
         // console.time();
         // const frag = new Frag();
         const child = this.newChild(data, index);
-        DepUtil.CurForChild = child;
         // console.log('insertChildNode', index, data);
         // frag.append(child.frag);
         const parent = marker.parentNode!;
@@ -139,7 +134,6 @@ export class For <T=any> {
         child.frag.__mounted?.();
         parent.insertBefore(child.frag.el, marker);
         // console.log('insertChildNode end', index, data);
-        DepUtil.CurForChild = null;
         // console.timeEnd();
     }
 
@@ -167,7 +161,6 @@ export class For <T=any> {
         const size = list.length;
         for (let i = 0; i < size; i++) {
             const child = this.newChild(list[i], i);
-            debugger;
             frag.append(child.frag);
         }
         return frag;
@@ -176,12 +169,20 @@ export class For <T=any> {
     _deleteItem (index: number) {
         // console.log('delete item', index);
         const child = this.children[index];
-        child?.destroy();
+        if (child) {
+            child.destroy();
+            DepUtil.clearDep(getTarget(this._list), index.toString());
+        }
     }
 
     _removeDoms (start: number, count: number) {
         for (let i = start; i < start + count; i++) {
-            this.children[i]?.destroy();
+            const child = this.children[i];
+            if (child) {
+                child.destroy();
+                debugger;
+                DepUtil.clearDep(getTarget(this._list), i.toString());
+            }
         }
         this.children.splice(start, count);
         this._updateIndex(start + count - 1);
@@ -228,8 +229,10 @@ export class For <T=any> {
 
     _clearEmptyChildren (length: number) {
         if (length >= this.children.length) return;
-        this.children.splice(length).forEach(child => {
+        const start = length;
+        this.children.splice(length).forEach((child, i) => {
             child.destroy();
+            DepUtil.clearDep(getTarget(this._list), (start + i).toString());
         });
     }
 

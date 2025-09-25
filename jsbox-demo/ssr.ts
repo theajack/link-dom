@@ -28,22 +28,27 @@ function CommonComponent (data: {label: string}[]) {
             list.value.push({ label: `item${id++}` });
         }),
         dom.span.text(join`selected:${selected}`),
-        ctrl.for(list, (item, index) => {
+        ctrl.for(list, (item) => {
             // debugger;
+            // return dom.div.style('color', () => selected.value === item.label ? 'red' : 'green')
+            //     .text(() => item.label)
+            //     .click(() => {
+            //         selected.value = item.label;
+            //     });
             return dom.div.style('color', () => selected.value === item.label ? 'red' : 'green')
                 .children(
                     ctrl.if(() => selected.value === item.label, () => dom.div.text('selected'))
                         .else(() => dom.div.text('unselected')),
-                    dom.span.text(() => `${index.value}: ${item.label}`).click(() => {
+                    dom.span.text(() => `${1}: ${item.label}`).click(() => {
                         selected.value = item.label;
                     }),
                     dom.button.text('×').click(() => {
-                        list.value.splice(index.value, 1);
+                        list.value.splice(1, 1);
                     })
                 );
         }),
     );
-    window.root = root;
+    // window.root = root;
     return root;
 }
 
@@ -57,26 +62,28 @@ function CommonComponent (data: {label: string}[]) {
 //         })
 //     );
 // }
-// mount(CommonComponent([ { label: 'label1' }, { label: 'label2' } ]), '#app');
 
-function SSRDemo () {
-    // const data = { count: 3 };
+const arr = new Array(2000).fill({ label: 'label' });
+mount(CommonComponent(arr), '#app');
 
-    const data = [ { label: 'label1' }, { label: 'label2' } ];
+// function SSRDemo () {
+//     // const data = { count: 3 };
 
-    const refs = collectRef('container');
+//     const data = [ { label: 'label1' }, { label: 'label2' } ];
 
-    return dom.div.children(
-        dom.button.text('Start SSR').click(() => {
-            const html = ssr(CommonComponent)(data);
-            console.log('html', html);
-            refs.container.html(html);
-        }),
-        dom.button.text('Start Hydrate').click(() => {
-            hydrate(CommonComponent)(data);
-        }),
-        dom.div.ref(refs.container),
-    );
-}
+//     const refs = collectRef('container');
 
-mount(SSRDemo, '#app');
+//     return dom.div.children(
+//         dom.button.text('Start SSR').click(() => {
+//             const html = ssr(CommonComponent)(data);
+//             console.log('html', html);
+//             refs.container.html(html);
+//         }),
+//         dom.button.text('Start Hydrate').click(() => {
+//             hydrate(CommonComponent)(data);
+//         }),
+//         dom.div.ref(refs.container),
+//     );
+// }
+
+// mount(SSRDemo, '#app');
