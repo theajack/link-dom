@@ -12,12 +12,12 @@ import { getReactiveValue } from '../utils';
 import { createMarkerNode } from './_marker';
 import { RenderStatus } from 'link-dom-shared';
 
-function getDefaultStyle (dom: HTMLElement, def?: any) {
+function getDefaultStyle (el: HTMLElement, def?: any) {
     if (def) return def;
-    let display = dom.style?.display;
+    let display = el.style?.display;
     if (!display) {
         if (typeof document === 'undefined') return 'block';
-        const temp = dom.cloneNode() as HTMLElement;
+        const temp = el.cloneNode() as HTMLElement;
         document.head.appendChild(temp);
         display = getComputedStyle(temp).display;
         temp.remove();

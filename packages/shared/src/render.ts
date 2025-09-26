@@ -34,9 +34,9 @@ const defaultRenderer: IRenderer = {
     createFragment (): IFragment {
         return document.createDocumentFragment() as any as IFragment;
     },
-    addStyle (v: any) {
-        document.head.appendChild(v);
-    }
+    // addStyle (v: any) {
+    //     document.head.appendChild(v);
+    // }
 };
 
 export function defineRenderer (renderer: IRenderer) {
@@ -54,7 +54,7 @@ if (isWeb) {
 
 export function checkHydrateEl (dom: {el: any}) {
     if (dom.el.__is_hydrate === true) {
-        console.log(dom);
+        // console.log(dom);
         dom.el.dom = dom;
         // console.log('hydrate', dom.el);
     // } else {

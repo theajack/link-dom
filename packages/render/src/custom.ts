@@ -165,9 +165,9 @@ export function useRenderer<IEle extends CustomElement> (customRender: ICustomRe
         createFragment () {
             return new CustomElement(ElementType.Frag);
         },
-        addStyle (style) {
-            CustomElement.Root?.appendChild(style as any);
-        }
+        // addStyle (style) {
+        //     CustomElement.Root?.appendChild(style as any);
+        // }
     });
     const root = new CustomElement(ElementType.Element, '', 'root');
     CustomElement.Root = root;

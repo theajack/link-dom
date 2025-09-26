@@ -79,7 +79,7 @@ export const DepUtil = {
     }
 };
 
-window.depu = DepUtil;
+// window.depu = DepUtil;
 
 // window.deps = [];
 

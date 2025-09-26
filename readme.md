@@ -1,5 +1,10 @@
 <!--
  * @Author: chenzhongsheng
+ * @Date: 2025-09-25 10:46:55
+ * @Description: Coding something
+-->
+<!--
+ * @Author: chenzhongsheng
  * @Date: 2025-09-25 08:08:14
  * @Description: Coding something
 -->
@@ -35,7 +40,7 @@ CDN
 
 ```js
 import { dom, ref, mount, join } from 'link-dom';
-function App () {
+function Reactive () {
     const name = ref('');
     return dom.div.children(
         dom.div.text(() => `Hello World! ${name.value}`),
@@ -44,7 +49,7 @@ function App () {
         dom.input.attr('placeholder', 'Input your name').bind(name)
     );
 }
-mount(App, 'body');
+mount(Reactive, '#jx-app');
 ```
 
 #### Style
@@ -71,18 +76,45 @@ function Style () {
         )
     );
 }
-mount(Style, '#app');
+mount(Style, '#jx-app');
+```
+
+#### StyleLink
+
+```js
+import { dom, ref, mount, join } from 'link-dom';
+function Style () {
+    const font = ref(12);
+    const color = ref('red');
+    return dom.div.children(
+        dom.div.style({
+            fontWeight: 'bold',
+            color: color,
+            fontSize: font,
+        }).text(join`Color = ${color}; FontSize = ${font}`),
+        dom.div.children(
+            dom.text('color: '),
+            dom.input.bind(color),
+        ),
+        dom.div.children(
+            dom.text('font: '),
+            dom.input.bind(font),
+            dom.button.text('Increase').click(() => font.value++)
+        )
+    );
+}
+mount(Style, '#jx-app');
 ```
 
 #### Global Style
 
 ```js
-import { dom, ref, mount, join, style } from 'link-dom';
+import { dom, ref, mount, join } from 'link-dom';
 function GlobalStyle () {
     const font = ref(12);
     const color = ref('red');
     const colorB = ref('green');
-    style({
+    mount(dom.style({
         '.parent': {
             fontWeight: 'bold',
             color: color,
@@ -91,7 +123,7 @@ function GlobalStyle () {
                 color: colorB,
             }
         }
-    });
+    }), 'head');
     return dom.div.children(
         dom.div.class('parent').children(
             dom.div.text(join`Color = ${color}; FontSize = ${font}`),
@@ -112,7 +144,7 @@ function GlobalStyle () {
         )
     );
 }
-mount(GlobalStyle, '#app');
+mount(GlobalStyle, '#jx-app');
 ```
 
 #### Counter
@@ -129,7 +161,7 @@ function Counter () {
         }),
     );
 }
-mount(Counter, '#app');
+mount(Counter, '#jx-app');
 ```
 
 #### Collect Ref
@@ -147,7 +179,7 @@ function CollectRef () {
         }),
     );
 }
-mount(CollectRef, '#app');
+mount(CollectRef, '#jx-app');
 ```
 
 ### Controller
@@ -155,7 +187,6 @@ mount(CollectRef, '#app');
 #### For (Reactive List)
 
 ```js
-
 import { dom, ref, mount, join, ctrl, link } from 'link-dom';
 function For () {
     const list = ref([] as {id: string, label: string}[]);
@@ -178,7 +209,7 @@ function For () {
         ),
     );
 }
-mount(For, '#app');
+mount(For, '#jx-app');
 ```
 
 #### ForRef
@@ -206,7 +237,7 @@ function ForRef () {
         ),
     );
 }
-mount(ForRef, '#app');
+mount(ForRef, '#jx-app');
 ```
 
 #### If
@@ -226,7 +257,7 @@ function If () {
             .else(() => dom.span.text('num >= 5')),
     );
 }
-mount(If, '#app');
+mount(If, '#jx-app');
 ```
 
 如果追求if表达式简洁，generator参数也可以直接使用元素，如下：
@@ -242,7 +273,7 @@ ctrl.if(() => num.value < 2, dom.span.text('num < 2'))
 #### Switch
 
 ```js
-import { dom, ref, mount, join, ctrl, link } from 'link-dom';
+import { dom, ref, mount, join, ctrl } from 'link-dom';
 function Switch () {
     const num = ref(0);
     return dom.div.children(
@@ -258,7 +289,7 @@ function Switch () {
             .default(() => dom.span.text(join`num = ${num}`)),
     );
 }
-mount(Switch, '#app');
+mount(Switch, '#jx-app');
 ```
 
 generator参数也可以直接使用元素，同If
@@ -274,7 +305,7 @@ function Show () {
         ctrl.show(bool, dom.span.text('Hello World!'))
     );
 }
-mount(Show, '#app');
+mount(Show, '#jx-app');
 ```
 
 因为 show 的元素一开始肯定会被初始化，所以generator使用函数和元素效果相同
@@ -298,7 +329,7 @@ function Await () {
         )
     );
 }
-mount(Await, '#app');
+mount(Await, '#jx-app');
 ```
 
 ### Custom Renderer
@@ -336,6 +367,8 @@ mount(App, root);
 #### Canvas 
 
 ```js
+import { dom, ref, mount, join } from 'link-dom';
+import { useRenderer } from 'link-dom-render';
 interface ICustomEle extends CustomElement {
     textLeft: number;
     deep: number;
@@ -350,7 +383,7 @@ const { ctx, msg } = (function initEnv () {
             dom.span.text(join`msg = ${msg}`),
             dom.button.text('Add !').click(() => msg.value += '!'),
         )
-    ), '#app');
+    ), '#jx-app');
     const size = 300;
     const canvas = refs.canvas.el as HTMLCanvasElement;
     const scale = window.devicePixelRatio;
@@ -632,7 +665,7 @@ const App = () => {
     );
 };
 
-mount(App, '#app');
+mount(App, '#jx-app');
 
 // window.router = router;
 
@@ -648,4 +681,71 @@ watch(() => router.query, (val) => {
 
 ```
 npm i link-dom-ssr
+```
+
+```js
+import { ssr, hydrate } from 'link-dom-ssr';
+import { ref, dom, ctrl, join, collectRef, mount, link } from 'link-dom';
+
+function CommonComponent (data: {label: string}[]) {
+    const list = ref(data);
+    const selected = ref('label2');
+    let id = 0;
+    return dom.div.style('borderBottom', '2px solid #000').children(
+        dom.button.text('clear').click(() => {
+            list.value = [];
+        }),
+        dom.button.text('init').click(() => {
+            console.time();
+            for (let i = 0; i < 10000; i++) {
+                list.value.push({ label: `item${i}` });
+            }
+            console.timeEnd();
+        }),
+        dom.button.text('reset').click(() => {
+            list.value = [ { label: 'test' }, { label: 'test2' } ];
+        }),
+        dom.button.text('reverse').click(() => {
+            list.value.reverse();
+        }),
+        dom.button.text('sort').click(() => {
+            list.value.sort((a, b) => a.label.localeCompare(b.label));
+        }),
+        dom.button.text('add').click(() => {
+            list.value.push({ label: `item${id++}` });
+        }),
+        dom.span.text(join`selected:${selected}`),
+        ctrl.for(list, (item, index) => {
+            return dom.div.style('color', () => selected.value === item.label ? 'red' : 'green')
+                .children(
+                    ctrl.if(() => selected.value === item.label, () => dom.span.text('selected'))
+                        .else(() => dom.span.text('unselected')),
+                    dom.span.text(join`: index = ${index}; label = ${link(item.label)}`).click(() => {
+                        selected.value = item.label;
+                    }),
+                    dom.button.text('×').click(() => {
+                        list.value.splice(index.value, 1);
+                    })
+                );
+        }),
+    );
+}
+
+function SSRContainer () {
+    const data = [ { label: 'label1' }, { label: 'label2' } ];
+    const refs = collectRef('container');
+    return dom.div.children(
+        dom.button.text('Start SSR Render').click(() => {
+            const html = ssr(CommonComponent)(data);
+            console.log('html', html);
+            refs.container.html(html);
+        }),
+        dom.button.text('Start Hydrate').click(() => {
+            hydrate(CommonComponent)(data);
+        }),
+        dom.div.style('fontWeight', 'bold').text('SSR Container:'),
+        dom.div.ref(refs.container),
+    );
+}
+mount(SSRContainer, '#jx-app');
 ```

@@ -26,6 +26,7 @@ export enum LinkDomType {
     Await,
     Marker,
     RouterView,
+    StyleBuilder,
 }
 
 
@@ -141,10 +142,10 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             return;
         }
         let el: any = dom;
-        if (isReactiveLike(el)) {
-            el = new Text(el);
+        if (typeof el.__ld_type === 'number') {
             el = el.el;
-        } else if (typeof el.__ld_type === 'number') {
+        } else if (isReactiveLike(el)) {
+            el = new Text(el);
             el = el.el;
         } else if (!(dom instanceof Node) && !(dom?.__is_ssr)) {
             // @ts-ignore
@@ -154,38 +155,4 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         // @ts-ignore
         dom.__mounted?.(dom);
     });
-}
-const NumberKeyReg = /(width$)|(height$)|(top$)|(bottom$)|(left$)|(right$)|(^margin)|(^padding)|(font-?size)/i;
-const ImportantReg = /!important$/;
-const NumberReg = /^[0-9]+$/;
-
-export function formatCssKV (k: string, v: any) {
-    k = transformCssKey(k);
-    let important = '';
-    if (ImportantReg.test(v)) {
-        important = 'important';
-        v = v.replace(ImportantReg, '');
-    }
-    // 对数字类型错处理
-    if (NumberReg.test(v) && NumberKeyReg.test(k)) {
-        v = `${v}px`;
-    }
-    return { cssKey: k, cssValue: v, important };
-}
-
-// 替换replaceAll
-// backgroundColor => 'background-color'
-function transformCssKey (str: string) {
-    const n = str.length;
-    let result = '';
-    for (let i = 0; i < n; i++) {
-        const s = str[i];
-        const code = s.charCodeAt(0);
-        if (code >= 65 && code <= 90) {
-            result += `-${s.toLowerCase()}`;
-        } else {
-            result += s;
-        }
-    }
-    return result;
 }

@@ -56,5 +56,4 @@ export interface IRenderer {
     createTextNode (text?: string): ITextNode,
     createComment (text?: string): IComment,
     createFragment (): IFragment,
-    addStyle(v: IElement): void;
 }

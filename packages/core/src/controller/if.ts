@@ -125,9 +125,6 @@ export class If {
                         list = this.marker.clear();
                     } else {
                         const frag = this.scopes[index].toFrag();
-                        if (this.marker.start.__is_ssr) {
-                            debugger;
-                        }
                         frag.__mounted();
                         list = this.marker.replace(frag.el);
                     }

@@ -12,6 +12,8 @@ dom.div({
 
 ]);
 
+dom.style.color('').background('');
+
 dom.div.text('')
     .attr({})
     .class('')

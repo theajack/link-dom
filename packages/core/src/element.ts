@@ -1,6 +1,6 @@
 import { type IReactive } from 'link-dom-reactive';
 import type { IAttrKey, IEventAttributes, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
-import { LinkDomType, formatCssKV, traverseChildren, bind, useReactive } from './utils';
+import { LinkDomType, traverseChildren, bind, useReactive } from './utils';
 import { queryBase } from './dom';
 import type { Comment, Frag, Text } from './text';
 import type { IReactiveLike } from './type.d';
@@ -8,6 +8,8 @@ import type { Join } from './join';
 import { isJoin } from './join';
 import type { IController } from './controller';
 import { Renderer, checkHydrateEl } from 'link-dom-shared';
+import type { IStyleBuilder } from './style';
+import { getStyleBuilder } from './style';
 // eslint-disable-next-line no-undef
 
 export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[];
@@ -132,32 +134,12 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         // useReactive(v, apply, this.el);
         useReactive(v, apply);
     }
-    style (name: IStyle|Record<string, any>): this;
-    style (name: IStyleKey|string): string;
-    style <T extends IStyleKey>(name: T, value: IStyle[T]): this;
-    style (name: IStyleKey|IStyle|string, value?: any): string|this {
-        if (typeof value !== 'undefined') {
-            // @ts-ignore
-            this._useR(value, (v) => {
-                // @ts-ignore
-                const { important, cssValue, cssKey } = formatCssKV(name, v);
-                this.el.style.setProperty(cssKey, cssValue, important);
-            });
-
-            return this;
-        }
-        if (typeof name === 'string') {
-            // @ts-ignore
-            return this.el.style[name] as string;
-        }
-        // @ts-ignore
-        for (const k in name) {
-            // @ts-ignore
-            this.style(k, name[k]);
-        }
-        return this;
+    getStyle (name: IStyleKey|string): string {
+        return this.el.style.getPropertyValue(name);
     }
-
+    get style (): IStyleBuilder<Dom<T>> {
+        return getStyleBuilder(this);
+    }
     value (): string;
     value (val: IReactiveLike<string|number>): this;
     value (val?: IReactiveLike<string|number>): string | this {

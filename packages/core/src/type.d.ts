@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import type { IComputedLike, IReactive } from 'link-dom-reactive';
+import type { IReactive } from 'link-dom-reactive';
 import type { Dom } from './element';
 import type { Join } from './join';
 
@@ -44,7 +44,8 @@ export interface IOptionStyle {
     cursor: 'auto'|'crosshair'|'pointer'|'move'|'e-resize'|'ne-resize'|'nw-resize'|'n-resize'|'se-resize'|'sw-resize'|'s-resize'|'w-resize'|'text'|'wait'|'help';
 }
 
-type INumberStyleEnum = 'paddingTop'| 'paddingBottom'| 'paddingLeft'| 'paddingRight'| 'marginTop'| 'marginBottom'| 'marginLeft'| 'marginRight'| 'fontSize'| 'lineHeight'| 'top'| 'left'| 'bottom'| 'right'| 'borderRadius'| 'textIndent'|
+type INumberStyleEnum = 'paddingTop'| 'paddingBottom'| 'paddingLeft'| 'paddingRight'| 'marginTop'| 'marginBottom'| 'marginLeft'| 'marginRight'|
+    'fontSize'| 'lineHeight'| 'top'| 'left'| 'bottom'| 'right'| 'borderRadius'| 'textIndent'|
     // TNumberAutoStyle
     'width'| 'maxWidth'| 'minWidth'| 'height'| 'maxHeight'| 'minHeight'| 'flexBasis'|
     // pure number style
@@ -89,19 +90,22 @@ type IOriginStyle =
     IOptionStyle &
     INumberStyle
 
+export type IStyleKey = Exclude<keyof IOriginStyle, number>;
+
 export type IStyle = {
-    [Key in (keyof IOriginStyle)]?: IOriginStyle[Key] | IComputedLike<IOriginStyle[Key]>
+    [Key in IStyleKey]?: IReactiveLike<IOriginStyle[Key]>;
 }
 
 type IGlobalStyle = {
     [prop in string]: IStyle|string|IGlobalStyle;
 }
 
-export type IStyleKey = keyof IStyle;
-
 export type IAttrKey = 'accesskey' | 'alt' | 'async' | 'autoplay' | 'checked' | 'color' | 'class' |
     'cols' | 'dir' | 'disabled' | 'enctype' | 'formnovalidate' | 'height' | 'hidden' | 'id' | 'lang' | 'maxlength' | 'name' | 'nonce' | 'readonly' | 'required' | 'size' | 'src' | 'style' | 'width' | 'height' |
-    'summary' | 'tabindex' | 'target' | 'title' | 'type' | 'value' | 'href' | 'selected' | 'poster' | 'muted' | 'controls' | 'loop' | 'border' | 'cellspacing' | 'cellpadding' | 'rowspan' | 'colspan';
+    'summary' | 'tabindex' | 'target' | 'title' | 'type' | 'value' | 'href' | 'selected' | 'poster' | 'muted' | 'controls' | 'loop' | 'border' | 'cellspacing' | 'cellpadding' | 'rowspan' | 'colspan' |
+    'placeholder' | 'spellcheck' | 'autocomplete' | 'min' | 'max' | 'step' | 'pattern' | 'accept' | 'multiple' | 'accept-charset' | 'rel' | 'hreflang' | 'media' | 'sizes' | 'download' | 'referrerpolicy' |
+    'target' | 'method' | 'action' | 'autofocus' | 'capture' | 'form' | 'formaction' | 'formenctype' | 'formmethod' | 'formtarget' | 'list';
+
 
 // Reactive
 

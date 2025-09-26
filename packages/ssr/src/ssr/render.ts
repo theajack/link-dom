@@ -54,9 +54,9 @@ const defaultRenderer: IRenderer = {
     createFragment: function (): IFragment<any> {
         return new SSRFragment();
     },
-    addStyle: function (v: any): void {
-        doc.head.appendChild(v);
-    }
+    // addStyle: function (v: any): void {
+    //     doc.head.appendChild(v);
+    // }
 };
 
 export function setRender (name: 'web'|'ssr'|'hydrate') {
