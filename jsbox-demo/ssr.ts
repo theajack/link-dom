@@ -16,13 +16,19 @@ function CommonComponent (data: {label: string}[]) {
         }),
         dom.button.text('init').click(() => {
             console.time();
-            for (let i = 0; i < 10000; i++) {
+            for (let i = 0; i < 100; i++) {
                 list.value.push({ label: `item${i}` });
             }
             console.timeEnd();
         }),
         dom.button.text('reset').click(() => {
             list.value = [ { label: 'test' }, { label: 'test2' } ];
+        }),
+        dom.button.text('reverse').click(() => {
+            list.value.reverse();
+        }),
+        dom.button.text('sort').click(() => {
+            list.value.sort((a, b) => a.label.localeCompare(b.label));
         }),
         dom.button.text('add').click(() => {
             list.value.push({ label: `item${id++}` });
@@ -63,8 +69,10 @@ function CommonComponent (data: {label: string}[]) {
 //     );
 // }
 
-const arr = new Array(2000).fill({ label: 'label' });
-mount(CommonComponent(arr), '#app');
+window.init = () => {
+    const arr = new Array(2000).fill({ label: 'label' });
+    mount(CommonComponent(arr), '#app');
+};
 
 // function SSRDemo () {
 //     // const data = { count: 3 };

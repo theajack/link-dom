@@ -21,6 +21,8 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 
 import '../jsbox-demo';
 
+// import './test-cleardep';
+
 // const value = reactive({ value: 1 });
 
 

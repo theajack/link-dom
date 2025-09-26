@@ -10,6 +10,7 @@ import { LinkDomType, traverseChildren } from '../utils';
 import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { createMarkerNode } from './_marker';
+import { RenderStatus } from 'link-dom-shared';
 
 function getDefaultStyle (dom: HTMLElement, def?: any) {
     if (def) return def;
@@ -55,25 +56,27 @@ export class Show {
             }
             nodes.push([ dom, helper ]);
         });
-        this._clearWatch = watch(() => getReactiveValue(ref), (v) => {
-            nodes.forEach(([ node, helper ]) => {
-                if (node.nodeType === Node.ELEMENT_NODE) {
-                    // @ts-ignore
-                    if (node.style) {
+        if (!RenderStatus.isSSR) {
+            this._clearWatch = watch(() => getReactiveValue(ref), (v) => {
+                nodes.forEach(([ node, helper ]) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
                         // @ts-ignore
-                        node.style.display = v ? helper : 'none';
+                        if (node.style) {
+                            // @ts-ignore
+                            node.style.display = v ? helper : 'none';
+                        }
+                    } else if (node.nodeType === Node.TEXT_NODE) {
+                        if (v) {
+                            const parent = helper.parentNode!;
+                            parent.insertBefore(node, helper);
+                        } else {
+                            // @ts-ignore
+                            node.remove();
+                        }
                     }
-                } else if (node.nodeType === Node.TEXT_NODE) {
-                    if (v) {
-                        const parent = helper.parentNode!;
-                        parent.insertBefore(node, helper);
-                    } else {
-                        // @ts-ignore
-                        node.remove();
-                    }
-                }
+                });
             });
-        });
+        }
     }
     mounted (v: (el: Frag)=>void) {
         this.frag.mounted(v);

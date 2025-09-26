@@ -112,24 +112,29 @@ export class If {
             this.frag.mounted(this.__mountedFn);
         }
         this.frag?.__mounted?.(this.frag);
-        this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
-            const index = this.switchCase();
-            // console.log('test:if switch', index, this.activeIndex);
-            // console.log('if switch', index);
-            if (index !== this.activeIndex) {
-                const prev = this.activeIndex;
-                this.activeIndex = index;
-                let list: Node[];
-                if (index === -1) {
-                    list = this.marker.clear();
-                } else {
-                    const frag = this.scopes[index].toFrag();
-                    frag.__mounted();
-                    list = this.marker.replace(frag.el);
+        if (!RenderStatus.isSSR) {
+            this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
+                const index = this.switchCase();
+                // console.log('test:if switch', index, this.activeIndex);
+                // console.log('if switch', index);
+                if (index !== this.activeIndex) {
+                    const prev = this.activeIndex;
+                    this.activeIndex = index;
+                    let list: Node[];
+                    if (index === -1) {
+                        list = this.marker.clear();
+                    } else {
+                        const frag = this.scopes[index].toFrag();
+                        if (this.marker.start.__is_ssr) {
+                            debugger;
+                        }
+                        frag.__mounted();
+                        list = this.marker.replace(frag.el);
+                    }
+                    this.scopes[prev]?.store(list);
                 }
-                this.scopes[prev]?.store(list);
-            }
-        });
+            });
+        }
         // debugger;
         // @ts-ignore
         this.frag = null;
