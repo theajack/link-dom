@@ -16,13 +16,19 @@ function CommonComponent (data: {label: string}[]) {
         }),
         dom.button.text('init').click(() => {
             console.time();
-            for (let i = 0; i < 10000; i++) {
+            for (let i = 0; i < 100; i++) {
                 list.value.push({ label: `item${i}` });
             }
             console.timeEnd();
         }),
         dom.button.text('reset').click(() => {
             list.value = [ { label: 'test' }, { label: 'test2' } ];
+        }),
+        dom.button.text('reverse').click(() => {
+            list.value.reverse();
+        }),
+        dom.button.text('sort').click(() => {
+            list.value.sort((a, b) => a.label.localeCompare(b.label));
         }),
         dom.button.text('add').click(() => {
             list.value.push({ label: `item${id++}` });
@@ -34,7 +40,8 @@ function CommonComponent (data: {label: string}[]) {
                 .children(
                     ctrl.if(() => selected.value === item.label, () => dom.div.text('selected'))
                         .else(() => dom.div.text('unselected')),
-                    dom.span.text(() => `${index.value}: ${item.label}`).click(() => {
+                    dom.span.text(join`${index}: ${() => item.label}`),
+                    dom.button.text('select').click(() => {
                         selected.value = item.label;
                     }),
                     dom.button.text('×').click(() => {
@@ -59,6 +66,9 @@ function CommonComponent (data: {label: string}[]) {
 // }
 // mount(CommonComponent([ { label: 'label1' }, { label: 'label2' } ]), '#app');
 
+// const arr = new Array(100).fill(0).map((_, index) => ({ label: `item${index}` }));
+// debugger;
+// mount(CommonComponent(arr), '#app');
 function SSRDemo () {
     // const data = { count: 3 };
 

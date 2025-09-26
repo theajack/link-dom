@@ -14,9 +14,9 @@ import type { IReactiveLike } from '../type.d';
 import type { ForChild } from './for/for-child';
 import { RenderStatus } from 'link-dom-shared';
 
-let id = 0;
+// let id = 0;
 
-window.a = {};
+// window.a = {};
 
 // 用来存放if隐藏时的对象，不影响内部响应式操作
 class IfScope {
@@ -32,15 +32,15 @@ class IfScope {
         private gene: (()=>IChild)|IChild,
     ) {
         this.scope = DepUtil.CurForChild;
-        this.id = id++;
-        window.a[this.id] = this;
+        // this.id = id++;
+        // window.a[this.id] = this;
         // if (RenderStatus.isHydrating) {
         //     debugger;
         // }
     }
 
     toFrag (): Frag {
-        console.log(this.id, RenderStatus.isHydrating, RenderStatus.isSSR);
+        // console.log(this.id, RenderStatus.isHydrating, RenderStatus.isSSR);
         if (!this.frag) {
             DepUtil.CurForChild = this.scope;
 
@@ -120,24 +120,29 @@ export class If {
             this.frag.mounted(this.__mountedFn);
         }
         this.frag?.__mounted?.(this.frag);
-        this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
-            const index = this.switchCase();
-            // console.log('test:if switch', index, this.activeIndex);
-            // console.log('if switch', index);
-            if (index !== this.activeIndex) {
-                const prev = this.activeIndex;
-                this.activeIndex = index;
-                let list: Node[];
-                if (index === -1) {
-                    list = this.marker.clear();
-                } else {
-                    const frag = this.scopes[index].toFrag();
-                    frag.__mounted();
-                    list = this.marker.replace(frag.el);
+        if (!RenderStatus.isSSR) {
+            this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
+                const index = this.switchCase();
+                // console.log('test:if switch', index, this.activeIndex);
+                // console.log('if switch', index);
+                if (index !== this.activeIndex) {
+                    const prev = this.activeIndex;
+                    this.activeIndex = index;
+                    let list: Node[];
+                    if (index === -1) {
+                        list = this.marker.clear();
+                    } else {
+                        const frag = this.scopes[index].toFrag();
+                        if (this.marker.start.__is_ssr) {
+                            debugger;
+                        }
+                        frag.__mounted();
+                        list = this.marker.replace(frag.el);
+                    }
+                    this.scopes[prev]?.store(list);
                 }
-                this.scopes[prev]?.store(list);
-            }
-        });
+            });
+        }
         // debugger;
         // @ts-ignore
         this.frag = null;
