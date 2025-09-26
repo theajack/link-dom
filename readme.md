@@ -1,13 +1,3 @@
-<!--
- * @Author: chenzhongsheng
- * @Date: 2025-09-25 10:46:55
- * @Description: Coding something
--->
-<!--
- * @Author: chenzhongsheng
- * @Date: 2025-09-25 08:08:14
- * @Description: Coding something
--->
 
 # [Link-dom](https://github.com/theajack/link-dom) - Compilation-free Reactive Chainable Call UI Library
 

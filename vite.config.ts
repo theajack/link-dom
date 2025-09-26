@@ -140,6 +140,8 @@ const Plugins = {
 function geneBuildSDKConfig (pkgName: string): UserConfig {
     const pkgRoot = resolve(__dirname, `./packages/${pkgName}`);
 
+    console.log('pkgRoot', resolve(pkgRoot, 'src/index.ts'));
+
     // 取SDK包的依赖;
     // const deps = require(resolve(pkgRoot, './package.json'));
     // ! VITE 文档说明： 注意，在 lib 模式下使用 'es' 时，build.minify 选项不会缩减空格，因为会移除掉 pure 标注，导致破坏 tree-shaking。

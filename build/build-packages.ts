@@ -6,26 +6,80 @@
 import fs from 'fs-extra';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
+import { version } from '../package.json';
 
 let packages: string[] = [];
+
+function resolve (v: string) {
+    return path.resolve(__dirname, v);
+}
 
 if (process.argv[2]) {
     packages = process.argv[2].split(',');
 } else {
     packages = fs.readdirSync(
-        path.resolve(__dirname, '../packages')
+        resolve('../packages')
     );
 }
-
 
 console.log(packages);
 for (const name of packages) {
     execSync(`npx vite build -m=sdk_${name}`);
-
     execSync(concatDts([
         `packages/${name}/dist/index.d.ts`,
         `packages/${name}/src/index.ts`,
     ]));
+    fs.writeFileSync(
+        resolve(`../packages/${name}/dist/package.json`),
+        genePkgJson(name),
+    );
+    fs.copySync(
+        resolve(`../LICENSE`),
+        resolve(`../packages/${name}/dist/LICENSE`),
+    );
+    fs.copySync(
+        resolve(`../README.md`),
+        resolve(`../packages/${name}/dist/README.md`),
+    );
+}
+
+function genePkgJson (name: string) {
+
+    const pkg = require(resolve(`../packages/${name}/package.json`));
+
+    const deps = pkg.dependencies || {};
+
+    for (const k in deps) {
+        deps[k] = version;
+    }
+
+    return JSON.stringify({
+        'name': `link-dom${name === 'core' ? '' : `-${name}`}`,
+        'version': version,
+        'description': 'Compilation-free Reactive Chainable Call UI Library',
+        'repository': 'https://github.com/theajack/link-dom',
+        'keywords': [
+            'UI library',
+            'Link-Dom',
+            'Compilation-free'
+        ],
+        'author': 'theajack',
+        'license': 'MIT',
+        'bugs': {
+            'url': 'https://github.com/theajack/link-dom/issues/new'
+        },
+        'homepage': 'https://theajack.github.io/jsbox?config=theajack.link-dom',
+        'publishConfig': {
+            'registry': 'https://registry.npmjs.org/',
+            'tag': 'latest'
+        },
+        'dependencies': deps,
+        'main': `${name}.cjs.min.js`,
+        'module': `${name}.es.min.js`,
+        'unpkg': `${name}.iife.min.js`,
+        'jsdelivr': `${name}.iife.min.js`,
+        'typings': 'index.d.ts'
+    }, null, 4);
 }
 
 function concatDts (io) {
