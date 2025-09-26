@@ -14,4 +14,4 @@ function Reactive () {
         dom.input.attr('placeholder', 'Input your name').bind(name)
     );
 }
-mount(Reactive, '#app');
+mount(Reactive, '#jx-app');

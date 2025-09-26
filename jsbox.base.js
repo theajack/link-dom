@@ -14,7 +14,7 @@ module.exports = {
     iifeMap: {
         'link-dom': 'LinkDom',
         'link-dom-reactive': 'LinkDomReactive',
-        'link-dom-ssr': 'LinkDomSSR',
+        'link-dom-ssr': 'LinkDomSsr',
         'link-dom-router': 'LinkDomRouter',
         'link-dom-render': 'LinkDomRender',
     },
