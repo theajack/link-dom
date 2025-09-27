@@ -220,7 +220,7 @@ function ForRef () {
         ),
         ctrl.forRef(list, (item, index) =>
             dom.div.children(
-                dom.span.text(join`${index}: ${item};(or use link:${link(item.value)})`),
+                dom.span.text(join`${index}: ${item};(use link:${link(item.value)})`),
                 dom.button.text('Remove').click(() => { list.value.splice(index.value, 1); }),
                 dom.button.text('Update').click(() => { item.value += '!'; }),
             )
@@ -303,6 +303,7 @@ mount(Show, '#jx-app');
 #### Await
 
 ```js
+import { dom, mount, ctrl } from 'link-dom';
 function Await () {
     const mockFetch = () => {
         return new Promise<{id: number, name: string}>((resolve) => {
@@ -357,13 +358,9 @@ mount(App, root);
 #### Canvas 
 
 ```js
-import { dom, ref, mount, join } from 'link-dom';
+import { dom, ref, mount, join, collectRef  } from 'link-dom';
 import { useRenderer } from 'link-dom-render';
-interface ICustomEle extends CustomElement {
-    textLeft: number;
-    deep: number;
-    parentElement: ICustomEle|null;
-}
+
 const { ctx, msg } = (function initEnv () {
     const refs = collectRef('canvas');
     const msg = ref('Hello');
@@ -375,12 +372,12 @@ const { ctx, msg } = (function initEnv () {
         )
     ), '#jx-app');
     const size = 300;
-    const canvas = refs.canvas.el as HTMLCanvasElement;
+    const canvas = refs.canvas.el;
     const scale = window.devicePixelRatio;
     canvas.width = canvas.height = size * scale;
     canvas.style.width = canvas.style.height = `${size}px`;
     canvas.style.backgroundColor = '#333';
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
     ctx.font = `${15 * scale}px Microsoft Sans Serif`;
     ctx.fillStyle = '#eee';
     ctx.textBaseline = 'top';
@@ -393,13 +390,10 @@ const { ctx, msg } = (function initEnv () {
     return { ctx, msg };
 })();
 
-const root = useRenderer<ICustomEle>({
+const root = useRenderer({
     render (element) {
-        const parent: ICustomEle = element.parentElement || { deep: 0, textLeft: 0 } as ICustomEle;
-        if (!parent.textLeft) parent.textLeft = 10;
-        ctx.fillText(element.textContent, parent.textLeft, (parent.deep - 1)  * 15 + 10);
-        parent.textLeft += (ctx.measureText(element.textContent).width);
-        return el => {el.textLeft = 0;};
+        // 此处仅为一个简单的例子，如果需要更复杂的渲染，需要自己实现CustomElement计算布局
+        ctx.fillText(element.textContent, 0, 0);
     },
 });
 
@@ -413,6 +407,8 @@ mount(App, root);
 #### Full Custom
 
 ```js
+import { dom, ref, mount, computed } from 'link-dom';
+import { defineRenderer, RendererType } from 'link-dom-render';
 defineRenderer({
     type: RendererType.Custom,
     querySelector (selector) {return selector === '#Root' ? LogElement.Root : null;},

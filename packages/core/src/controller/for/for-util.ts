@@ -59,8 +59,6 @@ function triggerSub (arr: any[], key: string|symbol) {
 const FnMap = {
     reverse (this: any[]) {
         const arr = this;
-        // const proxy = this[ProxyTarget] || this;
-        // debugger;
         const len = arr.length;
         const n = Math.floor(arr.length / 2);
         const fors = ForGlobal.Map.get(this);
@@ -117,23 +115,25 @@ const FnMap = {
                 if (removeCount > addCount) {
                     removeCount -= addCount;
                     fors?.forEach(item => item._removeDoms(start, removeCount));
-                    this.splice(start, removeCount);
+                    return this.splice(start, removeCount);
                 // 从for里面删除
                 } else {
-                    this.splice(start, 0, ...items.map(item => reactive(item)));
+                    const result = this.splice(start, 0, ...items.map(item => reactive(item)));
                     fors?.forEach(item => item._addDoms(start, items.length));
+                    return result;
                 }
+            } else {
+                return this.slice(start, start + removeCount);
             }
+        } else {
+            return [];
         }
-        // @ts-ignore
-        return this[ProxyTarget] || this;
     },
     unshift (this: any[], ...items: any[]) {
         const fors = ForGlobal.Map.get(this);
         this.splice(0, 0, ...items.map(item => reactive(item)));
         fors?.forEach(item => item._addDoms(0, items.length));
-        // @ts-ignore
-        return this[ProxyTarget] || this;
+        return getProxy(this);
     },
     shift (this: any[]) {
         const fors = ForGlobal.Map.get(this);

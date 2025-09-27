@@ -2,6 +2,7 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
+import { dom, mount, ctrl } from 'link-dom';
 function Await () {
     const mockFetch = () => {
         return new Promise((resolve) => {

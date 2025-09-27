@@ -2,8 +2,8 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom,link-dom-render
-import { dom, ref, mount } from 'link-dom';
-import { defineRenderer } from 'link-dom-render';
+import { dom, ref, mount, computed } from 'link-dom';
+import { defineRenderer, RendererType } from 'link-dom-render';
 
 defineRenderer({
     type: RendererType.Custom,
@@ -21,7 +21,6 @@ defineRenderer({
         return new LogElement('frag');
     },
     querySelectorAll: function () {return [];},
-    addStyle: function () {}
 });
 
 class LogElement {

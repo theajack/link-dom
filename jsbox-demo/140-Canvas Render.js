@@ -1,8 +1,13 @@
+/*
+ * @Author: chenzhongsheng
+ * @Date: 2025-09-27 10:02:55
+ * @Description: Coding something
+ */
 
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom,link-dom-render
-import { dom, ref, mount, join } from 'link-dom';
+import { dom, ref, mount, join, collectRef  } from 'link-dom';
 import { useRenderer } from 'link-dom-render';
 
 const { ctx, msg } = (function initEnv () {
@@ -36,11 +41,8 @@ const { ctx, msg } = (function initEnv () {
 
 const root = useRenderer({
     render (element) {
-        const parent = element.parentElement || { deep: 0, textLeft: 0 };
-        if (!parent.textLeft) parent.textLeft = 10;
-        ctx.fillText(element.textContent, parent.textLeft, (parent.deep - 1)  * 15 + 10);
-        parent.textLeft += (ctx.measureText(element.textContent).width);
-        return el => {el.textLeft = 0;};
+        // 此处仅为一个简单的例子，如果需要更复杂的渲染，需要自己实现CustomElement计算布局
+        ctx.fillText(element.textContent, 0, 0);
     },
 });
 

@@ -13,6 +13,8 @@
 - [x] 路由支持
   - [] 动态路由
 - [x] 异步控制器 ctrl.async();
+- [ ] 支持生命周期
+- [ ] jsbox 支持iframe沙盒
 
 
 # BugFix

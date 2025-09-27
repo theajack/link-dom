@@ -109,7 +109,7 @@ function CustomRender () {
             return new LogElement('frag');
         },
         querySelectorAll: function (): IElement<any>[] {return [];},
-        addStyle: function (): void {}
+        // addStyle: function (): void {}
     });
 
     class LogElement implements IElement {

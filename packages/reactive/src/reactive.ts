@@ -54,12 +54,6 @@ export const listener = {
     useArrayMethod (target: any[], key: string|symbol) {return null as any;},
 };
 
-export function replaceArray (target: any[], data: any[]) {
-    // todo
-    const fn = listener.useArrayMethod(target, 'splice');
-    fn?.call(target, 0, target.length, ...data);
-}
-
 export function setArrayListeners (lns: typeof listener) {
     Object.assign(listener, lns);
 }
@@ -110,9 +104,6 @@ export function reactive<T extends object = any> (data: T): T {
                 } else {
                     deepAssign(origin, value);
                 }
-                // console.log('deepAssign', key);
-                // const result = Reflect.set(target, key, value, receiver);
-                // debugger;
                 DepUtil.trigger(target, key);
                 return true;
             } else {

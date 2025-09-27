@@ -179,7 +179,6 @@ export class For <T=any> {
             const child = this.children[i];
             if (child) {
                 child.destroy();
-                debugger;
                 DepUtil.clearDep(getTarget(this._list), i.toString());
             }
         }
