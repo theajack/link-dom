@@ -6,3 +6,4 @@
 export * from './utils';
 export * from './render';
 export * from './type.d';
+export const version = __VERSION__;

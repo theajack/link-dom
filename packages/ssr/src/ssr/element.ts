@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import  { ClassList, Style, type IElement, RenderStatus } from 'link-dom-shared';
+import  { ClassList, Style, type IElement, SharedStatus } from 'link-dom-shared';
 import { SSRContainer, SSRText } from './base';
 import { NodeType } from '../utils';
 import type { Dom } from 'link-dom';
@@ -44,11 +44,11 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
     }
     _eventsListeners: Map<Function, [string, any]> = new Map();
     addEventListener (name: string, handler: any, options: any): void {
-        if (RenderStatus.isSSR) return;
+        if (SharedStatus.isSSR) return;
         this._eventsListeners.set(handler, [ name, options ]);
     }
     removeEventListener (name: string, handler: any): void {
-        if (RenderStatus.isSSR) return;
+        if (SharedStatus.isSSR) return;
         this._eventsListeners.delete(handler);
     }
     attr: Record<string, string> = {};

@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import { isArrayOrJson, deepAssign, OriginTarget } from 'link-dom-shared';
+import { isArrayOrJson, deepAssign, SharedStatus } from 'link-dom-shared';
 import { listener, reactive } from './reactive';
 import { DepUtil } from './dep';
 import { isReactive } from './computed';
@@ -18,7 +18,7 @@ export class Ref<T = any> {
     set value (v) {
         if (v === this._value) return;
         if (this.isDeep(v)) {
-            if (listener.isForArray(this._value?.[OriginTarget] as any)) {
+            if (listener.isForArray(this._value?.[SharedStatus.OriginTarget] as any)) {
                 // @ts-ignore
                 this._value.splice(0, this._value.length, ...v);
             } else {

@@ -1,12 +1,20 @@
 /*
  * @Author: chenzhongsheng
- * @Date: 2025-09-08 23:37:37
+ * @Date: 2025-09-27 10:02:55
  * @Description: Coding something
  */
+// @needUI=true
+// @hideLog=true
+// @dep=link-dom,link-dom-ssr
+// @title=SSR
+
 import { ssr, hydrate } from 'link-dom-ssr';
 import { ref, dom, ctrl, join, collectRef, mount, link } from 'link-dom';
+// const { ssr, hydrate } = window.LinkDomSsr;
+// const { ref, dom, ctrl, join, collectRef, mount, link } = window.LinkDom;
 
-function CommonComponent (data: {label: string}[]) {
+function CommonComponent (data) {
+    // const { ref, dom, ctrl, join, collectRef, mount, link } = window.LinkDomSsr;
     const list = ref(data);
     const selected = ref('label2');
     let id = 0;
@@ -50,27 +58,13 @@ function CommonComponent (data: {label: string}[]) {
     );
 }
 
-
-// function CommonComponent (param: {count: number}) {
-//     const data = ref(param);
-//     return dom.div.style('borderBottom', '2px solid #000').children(
-//         dom.span.text(join`count:${() => data.value.count}`),
-//         dom.button.text('+1').click(() => {
-//             data.value.count ++;
-//         })
-//     );
-// }
-
-window.init = () => {
-    const arr = new Array(2000).fill(0).map((_, i) => ({ label: `label${i}` }));
-    mount(CommonComponent(arr), '#app');
-};
-
 function SSRContainer () {
+    // const { ref, dom, ctrl, join, collectRef, mount, link } = window.LinkDomSsr;
+    // const { ssr, hydrate } = window.LinkDomSsr;
     const data = [ { label: 'label1' }, { label: 'label2' } ];
     const refs = collectRef('container');
     return dom.div.children(
-        dom.button.text('Start SSR').click(() => {
+        dom.button.text('Start SSR Render').click(() => {
             const html = ssr(CommonComponent)(data);
             console.log('html', html);
             refs.container.html(html);
@@ -82,13 +76,5 @@ function SSRContainer () {
         dom.div.ref(refs.container),
     );
 }
-// mount(SSRContainer, '#app');
 
-
-mount(
-    [
-        dom.div.text('111').style.color(join`red`).background('green'),
-        dom.div.style.fontSize(18).text('222')
-    ],
-    'body'
-);
+mount(SSRContainer, '#app');

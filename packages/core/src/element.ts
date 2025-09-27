@@ -7,7 +7,7 @@ import type { IReactiveLike } from './type.d';
 import type { Join } from './join';
 import { isJoin } from './join';
 import type { IController } from './controller';
-import { Renderer, checkHydrateEl } from 'link-dom-shared';
+import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
 // eslint-disable-next-line no-undef
@@ -19,7 +19,7 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     el: T;
     // eslint-disable-next-line no-undef
     constructor (key: (keyof HTMLElementTagNameMap)|T) {
-        this.el = (typeof key === 'string' ? Renderer.createElement(key) : key) as T;
+        this.el = (typeof key === 'string' ? SharedStatus.Renderer.createElement(key) : key) as T;
         checkHydrateEl(this);
     }
     private _ur (key: string, val?: IReactiveLike<string|number>) {

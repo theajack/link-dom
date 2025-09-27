@@ -19,7 +19,7 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 // import './shallow';
 // import './for-if';
 
-import '../jsbox-demo';
+import './new';
 
 // import './test-cleardep';
 

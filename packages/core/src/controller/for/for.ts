@@ -8,12 +8,11 @@ import type  { IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';
-import { OriginTarget, RenderStatus, checkHydrateMarker, } from 'link-dom-shared';
+import { checkHydrateMarker, getTarget, SharedStatus } from 'link-dom-shared';
 import type { Ref } from 'link-dom-reactive';
 import { isRef, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
-import { getTarget } from 'link-dom-reactive/src/reactive';
 
 // class ForTpl {
 
@@ -53,7 +52,7 @@ export class For <T=any> {
         this._list = (isRef(_list)) ? _list.value : _list;
         // console.log('init for');
 
-        if (!RenderStatus.isSSR) {
+        if (!SharedStatus.isSSR) {
             ForGlobal.add(this._list, this);
         }
         this._isDeep = isDeepReactive(this._list);
@@ -92,7 +91,7 @@ export class For <T=any> {
         if (this.itemRef && this._isDeep && typeof data !== 'object') {
             DepUtil.sub(child.data, 'value', (newValue) => {
                 const index = child.index.value;
-                const target = this._list[OriginTarget];
+                const target = this._list[SharedStatus.OriginTarget];
                 target[index] = newValue;
                 DepUtil.trigger(target, `${index}`);
             });

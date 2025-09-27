@@ -10,7 +10,7 @@ import { type IComputedLike } from 'link-dom-reactive';
 import { Comment, Frag } from './text';
 import { Text } from './text';
 import type { IElement } from 'link-dom-shared';
-import { Renderer } from 'link-dom-shared';
+import { SharedStatus } from 'link-dom-shared';
 import type { IStyleLink } from './style';
 import { style } from './style';
 import { LinkDomType } from './utils';
@@ -30,15 +30,15 @@ type TDomName = keyof HTMLElementTagNameMap;
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
 export function query <T extends HTMLElement = HTMLElement> (selector: string, one = false): Dom<T>|Dom<T>[] {
-    return queryBase(selector, one, Renderer);
+    return queryBase(selector, one, SharedStatus.Renderer);
 }
 
 export function find <T extends HTMLElement = HTMLElement> (selector: string): Dom<T> {
-    return queryBase(selector, true, Renderer);
+    return queryBase(selector, true, SharedStatus.Renderer);
 }
 
 
-export function queryBase (selector: string, one = false, parent: any = Renderer): any {
+export function queryBase (selector: string, one = false, parent: any = SharedStatus.Renderer): any {
     if (one) {
         const el = parent.querySelector(selector);
         if (el) return new Dom(el as HTMLElement);

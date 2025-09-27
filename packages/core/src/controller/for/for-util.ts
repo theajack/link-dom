@@ -5,13 +5,13 @@
  */
 
 import { DepUtil, reactive, setArrayListeners } from 'link-dom-reactive';
-import { OriginTarget, ProxyTarget, deepAssign, isArrayOrJson, raw } from 'link-dom-shared';
+import { deepAssign, getProxy, getTarget, isArrayOrJson, raw } from 'link-dom-shared';
 import type { For } from './for';
 
 export const ForGlobal = {
     Map: new WeakMap<any[], Set<For>>(),
     add (list: any[], forItem: For) {
-        list = list[OriginTarget] || list;
+        list = getTarget(list);
 
         // ForGlobal.Map.set(list, forItem);
         let set = ForGlobal.Map.get(list);
@@ -73,11 +73,11 @@ const FnMap = {
             triggerSub(arr, j.toString());
             fors?.forEach(item => item._swapDom(i, j));
         }
-        return this[ProxyTarget] || this;
+        return getProxy(this);
     },
     sort (this: any[], compare?: ((a: any, b: any)=>number)|undefined) {
-        const arr = this[OriginTarget] || this;
-        const proxy = this[ProxyTarget] || this;
+        const arr = getTarget(this);
+        const proxy = getProxy(this);
         let origin: Map<any, any> = new Map();
         let proxy2 = new Proxy(arr, {
             set (target, key, value) {

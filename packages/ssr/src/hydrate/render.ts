@@ -44,39 +44,24 @@ function initSSRNodes () {
 export function hydrate <T extends any[]> (comp: (...args: T)=>IChild): ((...args: T) => void)  {
 
     return (...args: T) => {
-        debugger;
-        console.time();
         setRender('hydrate');
         initSSRNodes();
-
         const value = comp(...(args || []));
         const clientFrag = dom.div.append(value);
-
-        // debugger;
         const childNodes = Array.from(clientFrag.el.childNodes);
         const nodes = findSSRNodes(childNodes);
-
         const size = childNodes.length;
-
         for (let i = 0; i < size; i++) {
             const child = childNodes[i] as any as SSRBase;
-            debugger;
             child.hydrate(nodes[i]);
         }
         setRender('web');
-        console.timeEnd();
     };
-    // console.timeEnd();
-    // // const ssrFrag = dom.div.append(nodes);
-    // console.log('   ssr', ssrFrag.el.innerHTML.length, ssrFrag.el.innerHTML);
-    // console.log('client', clientFrag.el.innerHTML.length, clientFrag.el.innerHTML);
-    // debugger;
 }
 
 
 // 找到marker
 function findSSRNodes (clientNodes: Node[]) {
-
     if (!ssrNodes) {
         ssrNodes = Array.from(document.querySelectorAll(`[${SSR_SIZE}]`));
     }

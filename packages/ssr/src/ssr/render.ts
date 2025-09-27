@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import type { IComment, IElement, IFragment, IRenderer, ITextNode } from 'link-dom-shared';
-import { RenderStatus, RendererType, defineRenderer, resetRenderer } from 'link-dom-shared';
+import { SharedStatus, RendererType, defineRenderer, resetRenderer } from 'link-dom-shared';
 import { SSRComment, SSRFragment, SSRText } from './base';
 import { SSRElement } from './element';
 import { dom, LinkDomType, type Frag, type IChild } from 'link-dom';
@@ -60,17 +60,17 @@ const defaultRenderer: IRenderer = {
 };
 
 export function setRender (name: 'web'|'ssr'|'hydrate') {
-    RenderStatus.isHydrating = RenderStatus.isSSR = false;
+    SharedStatus.isHydrating = SharedStatus.isSSR = false;
     if (name === 'web') {
         resetRenderer();
     } else if (name === 'ssr') {
         doc = new Document();
         defineRenderer(defaultRenderer);
-        RenderStatus.isSSR = true;
+        SharedStatus.isSSR = true;
     } else if (name === 'hydrate') {
         doc = document as any;
         defineRenderer(defaultRenderer);
-        RenderStatus.isHydrating = true;
+        SharedStatus.isHydrating = true;
     }
 }
 

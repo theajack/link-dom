@@ -10,7 +10,7 @@ import { LinkDomType, traverseChildren } from '../utils';
 import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { createMarkerNode } from './_marker';
-import { RenderStatus } from 'link-dom-shared';
+import { SharedStatus } from 'link-dom-shared';
 
 function getDefaultStyle (el: HTMLElement, def?: any) {
     if (def) return def;
@@ -56,7 +56,7 @@ export class Show {
             }
             nodes.push([ dom, helper ]);
         });
-        if (!RenderStatus.isSSR) {
+        if (!SharedStatus.isSSR) {
             this._clearWatch = watch(() => getReactiveValue(ref), (v) => {
                 nodes.forEach(([ node, helper ]) => {
                     if (node.nodeType === Node.ELEMENT_NODE) {

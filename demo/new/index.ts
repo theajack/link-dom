@@ -5,5 +5,5 @@
  */
 // import './custom-render';
 // import './router';
-// import './ssr';
-import './basic';
+import './ssr';
+// import './basic';

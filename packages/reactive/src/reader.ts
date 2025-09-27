@@ -3,8 +3,7 @@
  * @Date: 2025-09-06 18:22:04
  * @Description: Coding something
  */
-import { isArrayOrJson } from 'link-dom-shared';
-import { getTarget } from './reactive';
+import { isArrayOrJson, getTarget } from 'link-dom-shared';
 import { DepUtil } from './dep';
 
 export function reader <T> (v: T): T {

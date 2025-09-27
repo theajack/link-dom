@@ -24,7 +24,10 @@ if (process.argv[2]) {
 
 console.log(packages);
 for (const name of packages) {
-    execSync(`npx vite build -m=sdk_${name}`);
+    const data = execSync(`npx vite build -m=sdk_${name}`);
+    console.log(data.toString());
+    const data2 = execSync(`npx vite build -m=iife_${name}`);
+    console.log(data2.toString());
     execSync(concatDts([
         `packages/${name}/dist/index.d.ts`,
         `packages/${name}/src/index.ts`,
@@ -33,6 +36,11 @@ for (const name of packages) {
         resolve(`../packages/${name}/dist/package.json`),
         genePkgJson(name),
     );
+    fs.copySync(
+        resolve(`../packages/${name}/dist/iife/${name}.iife.min.js`),
+        resolve(`../packages/${name}/dist/${name}.iife.min.js`),
+    );
+    fs.removeSync(resolve(`../packages/${name}/dist/iife`));
     fs.copySync(
         resolve(`../LICENSE`),
         resolve(`../packages/${name}/dist/LICENSE`),

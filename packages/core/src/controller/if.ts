@@ -11,7 +11,7 @@ import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
 import type { IReactiveLike } from '../type.d';
-import { RenderStatus } from 'link-dom-shared';
+import { SharedStatus } from 'link-dom-shared';
 
 // let id = 0;
 
@@ -30,9 +30,6 @@ class IfScope {
     ) {
     //     this.id = id++;
     //     window.a[this.id] = this;
-    //     // if (RenderStatus.isHydrating) {
-    //     //     debugger;
-    //     // }
     }
 
     toFrag (): Frag {
@@ -112,7 +109,7 @@ export class If {
             this.frag.mounted(this.__mountedFn);
         }
         this.frag?.__mounted?.(this.frag);
-        if (!RenderStatus.isSSR) {
+        if (!SharedStatus.isSSR) {
             this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
                 const index = this.switchCase();
                 // console.log('test:if switch', index, this.activeIndex);

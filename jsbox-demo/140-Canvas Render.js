@@ -1,8 +1,4 @@
-/*
- * @Author: chenzhongsheng
- * @Date: 2025-09-26 17:16:13
- * @Description: Coding something
- */
+
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom,link-dom-render

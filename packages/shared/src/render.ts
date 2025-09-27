@@ -5,14 +5,7 @@
  */
 
 import { type IComment, type IElement, type IFragment, type IRenderer, type ITextNode } from './type';
-import { isWeb, RendererType } from './utils';
-
-export let Renderer: IRenderer;
-
-export const RenderStatus = {
-    isSSR: false,
-    isHydrating: false,
-};
+import { isWeb, RendererType, SharedStatus } from './utils';
 
 const defaultRenderer: IRenderer = {
     type: RendererType.Web,
@@ -40,7 +33,7 @@ const defaultRenderer: IRenderer = {
 };
 
 export function defineRenderer (renderer: IRenderer) {
-    Renderer = renderer;
+    SharedStatus.Renderer = renderer;
     return renderer;
 }
 

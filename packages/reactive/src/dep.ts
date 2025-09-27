@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import { isArrayOrJson, OriginTarget } from 'link-dom-shared';
+import { isArrayOrJson, SharedStatus } from 'link-dom-shared';
 
 type IDepExe = (newValue: any, oldValue: any)=>void;
 type IDepLis = ()=>void;
@@ -71,7 +71,7 @@ export const DepUtil = {
         }
         const value = target[key];
         if (isArrayOrJson(value)) {
-            const origin = value[OriginTarget] || value;
+            const origin = value[SharedStatus.OriginTarget] || value;
             for (const k in origin) {
                 DepUtil.clearDep(origin, k);
             }

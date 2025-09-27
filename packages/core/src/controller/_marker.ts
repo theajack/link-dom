@@ -3,7 +3,7 @@
  * @Date: 2025-09-01 20:06:25
  * @Description: Coding something
  */
-import { checkHydrateMarker, Renderer } from 'link-dom-shared';
+import { checkHydrateMarker, SharedStatus } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
 
 export class Marker {
@@ -77,7 +77,7 @@ export class Marker {
 }
 
 export function createMarkerNode (text = ''): Comment {
-    const node = Renderer.createComment(text) as any;
+    const node = SharedStatus.Renderer.createComment(text) as any;
     // @ts-ignore
     node.__marker = true;
     return node;

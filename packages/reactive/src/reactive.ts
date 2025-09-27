@@ -5,10 +5,9 @@
  * @Date: 2025-09-01 21:28:27
  * @Description: Coding something
  */
-import { Root, isArrayOrJson } from 'link-dom-shared';
+import { isArrayOrJson, SharedStatus, deepAssign } from 'link-dom-shared';
 import type { Dep } from './dep';
 import { DepUtil } from './dep';
-import { OriginTarget, ProxyTarget, deepAssign } from 'link-dom-shared';
 
 export function observe (
     exp: ()=>any,
@@ -65,13 +64,13 @@ export function setArrayListeners (lns: typeof listener) {
     Object.assign(listener, lns);
 }
 export function reactive<T extends object = any> (data: T): T {
-    if (data[OriginTarget]) return data;
-    if (data[ProxyTarget]) return data[ProxyTarget];
+    if (data[SharedStatus.OriginTarget]) return data;
+    if (data[SharedStatus.ProxyTarget]) return data[SharedStatus.ProxyTarget];
     if (!isArrayOrJson(data)) return data;
     const proxy = new Proxy(data, {
         get (target, key) {
-            if (key === OriginTarget) return target;
-            if (key === ProxyTarget || key === 'constructor') return target[key];
+            if (key === SharedStatus.OriginTarget) return target;
+            if (key === SharedStatus.ProxyTarget || key === 'constructor') return target[key];
             if (Array.isArray(target)) {
                 const result = listener.useArrayMethod(target, key);
                 if (result) {
@@ -81,9 +80,8 @@ export function reactive<T extends object = any> (data: T): T {
             const value = target[key];
             if (typeof value === 'function') return target[key];
             DepUtil.add(target, key);
-            if (isArrayOrJson(value) && !value[ProxyTarget]) {
+            if (isArrayOrJson(value) && !value[SharedStatus.ProxyTarget]) {
                 // 标记root 后续可以在 for 循环中用户判断是否是内部ref
-                value[Root] = target[Root] || target; // ! 实测基本不会增加内存开销
                 target[key] = reactive(value);
             }
             return Reflect.get(target, key, target);
@@ -106,9 +104,9 @@ export function reactive<T extends object = any> (data: T): T {
                 value = reactive(value);
                 (listener.newItem(target, parseInt(key as string), value));
             } else if (isArrayOrJson(origin) && isArrayOrJson(value)) {
-                if (listener.isForArray(origin[OriginTarget])) {
+                if (listener.isForArray(origin[SharedStatus.OriginTarget])) {
                     // ! 在for场景中进行了优化 使用splice更高效
-                    origin[ProxyTarget].splice(0, origin.length, ...value);
+                    origin[SharedStatus.ProxyTarget].splice(0, origin.length, ...value);
                 } else {
                     deepAssign(origin, value);
                 }
@@ -136,7 +134,7 @@ export function reactive<T extends object = any> (data: T): T {
             return result;
         },
     });
-    data[ProxyTarget] = proxy;
+    data[SharedStatus.ProxyTarget] = proxy;
     return proxy;
 }
 
@@ -144,10 +142,7 @@ function isArrayItem (target: any, key: string|symbol): target is any[] {
     return (Array.isArray(target) && (typeof key === 'string') && parseInt(key).toString() === key);
 }
 
-export function getTarget <T> (v: T): T {
-    return v?.[OriginTarget] || v;
-}
 
 export function isDeepReactive (v: any) {
-    return !!(v?.[OriginTarget]);
+    return !!(v?.[SharedStatus.OriginTarget]);
 }

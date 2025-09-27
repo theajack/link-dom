@@ -8,13 +8,13 @@ import type { IChild } from './element';
 import type { IComputedLike, IReactive } from 'link-dom-reactive';
 import { useReactive } from './utils';
 import { LinkDomType, traverseChildren } from './utils';
-import { Renderer, checkHydrateEl } from 'link-dom-shared';
+import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
 
 export class Text {
     __ld_type = LinkDomType.Text;
     el: globalThis.Text;
     constructor (val?: string|number|boolean|IReactive) {
-        this.el = Renderer.createTextNode('') as globalThis.Text;
+        this.el = SharedStatus.Renderer.createTextNode('') as globalThis.Text;
         if (typeof val !== 'undefined') {
             this.text(val);
         }
@@ -35,7 +35,7 @@ export class Comment {
     __ld_type = LinkDomType.Comment;
     el: globalThis.Comment;
     constructor (val?: string|number|IComputedLike) {
-        this.el = Renderer.createComment('') as any;
+        this.el = SharedStatus.Renderer.createComment('') as any;
         if (typeof val !== 'undefined') {
             this.text(val);
         }
@@ -57,7 +57,7 @@ export class Frag {
     __ld_type = LinkDomType.Frag;
     el: DocumentFragment;
     constructor () {
-        this.el = Renderer.createFragment() as any;
+        this.el = SharedStatus.Renderer.createFragment() as any;
         checkHydrateEl(this);
     }
     append (...doms: IChild[]) {

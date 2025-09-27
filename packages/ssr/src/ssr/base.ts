@@ -9,7 +9,7 @@ import { Comment } from 'link-dom';
 import { Frag, Text } from 'link-dom';
 import { NodeType } from '../utils';
 import type { SSRElement } from './element';
-import { RenderStatus, type IComment, type IFragment, type ITextNode } from 'link-dom-shared';
+import { SharedStatus, type IComment, type IFragment, type ITextNode } from 'link-dom-shared';
 
 
 export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
@@ -20,7 +20,7 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
     abstract toHtml (isSingle: boolean): string;
     abstract toDom (): Frag|Dom|Text|Comment;
     constructor () {
-        if (RenderStatus.isHydrating) {
+        if (SharedStatus.isHydrating) {
             this.__is_hydrate = true;
         }
     }

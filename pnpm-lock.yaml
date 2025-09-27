@@ -119,15 +119,6 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
-  packages/test:
-    dependencies:
-      link-dom:
-        specifier: workspace:*
-        version: link:../core
-      link-dom-shared:
-        specifier: workspace:*
-        version: link:../shared
-
 packages:
 
   '@babel/code-frame@7.27.1':

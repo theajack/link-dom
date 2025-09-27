@@ -7,7 +7,7 @@ import { LinkDomType } from '../utils';
 import { createMarkerNode } from './_marker';
 import { Frag } from '../text';
 import type { IChild } from '../element';
-import { RenderStatus } from 'link-dom-shared';
+import { SharedStatus } from 'link-dom-shared';
 
 export class Await {
     __ld_type = LinkDomType.Await;
@@ -22,7 +22,7 @@ export class Await {
     ) {
         this.start = createMarkerNode();
         this.el = new Frag().append(this.start).el;
-        if (!RenderStatus.isSSR) {
+        if (!SharedStatus.isSSR) {
             _promise.then(data => {
                 const child = _generator(data);
                 const frag = new Frag().append(child);

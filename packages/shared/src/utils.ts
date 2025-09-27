@@ -1,21 +1,51 @@
 /*
  * @Author: chenzhongsheng
- * @Date: 2024-12-13 11:33:49
+ * @Date: 2025-09-24 08:38:31
  * @Description: Coding something
  */
+
+import type { IRenderer } from './type';
+
+function createSharedStatus () {
+    return {
+        OriginTarget: Symbol('ot'),
+        ProxyTarget: Symbol('pt'),
+        isSSR: false,
+        isHydrating: false,
+        // @ts-ignore
+        Renderer: null as IRenderer,
+    };
+}
+
+export let SharedStatus: ReturnType<typeof createSharedStatus>;
+
+export function getTarget <T> (v: T): T {
+    return v?.[SharedStatus.OriginTarget] || v;
+}
+
+export function getProxy <T> (v: T): T {
+    return v?.[SharedStatus.ProxyTarget] || v;
+}
+
+if (typeof window !== 'undefined') {
+    const win = window as any;
+    if (win.__ld_shared) {
+        SharedStatus = win.__ld_shared;
+    } else {
+        SharedStatus = createSharedStatus();
+        win.__ld_shared = SharedStatus;
+    }
+}
+
 export function isArrayOrJson (o: any) {
     const data = o?.constructor.name;
     if (data === 'Object' || data === 'Array') return true;
     return false;
 }
 
-export const OriginTarget = Symbol('ot');
-export const ProxyTarget = Symbol('pt');
-export const Root = Symbol('rt');
-
 export function deepAssign (origin: any, value: any) {
-    origin = origin[ProxyTarget] || origin;
-    value = value[OriginTarget] || value;
+    origin = getProxy(origin);
+    value = getTarget(value);
     const originKeys = new Set(Object.keys(origin));
     for (const key in value) {
         if (typeof key === 'symbol') continue;
@@ -45,7 +75,7 @@ export function deepClone (data: any) {
 }
 
 export function raw (data: any) {
-    if (!data[OriginTarget]) return data;
+    if (!data[SharedStatus.OriginTarget]) return data;
     return deepClone(data);
 }
 
