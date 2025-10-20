@@ -26,6 +26,7 @@ export enum LinkDomType {
     Marker,
     RouterView,
     StyleBuilder,
+    Short,
 }
 
 

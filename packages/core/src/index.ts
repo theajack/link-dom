@@ -16,7 +16,9 @@ export { join } from './join';
 export * from 'link-dom-reactive';
 
 export { flow } from './flow';
-export { type If } from './controller/if';
+export { type IfClass } from './controller/if';
 export { LinkDomType } from './utils';
 
 export { style } from './style';
+
+export * from './short';

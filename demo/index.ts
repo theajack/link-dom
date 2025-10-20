@@ -19,7 +19,9 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 // import './shallow';
 // import './for-if';
 
-import './new';
+// import './new';
+// import './short';
+import './test';
 
 // import './test-cleardep';
 

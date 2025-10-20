@@ -5,24 +5,24 @@
 // @title=Router
 
 import { createRouter, routerLink, routerView } from 'link-dom-router';
-import { dom, mount, watch } from 'link-dom';
+import { button, div, mount, watch } from 'link-dom';
 
 const PageSub = () => {
     return [
-        dom.div.text('Sub Start'),
+        div('Sub Start'),
         routerView(),
-        dom.div.text('Sub End'),
+        div('Sub End'),
     ];
 };
-const PageSub1 = () => dom.div.text('Sub Page1');
+const PageSub1 = () => div('Sub Page1');
 const PageA = () => {
-    return dom.div.text('PageA');
+    return div('PageA');
 };
 const router = createRouter({
     routes: [
         {
             path: '/',
-            component: () => dom.div.text('Page Index'),
+            component: () => div('Page Index'),
         },
         {
             path: '/sub',
@@ -30,7 +30,7 @@ const router = createRouter({
             children: [
                 {
                     path: '/sub',
-                    component: () => dom.div.text('Sub Index')
+                    component: () => div('Sub Index')
                 },
                 {
                     path: '/sub/s1',
@@ -38,15 +38,15 @@ const router = createRouter({
                 },
                 {
                     path: '/sub/s1/s1',
-                    component: () => dom.div.text('Sub Page1/s1')
+                    component: () => div('Sub Page1/s1')
                 },
                 {
                     path: '/sub/s2/s2',
-                    component: () => dom.div.text('Sub Page2/s2')
+                    component: () => div('Sub Page2/s2')
                 },
                 {
                     path: '/sub/404',
-                    component: () => dom.div.text('Sub 404'),
+                    component: () => div('Sub 404'),
                 },
             ]
         },
@@ -56,11 +56,11 @@ const router = createRouter({
         },
         {
             path: '/b',
-            component: () => dom.div.text('PageB')
+            component: () => div('PageB')
         },
         {
             path: '/c',
-            component: () => dom.div.text('CompC'),
+            component: () => div('CompC'),
         },
         {
             path: '/x/:name/:#age/:!male',
@@ -71,24 +71,25 @@ const router = createRouter({
                 console.log(`test:meta`, data.meta);
                 console.log(`test:route`, data.route);
                 console.log(`test:path`, data.path);
-                return dom.div.text('CompX').children(
-                    dom.div.text(() => `query: ${JSON.stringify(data.query)}`),
-                    dom.div.text(() => `param: ${JSON.stringify(data.param)}`),
-                    dom.div.text(() => `meta: ${JSON.stringify(data.meta)}`),
-                    dom.div.text(() => `query.a: ${JSON.stringify(data.query.a)}`),
+                return div('CompX').children(
+                    div(() => `query: ${JSON.stringify(data.query)}`),
+                    div(() => `param: ${JSON.stringify(data.param)}`),
+                    div(() => `meta: ${JSON.stringify(data.meta)}`),
+                    div(() => `query.a: ${JSON.stringify(data.query.a)}`),
                 );
             },
         },
         {
             path: '/404',
-            component: () => dom.div.text('404'),
+            component: () => div('404'),
         },
     ]
 });
 
 const App = () => {
-    return dom.div.children(
-        dom.div.style({ display: 'flex', gap: '10px' }).children(
+    return div(
+        div.class('')(),
+        div.style({ display: 'flex', gap: '10px' })(
             routerLink('/'),
             routerLink('/sub/s1'),
             routerLink('/sub/s1/s1'),
@@ -103,21 +104,21 @@ const App = () => {
             routerLink.forward(),
             routerLink.go(-2),
         ),
-        dom.div.children(
-            dom.button.text('Js Call1').click(() => {
+        div(
+            button('Js Call1').click(() => {
                 router.route({
                     path: '/x/:name/:#age/:!male',
                     param: { name: 'tack', age: 18, male: true },
                     query: { a: 1 },
                 });
             }),
-            dom.button.text('Js Call2').click(() => {
+            button('Js Call2').click(() => {
                 router.route({
                     path: '/x/alice/12/false',
                     query: { a: 2 },
                 });
             }),
-            dom.button.text('Js Call3').click(() => {
+            button('Js Call3').click(() => {
                 router.route('/x/alice/18/true?a=3');
             })
         ),

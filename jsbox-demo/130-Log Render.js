@@ -3,7 +3,7 @@
 // @hideLog=true
 // @dep=link-dom,link-dom-render
 // @title=Custom Renderer
-import { dom, ref, computed, mount, join } from 'link-dom';
+import { div, ref, computed, mount, join, span } from 'link-dom';
 import { useRenderer } from 'link-dom-render';
 const root = useRenderer({
     render (node) {
@@ -22,9 +22,9 @@ const App = () => {
         root.render();
     }, 1000);
 
-    return dom.div.children(
-        dom.span.text(join`count = ${count}`),
-        dom.div.text(join`count + 2 = ${countAdd2}`),
+    return div(
+        span(join`count = ${count}`),
+        div(join`count + 2 = ${countAdd2}`),
     );
 };
 mount(App, root);

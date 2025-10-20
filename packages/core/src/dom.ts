@@ -25,7 +25,7 @@ export function collectRef <E extends HTMLElement = HTMLElement, T extends strin
     return refs;
 }
 
-type TDomName = keyof HTMLElementTagNameMap;
+export type TDomName = keyof HTMLElementTagNameMap;
 
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
 export function query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
@@ -36,7 +36,6 @@ export function query <T extends HTMLElement = HTMLElement> (selector: string, o
 export function find <T extends HTMLElement = HTMLElement> (selector: string): Dom<T> {
     return queryBase(selector, true, SharedStatus.Renderer);
 }
-
 
 export function queryBase (selector: string, one = false, parent: any = SharedStatus.Renderer): any {
     if (one) {

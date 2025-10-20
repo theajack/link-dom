@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import type { Ref, If } from 'link-dom';
+import type { Ref, IfClass } from 'link-dom';
 import { ctrl, ref, LinkDomType } from 'link-dom';
 import type { IRouterInnerItem } from './type.d';
 import { Router, useRouter } from './router';
@@ -24,7 +24,7 @@ export class RouterView {
     // nextView: RouterView | null = null;
     static Root: RouterView | null = null;
 
-    if: If;
+    if: IfClass;
 
     // id: number;
 

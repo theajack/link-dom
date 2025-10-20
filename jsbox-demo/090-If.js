@@ -2,18 +2,18 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
-import { dom, ref, mount, join, ctrl } from 'link-dom';
-function If () {
+import { div, span, button, input, ref, mount, join, If } from 'link-dom';
+function IfApp () {
     const num = ref(0);
-    return dom.div.children(
-        dom.div.children(
-            dom.span.text(join`num = ${num}`),
-            dom.input.bind(num),
-            dom.button.text('Increase').click(() => { num.value++; }),
+    return div(
+        div(
+            span(join`num = ${num}`),
+            input.bind(num),
+            button('Increase').click(() => { num.value++; }),
         ),
-        ctrl.if(() => num.value < 2, () => dom.span.text('num < 2'))
-            .elif(() => num.value < 5, () => dom.span.text('num < 5'))
-            .else(() => dom.span.text('num >= 5')),
+        If(() => num.value < 2, () => span('num < 2'))
+            .elif(() => num.value < 5, () => span('num < 5'))
+            .else(() => span('num >= 5')),
     );
 }
-mount(If, '#jx-app');
+mount(IfApp, '#jx-app');

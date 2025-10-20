@@ -1,15 +1,20 @@
+/*
+ * @Author: chenzhongsheng
+ * @Date: 2025-10-02 20:58:47
+ * @Description: Coding something
+ */
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
 // @desc=Counter Demo
 
-import { dom, ref, mount, join } from 'link-dom';
+import { div, input, button, ref, mount, join } from 'link-dom';
 function Counter () {
     const count = ref(0);
-    return dom.div.children(
-        dom.div.text(join`Count = ${count}`),
-        dom.input.bind(count),
-        dom.button.text('Increase').click(() => {
+    return div(
+        div(join`Count = ${count}`),
+        input.bind(count),
+        button('Increase').click(() => {
             count.value++;
         }),
     );

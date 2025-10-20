@@ -2,12 +2,12 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
-import { dom, ref, mount, ctrl } from 'link-dom';
-function Show () {
+import { div, button, ref, mount, Show, span } from 'link-dom';
+function ShowApp () {
     const bool = ref(true);
-    return dom.div.children(
-        dom.button.text('Toggle').click(() => { bool.value = !bool.value; }),
-        ctrl.show(bool, dom.span.text('Hello World!'))
+    return div(
+        button('Toggle').click(() => { bool.value = !bool.value; }),
+        Show(bool, span('Hello World!'))
     );
 }
-mount(Show, '#jx-app');
+mount(ShowApp, '#jx-app');

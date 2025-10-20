@@ -29,40 +29,40 @@ CDN
 #### Reactive
 
 ```js
-import { dom, ref, mount, join } from 'link-dom';
-function Reactive () {
+import { div, input, ref, mount, join, computed } from 'link-dom';
+function Ref () {
     const name = ref('');
-    return dom.div.children(
-        dom.div.text(() => `Hello World! ${name.value}`),
+    const name2 = computed(() => `【name】 ${name.value}`);
+    return div(
+        div(() => `Hello World! ${name.value}`),
         // Or use join
-        dom.div.text(join`Hello World! ${name}`),
-        dom.input.attr('placeholder', 'Input your name').bind(name)
+        div(join`Hello World! ${name}`),
+        div(join`Computed: ${name2}`),
+        input.bind(name).placeholder('Input your name')
     );
 }
-mount(Reactive, '#jx-app');
+mount(Ref, '#jx-app');
+
 ```
 
 #### Style
 
 ```js
-import { dom, ref, mount, join } from 'link-dom';
+import { div, ref, input, button, mount, join } from 'link-dom';
 function Style () {
     const font = ref(12);
     const color = ref('red');
-    return dom.div.children(
-        dom.div.style({
+    return div(
+        div(join`Color = ${color}; FontSize = ${font}`).style({
             fontWeight: 'bold',
             color: color,
             fontSize: font,
-        }).text(join`Color = ${color}; FontSize = ${font}`),
-        dom.div.children(
-            dom.text('color: '),
-            dom.input.bind(color),
-        ),
-        dom.div.children(
-            dom.text('font: '),
-            dom.input.bind(font),
-            dom.button.text('Increase').click(() => font.value++)
+        }),
+        div('color: ', input.bind(color)),
+        div(
+            'font: ',
+            input.bind(font),
+            button('Increase').click(() => font.value++)
         )
     );
 }
@@ -72,24 +72,23 @@ mount(Style, '#jx-app');
 #### StyleLink
 
 ```js
-import { dom, ref, mount, join } from 'link-dom';
+import { div, reactive, input, button, mount, join, link } from 'link-dom';
 function Style () {
-    const font = ref(12);
-    const color = ref('red');
-    return dom.div.children(
-        dom.div.style({
+    const data = reactive({
+        color: 'red',
+        font: 12,
+    });
+    return div(
+        div(join`Color = ${link(data.color)}; FontSize = ${link(data.font)}`).style({
             fontWeight: 'bold',
-            color: color,
-            fontSize: font,
-        }).text(join`Color = ${color}; FontSize = ${font}`),
-        dom.div.children(
-            dom.text('color: '),
-            dom.input.bind(color),
-        ),
-        dom.div.children(
-            dom.text('font: '),
-            dom.input.bind(font),
-            dom.button.text('Increase').click(() => font.value++)
+            color: link(data.color),
+            fontSize: link(data.font),
+        }),
+        div('color: ', input.bind(link(data.color))),
+        div(
+            'font: ',
+            input.bind(link(data.font)),
+            button('Increase').click(() => data.font++)
         )
     );
 }
@@ -99,12 +98,12 @@ mount(Style, '#jx-app');
 #### Global Style
 
 ```js
-import { dom, ref, mount, join } from 'link-dom';
+import { style, div, input, ref, mount, join, button } from 'link-dom';
 function GlobalStyle () {
     const font = ref(12);
     const color = ref('red');
     const colorB = ref('green');
-    mount(dom.style({
+    mount(style({
         '.parent': {
             fontWeight: 'bold',
             color: color,
@@ -114,23 +113,17 @@ function GlobalStyle () {
             }
         }
     }), 'head');
-    return dom.div.children(
-        dom.div.class('parent').children(
-            dom.div.text(join`Color = ${color}; FontSize = ${font}`),
-            dom.div.class('child').text(join`Child Color = ${colorB}`),
+    return div(
+        div.class('parent')(
+            div(join`Color = ${color}; FontSize = ${font}`),
+            div.class('child')(join`Child Color = ${colorB}`),
         ),
-        dom.div.children(
-            dom.text('color: '),
-            dom.input.bind(color),
-        ),
-        dom.div.children(
-            dom.text('child color: '),
-            dom.input.bind(colorB),
-        ),
-        dom.div.children(
-            dom.text('font: '),
-            dom.input.bind(font),
-            dom.button.text('Increase').click(() => font.value++)
+        div('color: ', input.bind(color)),
+        div('child color: ', input.bind(colorB)),
+        div(
+            'font: ',
+            input.bind(font),
+            button('Increase').click(() => font.value++)
         )
     );
 }
@@ -140,13 +133,13 @@ mount(GlobalStyle, '#jx-app');
 #### Counter
 
 ```js
-import { dom, ref, mount, join } from 'link-dom';
+import { div, input, button, ref, mount, join } from 'link-dom';
 function Counter () {
     const count = ref(0);
-    return dom.div.children(
-        dom.div.text(join`Count = ${count}`),
-        dom.input.bind(count),
-        dom.button.text('Increase').click(() => {
+    return div(
+        div(join`Count = ${count}`),
+        input.bind(count),
+        button('Increase').click(() => {
             count.value++;
         }),
     );
@@ -157,12 +150,12 @@ mount(Counter, '#jx-app');
 #### Collect Ref
 
 ```js
-import { dom, mount, collectRef } from 'link-dom';
+import { mount, collectRef, div, span, button } from 'link-dom';
 function CollectRef () {
     const refs = collectRef('hello');
-    return dom.div.children(
-        dom.span.ref(refs.hello).text('Hello World!'),
-        dom.button.text('Log Ref').click(() => {
+    return div(
+        span('Hello World!').ref(refs.hello),
+        button('Log Ref').click(() => {
             console.log(refs.hello);
             const text = refs.hello.text();
             refs.hello.text(text + '!');
@@ -177,83 +170,83 @@ mount(CollectRef, '#jx-app');
 #### For (Reactive List)
 
 ```js
-import { dom, ref, mount, join, ctrl, link } from 'link-dom';
-function For () {
-    const list = ref([] as {id: string, label: string}[]);
+import { div, button, ref, mount, join, For, link, span } from 'link-dom';
+function ForApp () {
+    const list = ref([]);
     let id = 0;
-    return dom.div.children(
-        dom.div.children(
-            dom.button.text('Add Item').click(() => {
+    return div(
+        div(
+            button('Add Item').click(() => {
                 id ++;
                 list.value.push({ id: `id-${id}`, label: `label-${id}` });
             }),
-            dom.button.text('Reverse').click(() => list.value.reverse()),
-            dom.button.text('Clear').click(() => list.value = []),
+            button('Reverse').click(() => list.value.reverse()),
+            button('Clear').click(() => list.value = []),
         ),
-        ctrl.for(list, (item, index) =>
-            dom.div.children(
-                dom.span.text(join`${index}: ${link(item.id)}: ${link(item.label)}`),
-                dom.button.text('Remove').click(() => { list.value.splice(index.value, 1); }),
-                dom.button.text('Update').click(() => { item.label += '!'; }),
+        For(list, (item, index) =>
+            div(
+                span(join`${index}: ${link(item.id)}: ${link(item.label)}`),
+                button('Remove').click(() => { list.value.splice(index.value, 1); }),
+                button('Update').click(() => { item.label += '!'; }),
             )
         ),
     );
 }
-mount(For, '#jx-app');
+mount(ForApp, '#jx-app');
 ```
 
 #### ForRef
 
 ```js
-import { dom, ref, mount, join, ctrl, link } from 'link-dom';
-function ForRef () {
-    const list = ref([] as string[]);
+import { div, button, span, ref, mount, join, link, ForRef } from 'link-dom';
+function ForRefApp () {
+    const list = ref([]);
     let id = 0;
-    return dom.div.children(
-        dom.div.children(
-            dom.button.text('Add Item').click(() => {
+    return div(
+        div(
+            button('Add Item').click(() => {
                 id ++;
                 list.value.push(`label-${id}`);
             }),
-            dom.button.text('Reverse').click(() => list.value.reverse()),
-            dom.button.text('Clear').click(() => list.value = []),
+            button('Reverse').click(() => list.value.reverse()),
+            button('Clear').click(() => list.value = []),
         ),
-        ctrl.forRef(list, (item, index) =>
-            dom.div.children(
-                dom.span.text(join`${index}: ${item};(or use link:${link(item.value)})`),
-                dom.button.text('Remove').click(() => { list.value.splice(index.value, 1); }),
-                dom.button.text('Update').click(() => { item.value += '!'; }),
+        ForRef(list, (item, index) =>
+            div(
+                span(join`${index}: ${item};(or use link:${link(item.value)})`),
+                button('Remove').click(() => { list.value.splice(index.value, 1); }),
+                button('Update').click(() => { item.value += '!'; }),
             )
         ),
     );
 }
-mount(ForRef, '#jx-app');
+mount(ForRefApp, '#jx-app');
 ```
 
 #### If
 
 ```js
-import { dom, ref, mount, join, ctrl } from 'link-dom';
-function If () {
+import { div, span, button, input, ref, mount, join, If } from 'link-dom';
+function IfApp () {
     const num = ref(0);
-    return dom.div.children(
-        dom.div.children(
-            dom.span.text(join`num = ${num}`),
-            dom.input.bind(num),
-            dom.button.text('Increase').click(() => { num.value++; }),
+    return div(
+        div(
+            span(join`num = ${num}`),
+            input.bind(num),
+            button('Increase').click(() => { num.value++; }),
         ),
-        ctrl.if(() => num.value < 2, () => dom.span.text('num < 2'))
-            .elif(() => num.value < 5, () => dom.span.text('num < 5'))
-            .else(() => dom.span.text('num >= 5')),
+        If(() => num.value < 2, () => span('num < 2'))
+            .elif(() => num.value < 5, () => span('num < 5'))
+            .else(() => span('num >= 5')),
     );
 }
-mount(If, '#jx-app');
+mount(IfApp, '#jx-app');
 ```
 
 如果追求if表达式简洁，generator参数也可以直接使用元素，如下：
 
 ```js
-ctrl.if(() => num.value < 2, dom.span.text('num < 2'))
+If(() => num.value < 2, dom.span.text('num < 2'))
     .elif(() => num.value < 5, dom.span.text('num < 5'))
     .else(dom.span.text('num >= 5')),
 ```
@@ -263,23 +256,23 @@ ctrl.if(() => num.value < 2, dom.span.text('num < 2'))
 #### Switch
 
 ```js
-import { dom, ref, mount, join, ctrl } from 'link-dom';
-function Switch () {
+import { div, span, button, input, ref, mount, join, Switch } from 'link-dom';
+function SwitchApp () {
     const num = ref(0);
-    return dom.div.children(
-        dom.div.children(
-            dom.span.text(join`num = ${num}`),
-            dom.input.bind(num),
-            dom.button.text('Increase').click(() => { num.value++; }),
+    return div(
+        div(
+            span(join`num = ${num}`),
+            input.bind(num),
+            button('Increase').click(() => { num.value++; }),
         ),
-        ctrl.switch(num)
-            .case([ 0, 1 ], () => dom.span.text('num < 2'))
-            .case([ 2, 3, 4 ], () => dom.span.text('num < 5'))
-            .case(5, () => dom.span.text('num = 5'))
-            .default(() => dom.span.text(join`num = ${num}`)),
+        Switch(num)
+            .case([ 0, 1 ], () => span('num < 2'))
+            .case([ 2, 3, 4 ], () => span('num < 5'))
+            .case(5, () => span('num = 5'))
+            .default(() => span(join`num = ${num}`)),
     );
 }
-mount(Switch, '#jx-app');
+mount(SwitchApp, '#jx-app');
 ```
 
 generator参数也可以直接使用元素，同If
@@ -287,15 +280,15 @@ generator参数也可以直接使用元素，同If
 #### Show
 
 ```js
-import { dom, ref, mount, ctrl } from 'link-dom';
-function Show () {
+import { div, button, ref, mount, Show, span } from 'link-dom';
+function ShowApp () {
     const bool = ref(true);
-    return dom.div.children(
-        dom.button.text('Toggle').click(() => { bool.value = !bool.value; }),
-        ctrl.show(bool, dom.span.text('Hello World!'))
+    return div(
+        button('Toggle').click(() => { bool.value = !bool.value; }),
+        Show(bool, span('Hello World!'))
     );
 }
-mount(Show, '#jx-app');
+mount(ShowApp, '#jx-app');
 ```
 
 因为 show 的元素一开始肯定会被初始化，所以generator使用函数和元素效果相同
@@ -303,23 +296,23 @@ mount(Show, '#jx-app');
 #### Await
 
 ```js
-function Await () {
+import { div, Await, mount } from 'link-dom';
+
+function AwaitApp () {
     const mockFetch = () => {
-        return new Promise<{id: number, name: string}>((resolve) => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve({ id: 1, name: 'Tack' });
             }, 1000);
         });
     };
-    return dom.div.children(
-        ctrl.await(mockFetch(), data =>
-            dom.div.children(
-                dom.span.text(`id = ${data.id}; name = ${data.name}`),
-            )
+    return div(
+        Await(mockFetch(), data =>
+            div(`id = ${data.id}; name = ${data.name}`)
         )
     );
 }
-mount(Await, '#jx-app');
+mount(AwaitApp, '#jx-app');
 ```
 
 ### Custom Renderer
@@ -327,8 +320,8 @@ mount(Await, '#jx-app');
 #### Console.log
 
 ```js
-import { dom, ref, computed, mount, join, collectRef } from 'link-dom';
-import { type CustomElement, useRenderer } from 'link-dom-render';
+import { div, ref, computed, mount, join, span } from 'link-dom';
+import { useRenderer } from 'link-dom-render';
 const root = useRenderer({
     render (node) {
         const prefix = new Array(node.deep).fill('  ').join('');
@@ -346,9 +339,9 @@ const App = () => {
         root.render();
     }, 1000);
 
-    return dom.div.children(
-        dom.span.text(join`count = ${count}`),
-        dom.div.text(join`count + 2 = ${countAdd2}`),
+    return div(
+        span(join`count = ${count}`),
+        div(join`count + 2 = ${countAdd2}`),
     );
 };
 mount(App, root);
@@ -357,35 +350,31 @@ mount(App, root);
 #### Canvas 
 
 ```js
-import { dom, ref, mount, join } from 'link-dom';
+import { div, ref, mount, join, canvas, collectRef, span, button } from 'link-dom';
 import { useRenderer } from 'link-dom-render';
-interface ICustomEle extends CustomElement {
-    textLeft: number;
-    deep: number;
-    parentElement: ICustomEle|null;
-}
+
 const { ctx, msg } = (function initEnv () {
     const refs = collectRef('canvas');
     const msg = ref('Hello');
-    mount(dom.div.children(
-        dom.canvas.ref(refs.canvas).style('border', '1px solid red'),
-        dom.div.children(
-            dom.span.text(join`msg = ${msg}`),
-            dom.button.text('Add !').click(() => msg.value += '!'),
+    mount(div(
+        canvas.ref(refs.canvas).style('border', '1px solid red'),
+        div(
+            span(join`msg = ${msg}`),
+            button('Add !').click(() => msg.value += '!'),
         )
     ), '#jx-app');
     const size = 300;
-    const canvas = refs.canvas.el as HTMLCanvasElement;
+    const canvasEl = refs.canvas.el;
     const scale = window.devicePixelRatio;
-    canvas.width = canvas.height = size * scale;
-    canvas.style.width = canvas.style.height = `${size}px`;
-    canvas.style.backgroundColor = '#333';
-    const ctx = canvas.getContext('2d')!;
+    canvasEl.width = canvasEl.height = size * scale;
+    canvasEl.style.width = canvasEl.style.height = `${size}px`;
+    canvasEl.style.backgroundColor = '#333';
+    const ctx = canvasEl.getContext('2d');
     ctx.font = `${15 * scale}px Microsoft Sans Serif`;
     ctx.fillStyle = '#eee';
     ctx.textBaseline = 'top';
     function loopRender () {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
         root.render();
         requestAnimationFrame(loopRender);
     }
@@ -393,9 +382,9 @@ const { ctx, msg } = (function initEnv () {
     return { ctx, msg };
 })();
 
-const root = useRenderer<ICustomEle>({
+const root = useRenderer({
     render (element) {
-        const parent: ICustomEle = element.parentElement || { deep: 0, textLeft: 0 } as ICustomEle;
+        const parent = element.parentElement || { deep: 0, textLeft: 0 };
         if (!parent.textLeft) parent.textLeft = 10;
         ctx.fillText(element.textContent, parent.textLeft, (parent.deep - 1)  * 15 + 10);
         parent.textLeft += (ctx.measureText(element.textContent).width);
@@ -404,7 +393,7 @@ const root = useRenderer<ICustomEle>({
 });
 
 const App = () => {
-    return dom.div.text(() => `msg = ${msg.value}`);
+    return div(() => `msg = ${msg.value}`);
 };
 
 mount(App, root);
@@ -413,6 +402,9 @@ mount(App, root);
 #### Full Custom
 
 ```js
+import { div, ref, mount, text, computed } from 'link-dom';
+import { defineRenderer, RendererType } from 'link-dom-render';
+
 defineRenderer({
     type: RendererType.Custom,
     querySelector (selector) {return selector === '#Root' ? LogElement.Root : null;},
@@ -428,12 +420,12 @@ defineRenderer({
     createFragment () {
         return new LogElement('frag');
     },
-    querySelectorAll: function (): IElement<any>[] {return [];},
-    addStyle: function (): void {}
+    querySelectorAll: function () {return [];},
+    addStyle: function () {}
 });
 
-class LogElement implements IElement {
-    static Root: null|LogElement = null;
+class LogElement {
+    static Root = null;
     type = 'element';
     style = {}; // mock
     tagName = '';
@@ -450,16 +442,16 @@ class LogElement implements IElement {
     setAttribute () {};
     removeAttribute () {};
     getAttribute () {return '';};
-    classList = {} as any;
+    classList = {};
     constructor (type, tag = '') {
         this.type = type;
         this.tagName = tag;
         this.innerText = '';
         if (tag === 'Root') LogElement.Root = this;
     }
-    parentElement: LogElement|null = null;
+    parentElement = null;
     get parentNode () {return this.parentElement;};
-    removeCallList: any[] = [];
+    removeCallList = [];
     remove () {
         const children = this.parentElement?.children;
         if (children) {
@@ -469,12 +461,12 @@ class LogElement implements IElement {
     }
     get innerHTML () {return this.innerText;}
     get outerHTML () {return this.innerText;}
-    children: LogElement[] = [];
+    children = [];
     get childNodes () {
         return this.children;
     }
-    mountCallList: any[] = [];
-    appendChild (child: LogElement) {
+    mountCallList = [];
+    appendChild (child) {
         this.children.push(child);
         child.mountCallList.forEach(call => call(child));
     }
@@ -518,9 +510,9 @@ const App = () => {
         console.clear();
         Root.render();
     }, 1000);
-    return dom.div.children(
-        dom.span.text(() => `count = ${count.value}`),
-        dom.div.text(() => `count + 2 = ${countAdd2.value}`)
+    return div(
+        text(() => `count = ${count.value}`),
+        div(() => `count + 2 = ${countAdd2.value}`)
     );
 };
 
@@ -535,24 +527,24 @@ npm i link-dom-router
 
 ```js
 import { createRouter, routerLink, routerView } from 'link-dom-router';
-import { dom, mount, watch } from 'link-dom';
+import { button, div, mount, watch } from 'link-dom';
 
 const PageSub = () => {
     return [
-        dom.div.text('Sub Start'),
+        div('Sub Start'),
         routerView(),
-        dom.div.text('Sub End'),
+        div('Sub End'),
     ];
 };
-const PageSub1 = () => dom.div.text('Sub Page1');
+const PageSub1 = () => div('Sub Page1');
 const PageA = () => {
-    return dom.div.text('PageA');
+    return div('PageA');
 };
 const router = createRouter({
     routes: [
         {
             path: '/',
-            component: () => dom.div.text('Page Index'),
+            component: () => div('Page Index'),
         },
         {
             path: '/sub',
@@ -560,7 +552,7 @@ const router = createRouter({
             children: [
                 {
                     path: '/sub',
-                    component: () => dom.div.text('Sub Index')
+                    component: () => div('Sub Index')
                 },
                 {
                     path: '/sub/s1',
@@ -568,15 +560,15 @@ const router = createRouter({
                 },
                 {
                     path: '/sub/s1/s1',
-                    component: () => dom.div.text('Sub Page1/s1')
+                    component: () => div('Sub Page1/s1')
                 },
                 {
                     path: '/sub/s2/s2',
-                    component: () => dom.div.text('Sub Page2/s2')
+                    component: () => div('Sub Page2/s2')
                 },
                 {
                     path: '/sub/404',
-                    component: () => dom.div.text('Sub 404'),
+                    component: () => div('Sub 404'),
                 },
             ]
         },
@@ -586,11 +578,11 @@ const router = createRouter({
         },
         {
             path: '/b',
-            component: () => dom.div.text('PageB')
+            component: () => div('PageB')
         },
         {
             path: '/c',
-            component: () => dom.div.text('CompC'),
+            component: () => div('CompC'),
         },
         {
             path: '/x/:name/:#age/:!male',
@@ -601,24 +593,25 @@ const router = createRouter({
                 console.log(`test:meta`, data.meta);
                 console.log(`test:route`, data.route);
                 console.log(`test:path`, data.path);
-                return dom.div.text('CompX').children(
-                    dom.div.text(() => `query: ${JSON.stringify(data.query)}`),
-                    dom.div.text(() => `param: ${JSON.stringify(data.param)}`),
-                    dom.div.text(() => `meta: ${JSON.stringify(data.meta)}`),
-                    dom.div.text(() => `query.a: ${JSON.stringify(data.query.a)}`),
+                return div('CompX').children(
+                    div(() => `query: ${JSON.stringify(data.query)}`),
+                    div(() => `param: ${JSON.stringify(data.param)}`),
+                    div(() => `meta: ${JSON.stringify(data.meta)}`),
+                    div(() => `query.a: ${JSON.stringify(data.query.a)}`),
                 );
             },
         },
         {
             path: '/404',
-            component: () => dom.div.text('404'),
+            component: () => div('404'),
         },
     ]
 });
 
 const App = () => {
-    return dom.div.children(
-        dom.div.style({ display: 'flex', gap: '10px' }).children(
+    return div(
+        div.class('')(),
+        div.style({ display: 'flex', gap: '10px' })(
             routerLink('/'),
             routerLink('/sub/s1'),
             routerLink('/sub/s1/s1'),
@@ -633,21 +626,21 @@ const App = () => {
             routerLink.forward(),
             routerLink.go(-2),
         ),
-        dom.div.children(
-            dom.button.text('Js Call1').click(() => {
+        div(
+            button('Js Call1').click(() => {
                 router.route({
                     path: '/x/:name/:#age/:!male',
                     param: { name: 'tack', age: 18, male: true },
                     query: { a: 1 },
                 });
             }),
-            dom.button.text('Js Call2').click(() => {
+            button('Js Call2').click(() => {
                 router.route({
                     path: '/x/alice/12/false',
                     query: { a: 2 },
                 });
             }),
-            dom.button.text('Js Call3').click(() => {
+            button('Js Call3').click(() => {
                 router.route('/x/alice/18/true?a=3');
             })
         ),
@@ -675,48 +668,47 @@ npm i link-dom-ssr
 
 ```js
 import { ssr, hydrate } from 'link-dom-ssr';
-import { ref, dom, ctrl, join, collectRef, mount, link } from 'link-dom';
+import { ref, div, button, join, collectRef, mount, link, For, If, span } from 'link-dom';
 
-function CommonComponent (data: {label: string}[]) {
+function CommonComponent (data) {
     const list = ref(data);
     const selected = ref('label2');
     let id = 0;
-    return dom.div.style('borderBottom', '2px solid #000').children(
-        dom.button.text('clear').click(() => {
+    return div.style('borderBottom', '2px solid #000')(
+        button('clear').click(() => {
             list.value = [];
         }),
-        dom.button.text('init').click(() => {
+        button('init').click(() => {
             console.time();
             for (let i = 0; i < 10000; i++) {
                 list.value.push({ label: `item${i}` });
             }
             console.timeEnd();
         }),
-        dom.button.text('reset').click(() => {
+        button('reset').click(() => {
             list.value = [ { label: 'test' }, { label: 'test2' } ];
         }),
-        dom.button.text('reverse').click(() => {
+        button('reverse').click(() => {
             list.value.reverse();
         }),
-        dom.button.text('sort').click(() => {
+        button('sort').click(() => {
             list.value.sort((a, b) => a.label.localeCompare(b.label));
         }),
-        dom.button.text('add').click(() => {
+        button('add').click(() => {
             list.value.push({ label: `item${id++}` });
         }),
-        dom.span.text(join`selected:${selected}`),
-        ctrl.for(list, (item, index) => {
-            return dom.div.style('color', () => selected.value === item.label ? 'red' : 'green')
-                .children(
-                    ctrl.if(() => selected.value === item.label, () => dom.span.text('selected'))
-                        .else(() => dom.span.text('unselected')),
-                    dom.span.text(join`: index = ${index}; label = ${link(item.label)}`).click(() => {
-                        selected.value = item.label;
-                    }),
-                    dom.button.text('×').click(() => {
-                        list.value.splice(index.value, 1);
-                    })
-                );
+        span(join`selected:${selected}`),
+        For(list, (item, index) => {
+            return div.style('color', () => selected.value === item.label ? 'red' : 'green')(
+                If(() => selected.value === item.label, () => span('selected'))
+                    .else(() => span('unselected')),
+                span(join`: index = ${index}; label = ${link(item.label)}`).click(() => {
+                    selected.value = item.label;
+                }),
+                button('×').click(() => {
+                    list.value.splice(index.value, 1);
+                })
+            );
         }),
     );
 }
@@ -724,17 +716,17 @@ function CommonComponent (data: {label: string}[]) {
 function SSRContainer () {
     const data = [ { label: 'label1' }, { label: 'label2' } ];
     const refs = collectRef('container');
-    return dom.div.children(
-        dom.button.text('Start SSR Render').click(() => {
+    return div(
+        button('Start SSR Render').click(() => {
             const html = ssr(CommonComponent)(data);
             console.log('html', html);
             refs.container.html(html);
         }),
-        dom.button.text('Start Hydrate').click(() => {
+        button('Start Hydrate').click(() => {
             hydrate(CommonComponent)(data);
         }),
-        dom.div.style('fontWeight', 'bold').text('SSR Container:'),
-        dom.div.ref(refs.container),
+        div.style('fontWeight', 'bold')('SSR Container:'),
+        div.ref(refs.container),
     );
 }
 mount(SSRContainer, '#jx-app');

@@ -4,26 +4,26 @@
 // @dep=link-dom
 // @desc=Reactive Array For Simple Value
 
-import { dom, ref, mount, join, ctrl, link } from 'link-dom';
-function ForRef () {
+import { div, button, span, ref, mount, join, link, ForRef } from 'link-dom';
+function ForRefApp () {
     const list = ref([]);
     let id = 0;
-    return dom.div.children(
-        dom.div.children(
-            dom.button.text('Add Item').click(() => {
+    return div(
+        div(
+            button('Add Item').click(() => {
                 id ++;
                 list.value.push(`label-${id}`);
             }),
-            dom.button.text('Reverse').click(() => list.value.reverse()),
-            dom.button.text('Clear').click(() => list.value = []),
+            button('Reverse').click(() => list.value.reverse()),
+            button('Clear').click(() => list.value = []),
         ),
-        ctrl.forRef(list, (item, index) =>
-            dom.div.children(
-                dom.span.text(join`${index}: ${item};(or use link:${link(item.value)})`),
-                dom.button.text('Remove').click(() => { list.value.splice(index.value, 1); }),
-                dom.button.text('Update').click(() => { item.value += '!'; }),
+        ForRef(list, (item, index) =>
+            div(
+                span(join`${index}: ${item};(or use link:${link(item.value)})`),
+                button('Remove').click(() => { list.value.splice(index.value, 1); }),
+                button('Update').click(() => { item.value += '!'; }),
             )
         ),
     );
 }
-mount(ForRef, '#jx-app');
+mount(ForRefApp, '#jx-app');

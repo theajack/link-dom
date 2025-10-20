@@ -4,24 +4,21 @@
 // @desc=Basic Style
 // @title=Style
 
-import { dom, ref, mount, join } from 'link-dom';
+import { div, ref, input, button, mount, join } from 'link-dom';
 function Style () {
     const font = ref(12);
     const color = ref('red');
-    return dom.div.children(
-        dom.div.style({
+    return div(
+        div(join`Color = ${color}; FontSize = ${font}`).style({
             fontWeight: 'bold',
             color: color,
             fontSize: font,
-        }).text(join`Color = ${color}; FontSize = ${font}`),
-        dom.div.children(
-            dom.text('color: '),
-            dom.input.bind(color),
-        ),
-        dom.div.children(
-            dom.text('font: '),
-            dom.input.bind(font),
-            dom.button.text('Increase').click(() => font.value++)
+        }),
+        div('color: ', input.bind(color)),
+        div(
+            'font: ',
+            input.bind(font),
+            button('Increase').click(() => font.value++)
         )
     );
 }

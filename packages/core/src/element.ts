@@ -39,6 +39,11 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     id (val?: IReactiveLike<string>): string | this {
         return this._ur('id', val);
     }
+    placeholder (): string;
+    placeholder (val: IReactiveLike<string>): this;
+    placeholder (val?: IReactiveLike<string>): string | this {
+        return this._ur('placeholder', val);
+    }
     addClass (name: string) {
         this.el.classList.add(name);
         return this;
@@ -275,8 +280,8 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     query <T extends HTMLElement = HTMLElement> (selector: string, one = false): Dom<T>|Dom<T>[] {
         return queryBase(selector, one, this.el);
     }
-    src(): string;
-    src(v: IReactiveLike<string>): this;
+    src (): string;
+    src (v: IReactiveLike<string>): this;
     src (v?: IReactiveLike<string>) {
         return this._ur('src', v);
     }

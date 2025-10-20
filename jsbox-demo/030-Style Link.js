@@ -3,24 +3,23 @@
 // @dep=link-dom
 // @desc=Style Link Usage
 
-import { dom, ref, mount, join } from 'link-dom';
+import { div, reactive, input, button, mount, join, link } from 'link-dom';
 function Style () {
-    const font = ref(12);
-    const color = ref('red');
-    return dom.div.children(
-        dom.div.style({
+    const data = reactive({
+        color: 'red',
+        font: 12,
+    });
+    return div(
+        div(join`Color = ${link(data.color)}; FontSize = ${link(data.font)}`).style({
             fontWeight: 'bold',
-            color: color,
-            fontSize: font,
-        }).text(join`Color = ${color}; FontSize = ${font}`),
-        dom.div.children(
-            dom.text('color: '),
-            dom.input.bind(color),
-        ),
-        dom.div.children(
-            dom.text('font: '),
-            dom.input.bind(font),
-            dom.button.text('Increase').click(() => font.value++)
+            color: link(data.color),
+            fontSize: link(data.font),
+        }),
+        div('color: ', input.bind(link(data.color))),
+        div(
+            'font: ',
+            input.bind(link(data.font)),
+            button('Increase').click(() => data.font++)
         )
     );
 }

@@ -33,13 +33,14 @@ class IfScope {
     }
 
     toFrag (): Frag {
-        // console.log(this.id, RenderStatus.isHydrating, RenderStatus.isSSR);
+        // console.log(this.id, SharedStatus.isHydrating, SharedStatus.isSSR);
         if (!this.frag) {
             const el = typeof this.gene === 'function' ? this.gene() : this.gene;
             this.frag = new Frag().append(el);
         } else {
-            // @ts-ignore
-            if (!RenderStatus.isHydrating && this.frag.el.__is_hydrate) {
+            if (!SharedStatus.isHydrating &&
+                // @ts-ignore
+                this.frag.el.__is_hydrate) {
                 // @ts-ignore
                 this.frag.el = this.frag.el.toDom().el;
             }
@@ -58,7 +59,7 @@ class IfScope {
 }
 
 
-export class If {
+export class IfClass {
 
     __ld_type = LinkDomType.If;
 

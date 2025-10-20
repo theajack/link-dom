@@ -5,12 +5,12 @@
  */
 
 import { DepUtil, reactive, setArrayListeners } from 'link-dom-reactive';
-import { deepAssign, getProxy, getTarget, isArrayOrJson, raw } from 'link-dom-shared';
-import type { For } from './for';
+import { deepAssign, getProxy, getTarget, isArrayOrJson, raw, SharedStatus } from 'link-dom-shared';
+import type { ForClass } from './for';
 
 export const ForGlobal = {
-    Map: new WeakMap<any[], Set<For>>(),
-    add (list: any[], forItem: For) {
+    Map: new WeakMap<any[], Set<ForClass>>(),
+    add (list: any[], forItem: ForClass) {
         list = getTarget(list);
 
         // ForGlobal.Map.set(list, forItem);
@@ -125,15 +125,13 @@ const FnMap = {
                 }
             }
         }
-        // @ts-ignore
-        return this[ProxyTarget] || this;
+        return this[SharedStatus.ProxyTarget] || this;
     },
     unshift (this: any[], ...items: any[]) {
         const fors = ForGlobal.Map.get(this);
         this.splice(0, 0, ...items.map(item => reactive(item)));
         fors?.forEach(item => item._addDoms(0, items.length));
-        // @ts-ignore
-        return this[ProxyTarget] || this;
+        return this[SharedStatus.ProxyTarget] || this;
     },
     shift (this: any[]) {
         const fors = ForGlobal.Map.get(this);

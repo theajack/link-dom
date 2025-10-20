@@ -2,8 +2,8 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom,link-dom-render
-import { dom, ref, mount } from 'link-dom';
-import { defineRenderer } from 'link-dom-render';
+import { div, ref, mount, text, computed } from 'link-dom';
+import { defineRenderer, RendererType } from 'link-dom-render';
 
 defineRenderer({
     type: RendererType.Custom,
@@ -110,9 +110,9 @@ const App = () => {
         console.clear();
         Root.render();
     }, 1000);
-    return dom.div.children(
-        dom.span.text(() => `count = ${count.value}`),
-        dom.div.text(() => `count + 2 = ${countAdd2.value}`)
+    return div(
+        text(() => `count = ${count.value}`),
+        div(() => `count + 2 = ${countAdd2.value}`)
     );
 };
 

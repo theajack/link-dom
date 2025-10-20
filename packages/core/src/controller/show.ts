@@ -25,7 +25,7 @@ function getDefaultStyle (el: HTMLElement, def?: any) {
     return display;
 }
 
-export class Show {
+export class ShowClass {
     __ld_type = LinkDomType.Show;
     private frag: Frag;
     get el () {

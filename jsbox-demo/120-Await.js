@@ -2,7 +2,10 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
-function Await () {
+
+import { div, Await, mount } from 'link-dom';
+
+function AwaitApp () {
     const mockFetch = () => {
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -10,12 +13,10 @@ function Await () {
             }, 1000);
         });
     };
-    return dom.div.children(
-        ctrl.await(mockFetch(), data =>
-            dom.div.children(
-                dom.span.text(`id = ${data.id}; name = ${data.name}`),
-            )
+    return div(
+        Await(mockFetch(), data =>
+            div(`id = ${data.id}; name = ${data.name}`)
         )
     );
 }
-mount(Await, '#jx-app');
+mount(AwaitApp, '#jx-app');

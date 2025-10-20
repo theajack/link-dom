@@ -2,31 +2,31 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom,link-dom-render
-import { dom, ref, mount, join } from 'link-dom';
+import { div, ref, mount, join, canvas, collectRef, span, button } from 'link-dom';
 import { useRenderer } from 'link-dom-render';
 
 const { ctx, msg } = (function initEnv () {
     const refs = collectRef('canvas');
     const msg = ref('Hello');
-    mount(dom.div.children(
-        dom.canvas.ref(refs.canvas).style('border', '1px solid red'),
-        dom.div.children(
-            dom.span.text(join`msg = ${msg}`),
-            dom.button.text('Add !').click(() => msg.value += '!'),
+    mount(div(
+        canvas.ref(refs.canvas).style('border', '1px solid red'),
+        div(
+            span(join`msg = ${msg}`),
+            button('Add !').click(() => msg.value += '!'),
         )
     ), '#jx-app');
     const size = 300;
-    const canvas = refs.canvas.el;
+    const canvasEl = refs.canvas.el;
     const scale = window.devicePixelRatio;
-    canvas.width = canvas.height = size * scale;
-    canvas.style.width = canvas.style.height = `${size}px`;
-    canvas.style.backgroundColor = '#333';
-    const ctx = canvas.getContext('2d');
+    canvasEl.width = canvasEl.height = size * scale;
+    canvasEl.style.width = canvasEl.style.height = `${size}px`;
+    canvasEl.style.backgroundColor = '#333';
+    const ctx = canvasEl.getContext('2d');
     ctx.font = `${15 * scale}px Microsoft Sans Serif`;
     ctx.fillStyle = '#eee';
     ctx.textBaseline = 'top';
     function loopRender () {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
         root.render();
         requestAnimationFrame(loopRender);
     }
@@ -45,7 +45,7 @@ const root = useRenderer({
 });
 
 const App = () => {
-    return dom.div.text(() => `msg = ${msg.value}`);
+    return div(() => `msg = ${msg.value}`);
 };
 
 mount(App, root);

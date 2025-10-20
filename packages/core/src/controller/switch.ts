@@ -4,14 +4,14 @@
  * @Description: Coding something
  */
 import type { IReactiveLike } from '../type.d';
-import { If } from './if';
+import { IfClass } from './if';
 import { getReactiveValue } from '../utils';
 import type { IChild } from '../element';
 import { LinkDomType } from '../utils';
 import type { Frag } from '../text';
-export class Switch {
+export class SwitchClass {
     __ld_type = LinkDomType.Switch;
-    private if: If;
+    private if: IfClass;
     get el () {
         if (!this.if) throw new Error('switch must have case or default');
         return this.if.el;
@@ -27,7 +27,7 @@ export class Switch {
             return (Array.isArray(value)) ? value.includes(refv) : value === refv;
         };
         if (!this.if) {
-            this.if = new If(fn, gene);
+            this.if = new IfClass(fn, gene);
         } else {
             this.if.elif(fn, gene);
         }
@@ -35,7 +35,7 @@ export class Switch {
     }
     default (gene: ()=>IChild) {
         if (!this.if) {
-            this.if = new If(() => false, gene);
+            this.if = new IfClass(() => false, gene);
         } else {
             this.if.else(gene);
         }

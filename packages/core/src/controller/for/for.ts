@@ -18,7 +18,7 @@ import { ForGlobal } from './for-util';
 
 // }
 
-export class For <T=any> {
+export class ForClass <T=any> {
 
     __ld_type = LinkDomType.For;
 
@@ -179,7 +179,6 @@ export class For <T=any> {
             const child = this.children[i];
             if (child) {
                 child.destroy();
-                debugger;
                 DepUtil.clearDep(getTarget(this._list), i.toString());
             }
         }

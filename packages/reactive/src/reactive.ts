@@ -55,7 +55,6 @@ export const listener = {
 };
 
 export function replaceArray (target: any[], data: any[]) {
-    // todo
     const fn = listener.useArrayMethod(target, 'splice');
     fn?.call(target, 0, target.length, ...data);
 }

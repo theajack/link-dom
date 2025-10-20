@@ -3,12 +3,12 @@
 // @hideLog=true
 // @dep=link-dom
 
-import { dom, ref, mount, join } from 'link-dom';
+import { style, div, input, ref, mount, join, button } from 'link-dom';
 function GlobalStyle () {
     const font = ref(12);
     const color = ref('red');
     const colorB = ref('green');
-    mount(dom.style({
+    mount(style({
         '.parent': {
             fontWeight: 'bold',
             color: color,
@@ -18,23 +18,17 @@ function GlobalStyle () {
             }
         }
     }), 'head');
-    return dom.div.children(
-        dom.div.class('parent').children(
-            dom.div.text(join`Color = ${color}; FontSize = ${font}`),
-            dom.div.class('child').text(join`Child Color = ${colorB}`),
+    return div(
+        div.class('parent')(
+            div(join`Color = ${color}; FontSize = ${font}`),
+            div.class('child')(join`Child Color = ${colorB}`),
         ),
-        dom.div.children(
-            dom.text('color: '),
-            dom.input.bind(color),
-        ),
-        dom.div.children(
-            dom.text('child color: '),
-            dom.input.bind(colorB),
-        ),
-        dom.div.children(
-            dom.text('font: '),
-            dom.input.bind(font),
-            dom.button.text('Increase').click(() => font.value++)
+        div('color: ', input.bind(color)),
+        div('child color: ', input.bind(colorB)),
+        div(
+            'font: ',
+            input.bind(font),
+            button('Increase').click(() => font.value++)
         )
     );
 }

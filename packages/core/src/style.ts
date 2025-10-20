@@ -5,6 +5,7 @@ import { isJoin, type Join } from './join';
 import { LinkDomType, useReactive } from './utils';
 import type { IStyleKey } from './type.d';
 import type { IStyle } from './type.d';
+import type { ITagCreator } from './short';
 
 
 type IGlobalStyle = {
@@ -168,10 +169,10 @@ export type IStyleLink<T extends Dom> = {
     [key in IStyleKey]: (v: IStyle[key], important?: boolean) => (IStyleLink<T> & T);
 }
 
-export interface IStyleBuilder<T extends Dom> extends IStyleLink<T> {
-    (this: T, name: IStyle|Record<string, any>): T
-    <T extends IStyleKey>(this: T, name: T, value: IStyle[T], important?: boolean): T
-    (this: T, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): T
+export interface IStyleBuilder<T extends Dom, S = (ITagCreator<HTMLStyleElement>)> extends IStyleLink<T> {
+    (this: T, name: IStyle|Record<string, any>): T & S
+    <T extends IStyleKey>(this: T, name: T, value: IStyle[T], important?: boolean): T & S
+    (this: T, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): T & S
 }
 
 

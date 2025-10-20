@@ -2,20 +2,20 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
-import { dom, ref, mount, join, ctrl } from 'link-dom';
-function Switch () {
+import { div, span, button, input, ref, mount, join, Switch } from 'link-dom';
+function SwitchApp () {
     const num = ref(0);
-    return dom.div.children(
-        dom.div.children(
-            dom.span.text(join`num = ${num}`),
-            dom.input.bind(num),
-            dom.button.text('Increase').click(() => { num.value++; }),
+    return div(
+        div(
+            span(join`num = ${num}`),
+            input.bind(num),
+            button('Increase').click(() => { num.value++; }),
         ),
-        ctrl.switch(num)
-            .case([ 0, 1 ], () => dom.span.text('num < 2'))
-            .case([ 2, 3, 4 ], () => dom.span.text('num < 5'))
-            .case(5, () => dom.span.text('num = 5'))
-            .default(() => dom.span.text(join`num = ${num}`)),
+        Switch(num)
+            .case([ 0, 1 ], () => span('num < 2'))
+            .case([ 2, 3, 4 ], () => span('num < 5'))
+            .case(5, () => span('num = 5'))
+            .default(() => span(join`num = ${num}`)),
     );
 }
-mount(Switch, '#jx-app');
+mount(SwitchApp, '#jx-app');

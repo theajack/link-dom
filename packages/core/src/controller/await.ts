@@ -9,7 +9,7 @@ import { Frag } from '../text';
 import type { IChild } from '../element';
 import { SharedStatus } from 'link-dom-shared';
 
-export class Await {
+export class AwaitClass {
     __ld_type = LinkDomType.Await;
     el: any;
     start: Node;
