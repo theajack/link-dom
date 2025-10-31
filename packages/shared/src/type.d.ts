@@ -6,7 +6,6 @@
 
 import type { RendererType } from './utils';
 
-
 export interface ITextNode {
     get textContent(): string;
     set textContent(value: string);

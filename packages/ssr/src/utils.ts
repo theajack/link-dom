@@ -6,7 +6,6 @@
 
 export const SSR_SIZE = 'ssr-n';
 
-
 export enum NodeType {
     COMMENT_NODE = 8,
     DOCUMENT_FRAGMENT_NODE = 11,

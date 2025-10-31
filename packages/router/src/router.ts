@@ -131,7 +131,7 @@ export class Router extends RouterState {
     private _initEvents () {
         if (this.mode === 'hash') {
             window.addEventListener('hashchange', (e) => {
-                console.log('hashchange', e);
+                // console.log('hashchange', e);
                 const { newURL } = e;
                 this._enterNewUrl(newURL);
             });
@@ -143,7 +143,7 @@ export class Router extends RouterState {
 
 
     private _enterNewUrl (url: string) {
-        console.log(`test:${url}`);
+        // console.log(`test:${url}`);
         const { path, search } = formatUrl(url);
         // list 为route的路径，param为route所有url match参数
         const { list, param, matchedPaths } = this._matchRoutes(path, [ this.rootRoute ]);

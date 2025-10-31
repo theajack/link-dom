@@ -1,8 +1,3 @@
-/*
- * @Author: chenzhongsheng
- * @Date: 2025-10-02 20:58:47
- * @Description: Coding something
- */
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
@@ -19,4 +14,4 @@ function Counter () {
         }),
     );
 }
-mount(Counter, '#jx-app');
+mount(Counter, '#app');

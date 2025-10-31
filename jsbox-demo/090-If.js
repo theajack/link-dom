@@ -16,4 +16,4 @@ function IfApp () {
             .else(() => span('num >= 5')),
     );
 }
-mount(IfApp, '#jx-app');
+mount(IfApp, '#app');

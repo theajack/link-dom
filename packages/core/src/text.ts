@@ -5,51 +5,31 @@
  */
 
 import type { IChild } from './element';
-import type { IComputedLike, IReactive } from 'link-dom-reactive';
-import { useReactive } from './utils';
 import { LinkDomType, traverseChildren } from './utils';
 import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
+import { BaseNode } from './node';
+import type { IReactiveLike } from './type';
 
-export class Text {
+export class Text extends BaseNode<globalThis.Text> {
     __ld_type = LinkDomType.Text;
-    el: globalThis.Text;
-    constructor (val?: string|number|boolean|IReactive) {
+    constructor (val?: IReactiveLike<string|number|boolean>) {
+        super();
         this.el = SharedStatus.Renderer.createTextNode('') as globalThis.Text;
         if (typeof val !== 'undefined') {
             this.text(val);
         }
         checkHydrateEl(this);
     }
-    text (val: string|number|boolean|IReactive) {
-        useReactive(val, (v) => this.el.textContent = v);
-        return this;
-    }
-    // @ts-ignore
-    private __mounted?: (el: Text)=>void;
-    mounted (v: (el: Text)=>void) {
-        this.__mounted = v;
-        return this;
-    }
 }
-export class Comment {
+export class Comment extends BaseNode<globalThis.Comment> {
     __ld_type = LinkDomType.Comment;
-    el: globalThis.Comment;
-    constructor (val?: string|number|IComputedLike) {
-        this.el = SharedStatus.Renderer.createComment('') as any;
+    constructor (val?: IReactiveLike<string|number|boolean>) {
+        super();
+        this.el = SharedStatus.Renderer.createComment('') as globalThis.Comment;
         if (typeof val !== 'undefined') {
             this.text(val);
         }
         checkHydrateEl(this);
-    }
-    text (val: string|number|IComputedLike) {
-        useReactive(val, (v) => this.el.textContent = v);
-        return this;
-    }
-    // @ts-ignore
-    private __mounted?: (el: Text)=>void;
-    mounted (v: (el: Text)=>void) {
-        this.__mounted = v;
-        return this;
     }
 }
 

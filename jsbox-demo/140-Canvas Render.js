@@ -14,7 +14,7 @@ const { ctx, msg } = (function initEnv () {
             span(join`msg = ${msg}`),
             button('Add !').click(() => msg.value += '!'),
         )
-    ), '#jx-app');
+    ), '#app');
     const size = 300;
     const canvasEl = refs.canvas.el;
     const scale = window.devicePixelRatio;

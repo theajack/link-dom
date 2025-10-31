@@ -141,7 +141,6 @@ function isArrayItem (target: any, key: string|symbol): target is any[] {
     return (Array.isArray(target) && (typeof key === 'string') && parseInt(key).toString() === key);
 }
 
-
 export function isDeepReactive (v: any) {
     return !!(v?.[SharedStatus.OriginTarget]);
 }

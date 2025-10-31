@@ -18,4 +18,4 @@ function SwitchApp () {
             .default(() => span(join`num = ${num}`)),
     );
 }
-mount(SwitchApp, '#jx-app');
+mount(SwitchApp, '#app');

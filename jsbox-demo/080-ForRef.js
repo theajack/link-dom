@@ -26,4 +26,4 @@ function ForRefApp () {
         ),
     );
 }
-mount(ForRefApp, '#jx-app');
+mount(ForRefApp, '#app');

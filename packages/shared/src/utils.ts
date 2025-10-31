@@ -75,7 +75,9 @@ export function deepClone (data: any) {
 }
 
 export function raw (data: any) {
-    if (!data[SharedStatus.OriginTarget]) return data;
+    if (!data?.[SharedStatus.OriginTarget]) {
+        return (data?.__isReactive) ? { value: data.value } : data;
+    };
     return deepClone(data);
 }
 

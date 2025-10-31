@@ -16,4 +16,4 @@ function Ref () {
         input.bind(name).placeholder('Input your name')
     );
 }
-mount(Ref, '#jx-app');
+mount(Ref, '#app');

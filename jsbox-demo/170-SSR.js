@@ -2,6 +2,7 @@
 // @hideLog=true
 // @dep=link-dom,link-dom-ssr
 // @title=SSR
+// @desc=Server-Side Rendering
 
 import { ssr, hydrate } from 'link-dom-ssr';
 import { ref, div, button, join, collectRef, mount, link, For, If, span } from 'link-dom';
@@ -65,4 +66,4 @@ function SSRContainer () {
         div.ref(refs.container),
     );
 }
-mount(SSRContainer, '#jx-app');
+mount(SSRContainer, '#app');

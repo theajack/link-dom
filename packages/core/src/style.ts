@@ -211,6 +211,7 @@ function initStyleBuilder (dom: Dom) {
                 if (typeof value === 'function') return value.bind(dom);
                 return value;
             }
+            if (name in fn) return fn[name]; // 对于apply、call方法 使用fn自带的
             return (v: any, imp?: boolean) => {
                 dom.style(name as any, v, imp);
                 return proxy;

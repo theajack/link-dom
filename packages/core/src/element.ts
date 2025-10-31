@@ -1,6 +1,6 @@
 import { type IReactive } from 'link-dom-reactive';
 import type { IAttrKey, IEventAttributes, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
-import { LinkDomType, traverseChildren, bind, useReactive } from './utils';
+import { LinkDomType, traverseChildren, bind } from './utils';
 import { queryBase } from './dom';
 import type { Comment, Frag, Text } from './text';
 import type { IReactiveLike } from './type.d';
@@ -10,15 +10,16 @@ import type { IController } from './controller';
 import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
+import { BaseNode } from './node';
 // eslint-disable-next-line no-undef
 
 export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[];
 // @ts-ignore
-export class Dom<T extends HTMLElement = HTMLElement> {
+export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     __ld_type = LinkDomType.Dom;
-    el: T;
     // eslint-disable-next-line no-undef
     constructor (key: (keyof HTMLElementTagNameMap)|T) {
+        super();
         this.el = (typeof key === 'string' ? SharedStatus.Renderer.createElement(key) : key) as T;
         checkHydrateEl(this);
     }
@@ -77,12 +78,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
             return this._ur('innerText', val);
         }
     }
-    // @ts-ignore
-    private __mounted?: (el: Dom)=>void;
-    mounted (v: (el: Dom)=>void) {
-        this.__mounted = v;
-        return this;
-    }
     attr (name: {[prop in IAttrKey]?: any} | Record<string, any>): this;
     attr (name: IAttrKey): string;
     attr (name: string): string;
@@ -104,40 +99,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     removeAttr (key: string) {
         this.el.removeAttribute(key);
         return this;
-    }
-    // private __xr_funcs: Record<string, (...args: any[]) => any> = {};
-    // func(k: string): (...args: any[]) => any;
-    // func(k: string, v: (...args: any[]) => any): this;
-    // func (k: string, v?: (...args: any[]) => any) {
-    //     if (typeof v === 'undefined') {
-    //         return this.__xr_funcs[k];
-    //     }
-    //     this.__xr_funcs[k] = v;
-    //     return this;
-    // }
-    data (name: Record<string, any>): this;
-    data (name: string): any|null;
-    data (name: string, value: any): this;
-    data (name: string|Record<string, any>, value?: any): string|this {
-        if (typeof name === 'object') {
-            for (const k in name)
-                this.data(k, name[k]);
-            return this;
-        }
-        if (typeof value === 'undefined') {
-            // @ts-ignore
-            return this.el.__xr_data?.[name] || null;
-        }
-        // @ts-ignore
-        if (!this.el.__xr_data) this.el.__xr_data = {};
-        // @ts-ignore
-
-        this._useR(value, (v) => this.el.__xr_data[name] = v);
-        return this;
-    }
-    private _useR (v: any, apply: (v: any, isInit: boolean) => void) {
-        // useReactive(v, apply, this.el);
-        useReactive(v, apply);
     }
     getStyle (name: IStyleKey|string): string {
         return this.el.style.getPropertyValue(name);
@@ -172,14 +133,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         if (!node) return null;
         return new Dom(node as T);
     }
-    next <T extends HTMLElement = HTMLElement> () {
-        const next = this.el.nextElementSibling as any;
-        return next ? new Dom<T>(next) : null;
-    }
-    prev <T extends HTMLElement = HTMLElement> () {
-        const prev = this.el.previousElementSibling as any;
-        return prev ? new Dom<T>(prev) : null;
-    }
     firstChild <T extends HTMLElement = HTMLElement> () {
         return this.child<T>(0);
     }
@@ -187,9 +140,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         const children = this.el.children;
         if (children.length === 0) return null;
         return new Dom(children[children.length - 1] as T);
-    }
-    brothers () {
-        return this.parent()?.children() || [];
     }
     get childrenLength () {
         return this.el.children.length;
@@ -256,12 +206,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         });
         return this;
     }
-    // (dom: Dom) => void
-    ref (v: Dom) {
-        // @ts-ignore
-        v(this);
-        return this;
-    }
     hide () {
         return this.display('none');
     }
@@ -274,7 +218,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
         });
         return this;
     }
-
     query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
     query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
     query <T extends HTMLElement = HTMLElement> (selector: string, one = false): Dom<T>|Dom<T>[] {
@@ -284,16 +227,6 @@ export class Dom<T extends HTMLElement = HTMLElement> {
     src (v: IReactiveLike<string>): this;
     src (v?: IReactiveLike<string>) {
         return this._ur('src', v);
-    }
-    parent <T extends HTMLElement = HTMLElement> (i = 1) {
-        if (i === 0) return this;
-        let el: any = this.el;
-        while (i > 0) {
-            el = el.parentElement;
-            if (!el) return null;
-            i--;
-        }
-        return new Dom<T>(el);
     }
     empty () {
         return this.html('');

@@ -1,4 +1,3 @@
-
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
@@ -20,4 +19,4 @@ function Reactive () {
         button('Increase Age').click(() => data.age++ )
     );
 }
-mount(Reactive, '#jx-app');
+mount(Reactive, '#app');

@@ -22,4 +22,4 @@ function Style () {
         )
     );
 }
-mount(Style, '#jx-app');
+mount(Style, '#app');

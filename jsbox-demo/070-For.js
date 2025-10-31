@@ -27,4 +27,4 @@ function ForApp () {
         ),
     );
 }
-mount(ForApp, '#jx-app');
+mount(ForApp, '#app');

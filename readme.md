@@ -14,15 +14,25 @@ npm i link-dom
 CDN
 
 ```html
+<div id='app'/>
 <script src="https://unpkg.com/link-dom"></script>
 <!-- or use jsdelivr -->
 <!-- <script src="https://cdn.jsdelivr.net/npm/link-dom"></script> -->
 <script>
-    window.LinkDom
+    const { button, ref, mount, join } = window.LinkDom;
+    function Counter () {
+        const count = ref(0);
+        return button(join`count=${count}`).click(() => {
+            count.value++;
+        });
+    }
+    mount(Counter, '#app');
 </script>
 ```
 
 ## Usage
+
+For more detailed usage examples, please refer to [playground](https://theajack.github.io/jsbox/?config=theajack.link-dom).
 
 ### Basic
 
@@ -41,8 +51,7 @@ function Ref () {
         input.bind(name).placeholder('Input your name')
     );
 }
-mount(Ref, '#jx-app');
-
+mount(Ref, '#app');
 ```
 
 #### Style
@@ -66,7 +75,7 @@ function Style () {
         )
     );
 }
-mount(Style, '#jx-app');
+mount(Style, '#app');
 ```
 
 #### StyleLink
@@ -92,7 +101,7 @@ function Style () {
         )
     );
 }
-mount(Style, '#jx-app');
+mount(Style, '#app');
 ```
 
 #### Global Style
@@ -127,7 +136,7 @@ function GlobalStyle () {
         )
     );
 }
-mount(GlobalStyle, '#jx-app');
+mount(GlobalStyle, '#app');
 ```
 
 #### Counter
@@ -144,7 +153,7 @@ function Counter () {
         }),
     );
 }
-mount(Counter, '#jx-app');
+mount(Counter, '#app');
 ```
 
 #### Collect Ref
@@ -162,7 +171,7 @@ function CollectRef () {
         }),
     );
 }
-mount(CollectRef, '#jx-app');
+mount(CollectRef, '#app');
 ```
 
 ### Controller
@@ -192,7 +201,7 @@ function ForApp () {
         ),
     );
 }
-mount(ForApp, '#jx-app');
+mount(ForApp, '#app');
 ```
 
 #### ForRef
@@ -220,7 +229,7 @@ function ForRefApp () {
         ),
     );
 }
-mount(ForRefApp, '#jx-app');
+mount(ForRefApp, '#app');
 ```
 
 #### If
@@ -240,7 +249,7 @@ function IfApp () {
             .else(() => span('num >= 5')),
     );
 }
-mount(IfApp, '#jx-app');
+mount(IfApp, '#app');
 ```
 
 如果追求if表达式简洁，generator参数也可以直接使用元素，如下：
@@ -272,7 +281,7 @@ function SwitchApp () {
             .default(() => span(join`num = ${num}`)),
     );
 }
-mount(SwitchApp, '#jx-app');
+mount(SwitchApp, '#app');
 ```
 
 generator参数也可以直接使用元素，同If
@@ -288,7 +297,7 @@ function ShowApp () {
         Show(bool, span('Hello World!'))
     );
 }
-mount(ShowApp, '#jx-app');
+mount(ShowApp, '#app');
 ```
 
 因为 show 的元素一开始肯定会被初始化，所以generator使用函数和元素效果相同
@@ -312,7 +321,7 @@ function AwaitApp () {
         )
     );
 }
-mount(AwaitApp, '#jx-app');
+mount(AwaitApp, '#app');
 ```
 
 ### Custom Renderer
@@ -362,7 +371,7 @@ const { ctx, msg } = (function initEnv () {
             span(join`msg = ${msg}`),
             button('Add !').click(() => msg.value += '!'),
         )
-    ), '#jx-app');
+    ), '#app');
     const size = 300;
     const canvasEl = refs.canvas.el;
     const scale = window.devicePixelRatio;
@@ -648,7 +657,7 @@ const App = () => {
     );
 };
 
-mount(App, '#jx-app');
+mount(App, '#app');
 
 // window.router = router;
 
@@ -729,5 +738,5 @@ function SSRContainer () {
         div.ref(refs.container),
     );
 }
-mount(SSRContainer, '#jx-app');
+mount(SSRContainer, '#app');
 ```

@@ -7,7 +7,7 @@
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 import { button, div, mount, watch } from 'link-dom';
 
-const PageSub = () => {
+function PageSub () {
     return [
         div('Sub Start'),
         routerView(),
@@ -15,9 +15,7 @@ const PageSub = () => {
     ];
 };
 const PageSub1 = () => div('Sub Page1');
-const PageA = () => {
-    return div('PageA');
-};
+
 const router = createRouter({
     routes: [
         {
@@ -52,7 +50,7 @@ const router = createRouter({
         },
         {
             path: '/a',
-            component: PageA,
+            component: () => div('PageA'),
         },
         {
             path: '/b',
@@ -86,10 +84,9 @@ const router = createRouter({
     ]
 });
 
-const App = () => {
+function App () {
     return div(
-        div.class('')(),
-        div.style({ display: 'flex', gap: '10px' })(
+        div.style({ display: 'flex', gap: '10px', flexWrap: 'wrap' })(
             routerLink('/'),
             routerLink('/sub/s1'),
             routerLink('/sub/s1/s1'),
@@ -126,9 +123,7 @@ const App = () => {
     );
 };
 
-mount(App, '#jx-app');
-
-// window.router = router;
+mount(App, '#app');
 
 watch(() => router.path, (val) => {
     console.log('router.currentPath', val);

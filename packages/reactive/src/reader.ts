@@ -16,11 +16,11 @@ export function reader <T> (v: T): T {
         },
         set (_, key) {
             console.warn('Set is not supported:', `key=${key.toString()}`);
-            return false;
+            return true;
         },
         deleteProperty (_, key) {
             console.warn('Delete is not supported:', `key=${key.toString()}`);
-            return false;
+            return true;
         }
     });
 }

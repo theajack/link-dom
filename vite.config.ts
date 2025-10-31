@@ -156,7 +156,7 @@ function geneBuildSDKConfig (pkgName: string, isIIFE = false): UserConfig {
     // ! VITE 文档说明： 注意，在 lib 模式下使用 'es' 时，build.minify 选项不会缩减空格，因为会移除掉 pure 标注，导致破坏 tree-shaking。
     return {
         // plugins: [ cssInjectedByJsPlugin() ],
-        plugins: [ ],
+        plugins: [],
         build: {
             minify: true,
             lib: {

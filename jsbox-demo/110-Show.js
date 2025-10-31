@@ -10,4 +10,4 @@ function ShowApp () {
         Show(bool, span('Hello World!'))
     );
 }
-mount(ShowApp, '#jx-app');
+mount(ShowApp, '#app');

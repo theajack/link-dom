@@ -19,4 +19,4 @@ function AwaitApp () {
         )
     );
 }
-mount(AwaitApp, '#jx-app');
+mount(AwaitApp, '#app');

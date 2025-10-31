@@ -36,8 +36,15 @@ for (const name of packages) {
         resolve(`../packages/${name}/dist/package.json`),
         genePkgJson(name),
     );
+    const iifeTarget = resolve(`../packages/${name}/dist/iife/${name}.iife.min.js`);
+    const code = fs.readFileSync(iifeTarget, 'utf-8');
+    fs.writeFileSync(
+        iifeTarget,
+        `window.__linkDomIIFE = true;${code}`,
+        'utf-8',
+    );
     fs.copySync(
-        resolve(`../packages/${name}/dist/iife/${name}.iife.min.js`),
+        iifeTarget,
         resolve(`../packages/${name}/dist/${name}.iife.min.js`),
     );
     fs.removeSync(resolve(`../packages/${name}/dist/iife`));

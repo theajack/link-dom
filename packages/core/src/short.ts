@@ -4,7 +4,6 @@
  * @Description: Coding something
  */
 
-import type { IComputedLike } from 'link-dom-reactive';
 import { type TDomName } from './dom';
 import type { IChild } from './element';
 import { Dom } from './element';
@@ -12,6 +11,7 @@ import { Comment, Frag, Text } from './text';
 import { LinkDomType } from './utils';
 import { style } from './style';
 import { ctrl } from './controller';
+import type { IReactiveLike } from './type';
 
 export type ITagCreator<T extends HTMLElement> = (
     ...doms: IChild[]
@@ -42,11 +42,12 @@ function _tag <T extends HTMLElement> (tag: TDomName): ITagCreator<T> & Dom<T> {
         };
         Map[tag] = new Proxy(fn, {
             get (_, key) {
-                if (key === '__ld_type') return LinkDomType.Short; // 处理没有
+                if (key === '__ld_type') return LinkDomType.Short;
                 if (key === 'el') return new Dom(tag).el;
                 if (attrs.has(key as string)) {
                     return createFnObject(tag, key as string);
                 }
+                if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
                 return undefined;
             }
         });
@@ -70,7 +71,7 @@ function createFnObject (tag: TDomName, key: string) {
     };
     p = new Proxy(fn, {
         get (_, key) {
-            if (key === '__ld_type') return LinkDomType.Short; // 处理没有
+            if (key === '__ld_type') return LinkDomType.Short;
             if (key === 'el') return el.el;
             if (attrs.has(key as string)) {
                 return (...args: any[]) => {
@@ -78,6 +79,7 @@ function createFnObject (tag: TDomName, key: string) {
                     return p;
                 };
             }
+            if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
             return undefined;
         }
     });
@@ -90,9 +92,9 @@ export const {
     label, audio, video, canvas, code, pre, iframe, br
 } = Short;
 
-export const text: (v: string|number|IComputedLike) => Text =
+export const text: (v: IReactiveLike<string|number|boolean>) => Text =
     (v) => new Text(v);
-export const comment:(v: string|number|IComputedLike) => Comment =
+export const comment:(v: IReactiveLike<string|number|boolean>) => Comment =
     (v) => new Comment(v);
 export const script: (v: string) => Dom<HTMLScriptElement> =
     (v) => new Dom<HTMLScriptElement>('script').html(v);

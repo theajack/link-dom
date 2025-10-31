@@ -32,4 +32,4 @@ function GlobalStyle () {
         )
     );
 }
-mount(GlobalStyle, '#jx-app');
+mount(GlobalStyle, '#app');

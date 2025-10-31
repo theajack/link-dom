@@ -1,6 +1,7 @@
 // @needUI=true
 // @hideLog=true
 // @dep=link-dom
+// @desc=Use DOM elements
 
 import { mount, collectRef, div, span, button } from 'link-dom';
 function CollectRef () {
@@ -14,4 +15,4 @@ function CollectRef () {
         }),
     );
 }
-mount(CollectRef, '#jx-app');
+mount(CollectRef, '#app');
