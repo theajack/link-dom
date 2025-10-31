@@ -49,11 +49,11 @@ function CommonComponent (data) {
         }),
     );
 }
-
 function SSRContainer () {
     const data = [ { label: 'label1' }, { label: 'label2' } ];
     const refs = collectRef('container');
     return div(
+        div('First click "Start SSR Render" to render static html, Then Click "Start Hydrate" Button to hydrate.'),
         button('Start SSR Render').click(() => {
             const html = ssr(CommonComponent)(data);
             console.log('html', html);
