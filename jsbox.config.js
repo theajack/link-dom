@@ -182,7 +182,7 @@ window.jsboxConfig = {
         },
         "Log Render": {
             "needUI": true,
-            "hideLog": true,
+            "hideLog": false,
             "dep": [
                 "link-dom",
                 "link-dom-render"
@@ -201,7 +201,7 @@ window.jsboxConfig = {
         },
         "Full Custom": {
             "needUI": true,
-            "hideLog": true,
+            "hideLog": false,
             "dep": [
                 "link-dom",
                 "link-dom-render"

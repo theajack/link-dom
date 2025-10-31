@@ -12,12 +12,16 @@ import { LinkDomType } from './utils';
 import { style } from './style';
 import { ctrl } from './controller';
 import type { IReactiveLike } from './type';
+import { BaseNode } from './node';
 
 export type ITagCreator<T extends HTMLElement> = (
     ...doms: IChild[]
 ) => Dom<T>
 
-const attrs = new Set(Object.getOwnPropertyNames(Dom.prototype));
+const attrs = new Set([
+    ...Object.getOwnPropertyNames(Dom.prototype),
+    ...Object.getOwnPropertyNames(BaseNode.prototype),
+]);
 const Map: any = {};
 
 const Short: {

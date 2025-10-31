@@ -1,6 +1,6 @@
 
 // @needUI=true
-// @hideLog=true
+// @hideLog=false
 // @dep=link-dom,link-dom-render
 // @title=Custom Renderer
 import { div, ref, computed, mount, join, span } from 'link-dom';

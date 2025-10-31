@@ -1,7 +1,7 @@
 {
     "name": "link-dom-repository",
     "private": true,
-    "version": "0.1.4",
+    "version": "0.1.5",
     "scripts": {
         "dev": "vite -m=dev",
         "build:demo": "vite build -m=demo",

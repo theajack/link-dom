@@ -1,6 +1,6 @@
 
 // @needUI=true
-// @hideLog=true
+// @hideLog=false
 // @dep=link-dom,link-dom-render
 import { div, ref, mount, text, computed } from 'link-dom';
 import { defineRenderer, RendererType } from 'link-dom-render';
