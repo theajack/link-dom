@@ -68,7 +68,7 @@ window.jsboxConfig = {
             ],
             "code": "import { button, div, flow, join, link, mount, reactive } from 'link-dom';\n\nconst Child = flow((data) => {\n    return div.style('marginLeft', 20)(\n        div(join`child:name: ${link(data.name)}`),\n        div(join`child:age: ${link(data.age)}`),\n        button('modify in children Won\\'t work').click(() => {\n            data.name += '!';\n            data.age += 1;\n        })\n    );\n});\n\nfunction Parent () {\n    const data = reactive({\n        name: 'theajack',\n        age: 18,\n    });\n    return div(\n        div('Information:'),\n        div(join`parent:name: ${link(data.name)}`),\n        div(join`parent:age: ${link(data.age)}`),\n        button('modify in parent').click(() => {\n            data.name += '!';\n            data.age += 1;\n        }),\n        Child(data),\n    );\n}\n\nmount(Parent, '#app');"
         },
-        "Computed&Watch": {
+        "Computed & Watch": {
             "needUI": true,
             "hideLog": false,
             "dep": [
