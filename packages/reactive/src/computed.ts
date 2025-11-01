@@ -10,6 +10,8 @@ import { type Ref } from './ref';
 import { generateReactiveByValue } from './utils';
 import type { IComputeFn, IComputedLike, IReactive } from './type.d';
 
+export type IComputed<T> = Computed<T> | Ref<T>;
+
 export class Computed<T=any> {
     __isReactive = true;
     __isComputed = true;
@@ -44,7 +46,7 @@ export class Computed<T=any> {
     }
 }
 
-export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void) {
+export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void): IComputed<T> {
     if (isReactive(v)) return v;
     return new Computed(v as ()=>T, set);
 }

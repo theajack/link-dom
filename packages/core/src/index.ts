@@ -17,7 +17,7 @@ export * from 'link-dom-reactive';
 
 export { flow } from './flow';
 export { type IfClass } from './controller/if';
-export { LinkDomType } from './utils';
+export { LinkDomType, getReactiveValue as read } from './utils';
 
 export { style } from './style';
 

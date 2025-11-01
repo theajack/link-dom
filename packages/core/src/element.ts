@@ -14,11 +14,14 @@ import { BaseNode } from './node';
 // eslint-disable-next-line no-undef
 
 export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[];
-// @ts-ignore
 export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     __ld_type = LinkDomType.Dom;
     // eslint-disable-next-line no-undef
-    constructor (key: (keyof HTMLElementTagNameMap)|T) {
+    constructor (key: (keyof HTMLElementTagNameMap)|T|Dom<T>) {
+        // @ts-ignore
+        if (key?.__ld_type === LinkDomType.Dom) {
+            return key as any;
+        }
         super();
         this.el = (typeof key === 'string' ? SharedStatus.Renderer.createElement(key) : key) as T;
         checkHydrateEl(this);

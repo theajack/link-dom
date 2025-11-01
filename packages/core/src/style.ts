@@ -175,13 +175,13 @@ export interface IStyleBuilder<T extends Dom, S = (ITagCreator<HTMLStyleElement>
     (this: T, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): T & S
 }
 
-
 // let styleBuilder: IStyleBuilder<Dom>;
 
 function originStyle (this: Dom, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): Dom {
     if (typeof value !== 'undefined') {
         // @ts-ignore
         this._useR(value, (v) => {
+            debugger;
             // @ts-ignore
             const { important, cssValue, cssKey } = formatCssKV(name, v, imp);
             this.el.style.setProperty(cssKey, cssValue, important);
@@ -194,6 +194,7 @@ function originStyle (this: Dom, name: IStyleKey|IStyle|string, value?: any, imp
     }
     // @ts-ignore
     for (const k in name) {
+        if (typeof name[k] === 'undefined' || name[k] === null) continue;
         // @ts-ignore
         this.style(k, name[k]);
     }
