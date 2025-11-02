@@ -1,7 +1,7 @@
 
 # [Link-dom](https://github.com/theajack/link-dom) - Compilation-free Reactive Chainable Call UI Library
 
-[Playground](https://theajack.github.io/jsbox/?config=theajack.link-dom)
+[Playground](https://theajack.github.io/jsbox/?config=theajack.link-dom) | <img src="https://shiyix.cn/api2/util/badge/stat?c=Visitors-linkdom" alt="visitors">
 
 link-dom is a UI library that supports reactive data. It can run without compilation, fully complies with JavaScript/TypeScript language specifications, and at the same time has extremely high performance. In benchmark performance tests, its performance is close to that of Vue3 and far better than that of React. Additionally, it supports Router and SSR capabilities.
 
@@ -739,4 +739,5 @@ function SSRContainer () {
     );
 }
 mount(SSRContainer, '#app');
+
 ```
