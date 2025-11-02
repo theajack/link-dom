@@ -9,6 +9,8 @@ import { isArrayOrJson, SharedStatus, deepAssign } from 'link-dom-shared';
 import type { Dep } from './dep';
 import { DepUtil } from './dep';
 
+export const staticFn = Object.assign(() => {}, { static: true });
+
 export function observe (
     exp: ()=>any,
     fn: (newValue: any, oldValue: any)=>void,
@@ -36,7 +38,7 @@ export function observe (
         };
     }
     DepUtil.Temp.clear();
-    return () => {};
+    return staticFn;
 }
 
 export const listener = {

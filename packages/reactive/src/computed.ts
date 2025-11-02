@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import { observe } from './reactive';
+import { observe, staticFn } from './reactive';
 import { DepUtil } from './dep';
 import { type Ref } from './ref';
 import { generateReactiveByValue } from './utils';
@@ -59,7 +59,7 @@ export function watch<T> (v: IReactive<T>, fn: (v: T, old: T)=>void): ()=>void {
     if (typeof v === 'function') {
         return observe(v as any, fn);
     }
-    return () => {};
+    return staticFn;
 }
 
 export function isReactive (v: any): v is Ref<any> {

@@ -9,7 +9,7 @@ export * from './dom';
 export { Text, Frag, Comment } from './text';
 export * from './type.d';
 
-export { ctrl } from './controller';
+export { ctrl, type IController } from './controller';
 
 export { join } from './join';
 

@@ -13,15 +13,26 @@ import { SwitchClass } from './switch';
 import type { IOptionStyle } from '../type.d';
 import { ShowClass } from './show';
 import { AwaitClass } from './await';
+import { SharedStatus } from 'link-dom-shared';
 
 export type IController = ForClass | IfClass | SwitchClass;
 
+function parseForList <T> (list: Ref<T[]>|T[]) {
+    const arr = (isReactive(list)) ? list.value : list;
+    const isStatic = !arr[SharedStatus.OriginTarget];
+    return { arr, isStatic };
+}
+
 export const ctrl = {
     for: <T = any> (list: Ref<T[]>|T[], fn: (item: T, index: {readonly value: number})=>IChild) => {
-        return new ForClass<T>(list, fn);
+        const { arr, isStatic } = parseForList(list);
+        if (isStatic) return arr.map((item, index) => fn(item, { value: index }));
+        return new ForClass<T>(arr, fn);
     },
     forRef: <T = any> (list: Ref<T[]>|T[], fn: (item: Ref<T>, index: {readonly value: number})=>IChild) => {
-        return new ForClass<T>(list, fn, true);
+        const { arr, isStatic } = parseForList(list);
+        if (isStatic) return arr.map((item, index) => fn({ value: item } as Ref, { value: index }));
+        return new ForClass<T>(arr, fn, true);
     },
     forStatic: <T = any> (list: Ref<T[]>|T[], fn: (item:T, index: number)=>IChild) => {
         return (isReactive(list) ? list.value : list).map((item, index) => fn(item, index));
@@ -36,7 +47,7 @@ export const ctrl = {
         return gene();
     },
     show (
-        ref: IReactiveLike<boolean>,
+        ref: IReactiveLike<any>,
         gene: (()=>IChild)|IChild,
         showDisplay?: IOptionStyle['display'],
     ) {

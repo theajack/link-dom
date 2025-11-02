@@ -6,7 +6,7 @@
 
 export { computed, watch, link, isReactive, Computed, type IComputed } from './computed';
 export { ref, isRef, Ref } from './ref';
-export { deepAssign, deepClone, raw, version } from 'link-dom-shared';
+export { deepAssign, deepClone, raw, version, isArrayOrJson } from 'link-dom-shared';
 export { reactive, observe, isDeepReactive, setArrayListeners } from './reactive';
 export * from './type.d';
 export { DepUtil, Dep } from './dep';

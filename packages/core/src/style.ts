@@ -181,7 +181,6 @@ function originStyle (this: Dom, name: IStyleKey|IStyle|string, value?: any, imp
     if (typeof value !== 'undefined') {
         // @ts-ignore
         this._useR(value, (v) => {
-            debugger;
             // @ts-ignore
             const { important, cssValue, cssKey } = formatCssKV(name, v, imp);
             this.el.style.setProperty(cssKey, cssValue, important);
