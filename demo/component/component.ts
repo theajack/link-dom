@@ -8,7 +8,9 @@ const Child = defineComponent(({ slots, mounted }) => {
         console.log('mounted');
     });
     return div(
-        span('Hello'),
+        span('Hello').click.once(() => {
+            console.log(11);
+        }),
         slots.aa,
         slots.default,
         slots.cc,
