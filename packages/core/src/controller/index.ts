@@ -37,8 +37,12 @@ export const ctrl = {
     forStatic: <T = any> (list: Ref<T[]>|T[], fn: (item:T, index: number)=>IChild) => {
         return (isReactive(list) ? list.value : list).map((item, index) => fn(item, index));
     },
-    if (ref: IReactiveLike, gene: (()=>IChild)|IChild) {
-        return new IfClass(ref, gene);
+    if (ref: IReactiveLike, gene: (()=>IChild)|IChild, elseGen?: (()=>IChild)|IChild) {
+        const target = new IfClass(ref, gene);
+        if (elseGen) {
+            target.else(elseGen);
+        }
+        return target;
     },
     switch (ref: IReactiveLike) {
         return new SwitchClass(ref);
@@ -56,5 +60,5 @@ export const ctrl = {
     // 异步控制器
     await<T> (data: Promise<T>, fn: (v: T)=>IChild) {
         return new AwaitClass(data, fn);
-    }
+    },
 };

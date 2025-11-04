@@ -20,7 +20,7 @@ export class SwitchClass {
         return this.if.getMarker();
     }
     constructor (private ref: IReactiveLike) {}
-    case (cond: any|(any[])|(()=>any), gene: ()=>IChild) {
+    case (cond: any|(any[])|(()=>any), gene: (()=>IChild)|IChild) {
         const fn = () => {
             const refv = getReactiveValue(this.ref);
             const value = (typeof cond === 'function') ? cond() : cond;
@@ -33,7 +33,7 @@ export class SwitchClass {
         }
         return this;
     }
-    default (gene: ()=>IChild) {
+    default (gene: (()=>IChild)|IChild) {
         if (!this.if) {
             this.if = new IfClass(() => false, gene);
         } else {

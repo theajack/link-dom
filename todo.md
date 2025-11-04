@@ -36,6 +36,9 @@
 - [x] 内存泄漏
 - [x] 内存占用
 
+- [ ] 支持 click.stop.self();
+- [ ] 支持 defineComponent
+
 
 
 内存占用问题
