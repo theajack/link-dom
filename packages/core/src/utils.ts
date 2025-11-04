@@ -27,6 +27,7 @@ export enum LinkDomType {
     RouterView,
     StyleBuilder,
     Short,
+    Component,
 }
 
 
@@ -144,7 +145,13 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             return;
         }
         let el: any = dom;
-        if (typeof el.__ld_type === 'number') {
+        if (el.__ld_type === LinkDomType.Component) {
+            const v = el.el;
+            el.__beforMount();
+            traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
+            el.__mounted();
+            return;
+        } else if (typeof el.__ld_type === 'number') {
             el = el.el;
         } else if (isReactiveLike(el)) {
             el = new Text(el);

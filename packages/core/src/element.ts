@@ -11,9 +11,11 @@ import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
 import { BaseNode } from './node';
+import type { IComponent } from './component';
 // eslint-disable-next-line no-undef
 
-export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[];
+export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[]|IComponent;
+// @ts-ignore
 export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     __ld_type = LinkDomType.Dom;
     // eslint-disable-next-line no-undef
