@@ -28,6 +28,9 @@ export enum LinkDomType {
     StyleBuilder,
     Short,
     Component,
+
+
+    Ref = 1000,
 }
 
 

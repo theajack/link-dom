@@ -1,12 +1,13 @@
 
-import { defineComponent, div, mount, reactive, slot, span } from 'link-dom';
+import { collectRef, componentRef, defineComponent, div, mount, reactive, ref, slot, span } from 'link-dom';
 
-const Child = defineComponent(({ slots, mounted }) => {
+const Child = defineComponent(({ slots, mounted, expose }) => {
     console.log('slots', slots);
 
     mounted(() => {
         console.log('mounted');
     });
+    expose.a = 1;
     return div(
         span('Hello').click.once(() => {
             console.log(11);
@@ -22,9 +23,16 @@ const App = () => {
         name: 'tack',
         age: 31,
     });
+
+    const a = ref();
+
+    // const refs = componentRef('a');
+
     return div(
-        Child(slot('cc', div('slotc'))).slot('aa', div('slot')).slot(div('default')),
-        span(data.name),
+        Child.ref(a)(slot('cc', div('slotc'))).slot('aa', div('slot')).slot(div('default')),
+        span(data.name).click(() => {
+            console.log(a.value.expose.a, a.value);
+        }),
     );
 };
 
