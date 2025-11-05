@@ -1,6 +1,7 @@
+import type { Ref } from 'link-dom-reactive';
 import { Dom } from './element';
 import type { IReactiveLike } from './type';
-import { useReactive } from './utils';
+import { LinkDomType, useReactive } from './utils';
 
 export class BaseNode<T extends Text|Comment|HTMLElement> {
     el: T;
@@ -51,9 +52,13 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
         return this.parent()?.children() || [];
     }
     // (dom: Dom) => void
-    ref (v: Dom) {
+    ref (v: Dom|Ref) {
+        if ((v as any).__ld_type === LinkDomType.Ref) {
+            (v as any).el = this;
+        } else {
         // @ts-ignore
-        v(this);
+            v(this);
+        }
         return this;
     }
     parent <T extends HTMLElement = HTMLElement> (i = 1) {

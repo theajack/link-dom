@@ -10,7 +10,7 @@ import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';
 import { checkHydrateMarker, getTarget, SharedStatus } from 'link-dom-shared';
 import type { Ref } from 'link-dom-reactive';
-import { isRef, DepUtil, isDeepReactive } from 'link-dom-reactive';
+import { DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
 
@@ -28,15 +28,15 @@ export class ForClass <T=any> {
 
     private children: ForChild[] = [];
 
-    private _list: T[];
+    // private _list: T[];
     private _generator: (item: Ref<T>, index: {readonly value: number})=>IChild;
 
     end: Node;
 
-    start: Node;
+    // isStatic: boolean; ;
 
     getMarker () {
-        return this.start;
+        return this.end;
     }
 
     _isDeep = false;
@@ -44,12 +44,15 @@ export class ForClass <T=any> {
     private _clearWatch: ()=>void;
 
     constructor (
-        _list: Ref<T[]>|T[],
+        // _list: Ref<T[]>|T[],
+        public _list: T[],
         _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         private itemRef = false,
     ) {
         // window._for = this;
-        this._list = (isRef(_list)) ? _list.value : _list;
+
+        // this._list = (isRef(_list)) ? _list.value : _list;
+        // this.isStatic = !this._list[SharedStatus.OriginTarget];
         // console.log('init for');
 
         if (!SharedStatus.isSSR) {
@@ -146,11 +149,12 @@ export class ForClass <T=any> {
     }
     private _initChildren () {
         this.frag = this._initListFrag();
-        this.start = createMarkerNode('');
+        checkHydrateMarker(this);
+        // if (!this.isStatic) {
         // 后面加一个结尾
         this.end = createMarkerNode('');
-        checkHydrateMarker(this);
-        this.frag.append(this.start, this.end);
+        this.frag.append(this.end);
+        // }
         this.el = this.frag.el;
     }
 

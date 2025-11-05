@@ -37,7 +37,7 @@ export class ShowClass {
     }
     private _clearWatch: ()=>void;
     constructor (
-        ref: IReactiveLike<boolean>,
+        ref: IReactiveLike<any>,
         gene: (()=>IChild)|IChild,
         showDisplay?: IOptionStyle['display'],
     ) {
@@ -57,6 +57,7 @@ export class ShowClass {
             nodes.push([ dom, helper ]);
         });
         if (!SharedStatus.isSSR) {
+            // todo static
             this._clearWatch = watch(() => getReactiveValue(ref), (v) => {
                 nodes.forEach(([ node, helper ]) => {
                     if (node.nodeType === Node.ELEMENT_NODE) {

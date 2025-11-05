@@ -33,14 +33,14 @@ export class Join {
         return frag;
     }
 
-    toFn (): ()=>any {
+    toFn<T extends any> (): ()=>T {
         return () => {
             let value = '';
             const n = this.values.length;
             for (let i = 0; i < n; i++) {
                 value += (this.strs[i]) + getReactiveValue(this.values[i]);
             }
-            return value + this.strs[n];
+            return value + this.strs[n] as T;
         };
     }
 }

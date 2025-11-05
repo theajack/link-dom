@@ -63,11 +63,11 @@ type INumberStyle = {
 // once：事件只触发一次（常用）；
 // capture：使用事件的捕获模式；
 // self：只有event.target是当前操作的元素时才触发事件；
-type TEventDecorator = 'prevent' | 'stop' | 'capture' | 'once' | 'self';
+export type IEventDecorator = 'prevent' | 'stop' | 'capture' | 'once' | 'self';
 export type IEventObject<E extends Event = Event, T extends Dom = Dom> = ((e: Event, dom: T)=>any) | ({
     listener?: (e: E, dom: T)=>any;
 } & {
-[decorator in TEventDecorator]?: boolean;
+[decorator in IEventDecorator]?: boolean;
 })
 export type IEventKey = keyof DocumentEventMap;
 

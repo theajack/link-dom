@@ -71,6 +71,8 @@ export class IfClass {
     private marker: Marker;
 
     private activeIndex = -1;
+    private prevIndex = -1;
+    private _renderered = false;
 
     private scopes: IfScope[] = [];
 
@@ -84,16 +86,16 @@ export class IfClass {
     }
 
     constructor (
-        ref: IReactiveLike<boolean>,
+        ref: IReactiveLike<any>,
         gene: (()=>IChild)|IChild,
     ) {
         this._addCond(ref, gene);
         this.marker = new Marker();
     }
-    elif (ref: IReactiveLike<boolean>, gene: (()=>IChild)|IChild) {
+    elif (ref: IReactiveLike<any>, gene: (()=>IChild)|IChild) {
         return this._addCond(ref, gene);
     }
-    private _addCond (ref: IReactiveLike<boolean>, gene: (()=>IChild)|IChild) {
+    private _addCond (ref: IReactiveLike<any>, gene: (()=>IChild)|IChild) {
         this.scopes.push(new IfScope(ref, gene));
         return this;
     }
@@ -110,29 +112,23 @@ export class IfClass {
             this.frag.mounted(this.__mountedFn);
         }
         this.frag?.__mounted?.(this.frag);
-        if (!SharedStatus.isSSR) {
-            this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
-                const index = this.switchCase();
-                // console.log('test:if switch', index, this.activeIndex);
-                // console.log('if switch', index);
-                if (index !== this.activeIndex) {
-                    const prev = this.activeIndex;
-                    this.activeIndex = index;
-                    let list: Node[];
-                    if (index === -1) {
-                        list = this.marker.clear();
-                    } else {
-                        const frag = this.scopes[index].toFrag();
-                        frag.__mounted();
-                        list = this.marker.replace(frag.el);
-                    }
-                    this.scopes[prev]?.store(list);
-                }
-            });
-        }
+        this._renderered = true;
         // debugger;
         // @ts-ignore
         this.frag = null;
+    }
+
+    private _initElements () {
+        if (SharedStatus.isSSR || !this._renderered) return;
+        let list: Node[];
+        if (this.activeIndex === -1) {
+            list = this.marker.clear();
+        } else {
+            const frag = this.scopes[this.activeIndex].toFrag();
+            frag.__mounted();
+            list = this.marker.replace(frag.el);
+        }
+        this.scopes[this.prevIndex]?.store(list);
     }
 
     private __mountedFn?: (el: Frag)=>void;
@@ -142,15 +138,27 @@ export class IfClass {
     }
     private _initChildren () {
         if (this._el) return;
+        this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
+            const index = this.switchCase();
+            // console.log('test:if switch', index, this.activeIndex);
+            // console.log('if switch', index);
+            if (index !== this.activeIndex) {
+                this.prevIndex = this.activeIndex;
+                this.activeIndex = index;
+                this._initElements();
+            }
+        });
+        // ! 优化静态if中不生成marker node
+        const isStatic: boolean = (this._clearWatch as any).static;
         this.frag = new Frag();
-        this.frag.append(this.marker.start);
+        if (!isStatic) this.frag.append(this.marker.start);
         const index = this.switchCase();
         // console.log('test:if switch1', index, this.activeIndex);
         this.activeIndex = index;
         if (index >= 0) {
             this.frag.append(this.scopes[index].toFrag());
         }
-        this.frag.append(this.marker.end!);
+        if (!isStatic) this.frag.append(this.marker.end!);
         this._el = this.frag.el;
     }
 

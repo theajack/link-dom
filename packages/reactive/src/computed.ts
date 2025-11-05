@@ -4,11 +4,13 @@
  * @Description: Coding something
  */
 
-import { observe } from './reactive';
+import { observe, staticFn } from './reactive';
 import { DepUtil } from './dep';
 import { type Ref } from './ref';
 import { generateReactiveByValue } from './utils';
 import type { IComputeFn, IComputedLike, IReactive } from './type.d';
+
+export type IComputed<T> = Computed<T> | Ref<T>;
 
 export class Computed<T=any> {
     __isReactive = true;
@@ -44,7 +46,7 @@ export class Computed<T=any> {
     }
 }
 
-export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void) {
+export function computed<T> (v: IComputedLike<T>, set?: (v: T)=>void): IComputed<T> {
     if (isReactive(v)) return v;
     return new Computed(v as ()=>T, set);
 }
@@ -57,7 +59,7 @@ export function watch<T> (v: IReactive<T>, fn: (v: T, old: T)=>void): ()=>void {
     if (typeof v === 'function') {
         return observe(v as any, fn);
     }
-    return () => {};
+    return staticFn;
 }
 
 export function isReactive (v: any): v is Ref<any> {

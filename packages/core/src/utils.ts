@@ -27,6 +27,10 @@ export enum LinkDomType {
     RouterView,
     StyleBuilder,
     Short,
+    Component,
+
+
+    Ref = 1000,
 }
 
 
@@ -124,25 +128,33 @@ export function useReactive (v: any|IReactive<any>, apply: (v:any, isInit: boole
     return true;
 }
 
-export function getReactiveValue (v: any|IReactive<any>) {
+export function getReactiveValue<T extends any> (v: T|IReactive<T>): T {
     if (isReactive(v)) {
         return v.value;
     } else if (isJoin(v)) {
-        return (v as Join).toFn();
+        return (v as Join).toFn() as T;
     } else if (typeof v === 'function') {
-        return v();
+        // @ts-ignore
+        return v() as T;
     } else {
-        return v;
+        return v as T;
     }
 }
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
     doms.forEach(dom => {
+        if (typeof dom === 'undefined' || dom === null) return;
         if (Array.isArray(dom)) {
             traverseChildren(dom, onChild);
             return;
         }
         let el: any = dom;
-        if (typeof el.__ld_type === 'number') {
+        if (el.__ld_type === LinkDomType.Component) {
+            const v = el.el;
+            el.__beforMount();
+            traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
+            el.__mounted();
+            return;
+        } else if (typeof el.__ld_type === 'number') {
             el = el.el;
         } else if (isReactiveLike(el)) {
             el = new Text(el);

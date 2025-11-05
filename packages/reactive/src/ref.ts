@@ -50,7 +50,16 @@ export class Ref<T = any> {
         DepUtil.clear(this);
     }
 }
-export function ref<T> (v: T, deep = true) {
+export function ref<T> (v?: T, deep = true) {
+    if (arguments.length === 0) {
+        return {
+            __ld_type: 1000,
+            el: null,
+            get value () {
+                return this.el;
+            }
+        } as any as Ref;
+    }
     return new Ref(v, deep);
 }
 export function isRef (v: any): v is Ref {

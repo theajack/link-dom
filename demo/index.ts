@@ -21,7 +21,9 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 
 // import './new';
 // import './short';
-import './test';
+// import './test';
+
+import './component/component';
 
 // import './test-cleardep';
 

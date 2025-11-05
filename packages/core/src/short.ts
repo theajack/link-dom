@@ -35,33 +35,40 @@ const Short: {
     }
 })();
 
-function _tag <T extends HTMLElement> (tag: TDomName): ITagCreator<T> & Dom<T> {
+function createTagProxy <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom): ITagCreator<T> & Dom<T> {
+    const fn = (...doms: IChild[]) => {
+        const el = new Dom(tag) as any;
+        if (doms.length) {
+            el.append(...doms);
+        }
+        return el;
+    };
+    return new Proxy(fn, {
+        get (_, key) {
+            if (key === '__ld_type') return LinkDomType.Short;
+            if (key === 'el') return new Dom(tag).el;
+            if (attrs.has(key as string)) {
+                return createFnObject(tag, key as string);
+            }
+            if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
+            return undefined;
+        }
+    }) as any;
+}
+
+function _tag <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom): ITagCreator<T> & Dom<T> {
+    if (typeof tag !== 'string') {
+        return createTagProxy(tag);
+    }
     if (!Map[tag]) {
-        const fn = (...doms: IChild[]) => {
-            const el = new Dom(tag) as any;
-            if (doms.length) {
-                el.append(...doms);
-            }
-            return el;
-        };
-        Map[tag] = new Proxy(fn, {
-            get (_, key) {
-                if (key === '__ld_type') return LinkDomType.Short;
-                if (key === 'el') return new Dom(tag).el;
-                if (attrs.has(key as string)) {
-                    return createFnObject(tag, key as string);
-                }
-                if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
-                return undefined;
-            }
-        });
+        Map[tag] = createTagProxy(tag);
     }
     return Map[tag];
 }
 
-export const tag: (tag: string) => ITagCreator<HTMLElement> & Dom<HTMLElement> = _tag;
+export const tag: (tag: string|HTMLElement|Dom) => ITagCreator<HTMLElement> & Dom<HTMLElement> = _tag;
 
-function createFnObject (tag: TDomName, key: string) {
+function createFnObject (tag: TDomName|HTMLElement|Dom, key: string) {
     let p: any = null;
     let el: any = null;
     const fn = (...args: any[]) => {

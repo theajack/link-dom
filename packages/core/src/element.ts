@@ -1,5 +1,5 @@
 import { type IReactive } from 'link-dom-reactive';
-import type { IAttrKey, IEventAttributes, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
+import type { IAttrKey, IEventAttributes, IEventDecorator, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
 import { LinkDomType, traverseChildren, bind } from './utils';
 import { queryBase } from './dom';
 import type { Comment, Frag, Text } from './text';
@@ -11,17 +11,53 @@ import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
 import { BaseNode } from './node';
+import type { IComponent } from './component';
+
+const DKeys = [ 'prevent', 'stop', 'capture', 'once', 'self' ];
 // eslint-disable-next-line no-undef
 
-export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[];
+export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[]|IComponent;
+
+interface IClick<T  extends HTMLElement = HTMLElement> {
+    (value: IEventObject<DocumentEventMap['click'], Dom<T>>): Dom<T>;
+}
+interface IEvent<T  extends HTMLElement = HTMLElement> {
+    (name: IEventAttributes): Dom<T>;
+    <K extends IEventKey>(name: T, value?: IEventObject<DocumentEventMap[K], Dom<T>>): Dom<T>;
+}
+
+
 // @ts-ignore
 export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     __ld_type = LinkDomType.Dom;
+
+    click: IClick<T> & {
+        [K in IEventDecorator]: IClick<T>;
+    };
+    on: IEvent<T> & {
+        [K in IEventDecorator]: IEvent<T>
+    };
+
     // eslint-disable-next-line no-undef
-    constructor (key: (keyof HTMLElementTagNameMap)|T) {
+    constructor (key: (keyof HTMLElementTagNameMap)|T|Dom<T>) {
+        // @ts-ignore
+        if (key?.__ld_type === LinkDomType.Dom) {
+            return key as any;
+        }
         super();
         this.el = (typeof key === 'string' ? SharedStatus.Renderer.createElement(key) : key) as T;
+        this._initEvents();
         checkHydrateEl(this);
+    }
+    private _initEvents () {
+        const click: any = (fn: any) => this._on('click', fn);
+        const on: any = (k: any, v: any) => this._on(k, v);
+        for (const key of DKeys) {
+            click[key] = (fn: any) => this._on('click', { listener: fn, [key]: true });
+            on[key] = (k: any, v: any) => this._on(k, { listener: v, [key]: true });
+        }
+        this.click = click;
+        this.on = on;
     }
     private _ur (key: string, val?: IReactiveLike<string|number>) {
         if (typeof val === 'undefined') {
@@ -160,13 +196,10 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
         }
         return list;
     }
-    click (value: IEventObject<MouseEvent, this>) {
-        return this.on('click', value);
-    }
-    on (name: IEventAttributes): this;
-    on <T extends IEventKey>(name: T, value?: IEventObject<DocumentEventMap[T], this>): this;
+    private _on (name: IEventAttributes): this;
+    private _on <T extends IEventKey>(name: T, value?: IEventObject<DocumentEventMap[T], this>): this;
     // eslint-disable-next-line no-undef
-    on <T extends IEventKey> (name: T|IEventAttributes, value?: IEventObject<DocumentEventMap[T], this>) {
+    private _on <T extends IEventKey> (name: T|IEventAttributes, value?: IEventObject<DocumentEventMap[T], this>) {
         if (typeof name === 'object') {
             for (const k in name) {
                 // @ts-ignore

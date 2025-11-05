@@ -175,7 +175,6 @@ export interface IStyleBuilder<T extends Dom, S = (ITagCreator<HTMLStyleElement>
     (this: T, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): T & S
 }
 
-
 // let styleBuilder: IStyleBuilder<Dom>;
 
 function originStyle (this: Dom, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): Dom {
@@ -194,6 +193,7 @@ function originStyle (this: Dom, name: IStyleKey|IStyle|string, value?: any, imp
     }
     // @ts-ignore
     for (const k in name) {
+        if (typeof name[k] === 'undefined' || name[k] === null) continue;
         // @ts-ignore
         this.style(k, name[k]);
     }
