@@ -27,10 +27,9 @@ export type IExposes<T extends string = string> = {
     [key in T]: IExpose;
 }
 
-
 export type ILifeKeys = 'beforeMount' | 'mounted';
 
-export function componentRef <E extends IComponentProxy = IComponentProxy, T extends string[] = string[]> (...list: T): {
+export function componentRefs <E extends IComponentProxy = IComponentProxy, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: E
 } {
     const refs: any = {};

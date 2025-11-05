@@ -15,7 +15,7 @@ import type { IStyleLink } from './style';
 import { style } from './style';
 import { LinkDomType } from './utils';
 
-export function collectRef <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
+export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: Dom<E>
 } {
     const refs: any = {};
@@ -24,6 +24,8 @@ export function collectRef <E extends HTMLElement = HTMLElement, T extends strin
     });
     return refs;
 }
+
+export const collectRef = refs;
 
 export type TDomName = keyof HTMLElementTagNameMap;
 

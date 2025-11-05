@@ -1,7 +1,8 @@
 
+import type { IProps } from 'link-dom';
 import { collectRef, componentRef, defineComponent, div, mount, reactive, ref, slot, span } from 'link-dom';
 
-const Child = defineComponent(({ slots, mounted, expose }) => {
+const Child = defineComponent(({ slots, mounted, expose, emit }) => {
     console.log('slots', slots);
 
     mounted(() => {
@@ -9,8 +10,9 @@ const Child = defineComponent(({ slots, mounted, expose }) => {
     });
     expose.a = 1;
     return div(
-        span('Hello').click.once(() => {
+        span('Hello').click(() => {
             console.log(11);
+            emit('aa', 'aa');
         }),
         slots.aa,
         slots.default,
@@ -29,7 +31,9 @@ const App = () => {
     // const refs = componentRef('a');
 
     return div(
-        Child.ref(a)(slot('cc', div('slotc'))).slot('aa', div('slot')).slot(div('default')),
+        Child.on.aa((...args) => {
+            console.log('from child', args);
+        }).ref(a)(slot('cc', div('slotc'))).slot('aa', div('slot')).slot(div('default')),
         span(data.name).click(() => {
             console.log(a.value.expose.a, a.value);
         }),
