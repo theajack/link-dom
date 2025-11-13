@@ -4,6 +4,10 @@
  * @Description: Coding something
  */
 import { type IChild } from './element';
+import type {
+    IComputed,
+    Ref
+} from 'link-dom-reactive';
 import {
     isReactiveLike, DepUtil, observe, isReactive, type IReactive
 } from 'link-dom-reactive';
@@ -166,4 +170,8 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         // @ts-ignore
         dom.__mounted?.(dom);
     });
+}
+
+export function toggle (v: IComputed<boolean>|Ref<boolean>) {
+    return () => {v.value = !v.value;};
 }

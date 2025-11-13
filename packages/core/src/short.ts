@@ -6,13 +6,15 @@
 
 import { type TDomName } from './dom';
 import type { IChild } from './element';
-import { Dom } from './element';
+import { DKeys, Dom, TextTagKeys } from './element';
 import { Comment, Frag, Text } from './text';
 import { LinkDomType } from './utils';
-import { style } from './style';
+import { createStyles } from './style';
 import { ctrl } from './controller';
 import type { IReactiveLike } from './type';
 import { BaseNode } from './node';
+
+export const EventAttrs = new Set([ 'click', 'on' ] as const);
 
 export type ITagCreator<T extends HTMLElement> = (
     ...doms: IChild[]
@@ -21,6 +23,7 @@ export type ITagCreator<T extends HTMLElement> = (
 const attrs = new Set([
     ...Object.getOwnPropertyNames(Dom.prototype),
     ...Object.getOwnPropertyNames(BaseNode.prototype),
+    ...EventAttrs, // ! 需要单独处理
 ]);
 const Map: any = {};
 
@@ -36,19 +39,28 @@ const Short: {
 })();
 
 function createTagProxy <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom): ITagCreator<T> & Dom<T> {
+    const isTextNode = TextTagKeys.has(tag as any);
+    const initEl = () => createProxyEl(isTextNode, tag);
     const fn = (...doms: IChild[]) => {
-        const el = new Dom(tag) as any;
+        const el = initEl();
         if (doms.length) {
-            el.append(...doms);
+            if (isTextNode) {
+                if (tag === 'style') {
+                    // ! style返回值是数组 所以还需要解一层
+                    doms.forEach((v: any) => el.append(...createStyles(v)));
+                } else el.append(...(doms.map((v: any) => new Dom('script').text(v))));
+            } else {
+                el.append(...doms);
+            }
         }
         return el;
     };
     return new Proxy(fn, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Short;
-            if (key === 'el') return new Dom(tag).el;
+            if (key === 'el') return initEl().el;
             if (attrs.has(key as string)) {
-                return createFnObject(tag, key as string);
+                return createFnObject(tag, key as string, isTextNode);
             }
             if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
             return undefined;
@@ -56,7 +68,7 @@ function createTagProxy <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom):
     }) as any;
 }
 
-function _tag <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom): ITagCreator<T> & Dom<T> {
+function _tag <T extends HTMLElement> (tag: TDomName|T|Dom): ITagCreator<T> & Dom<T> {
     if (typeof tag !== 'string') {
         return createTagProxy(tag);
     }
@@ -66,29 +78,109 @@ function _tag <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom): ITagCreat
     return Map[tag];
 }
 
-export const tag: (tag: string|HTMLElement|Dom) => ITagCreator<HTMLElement> & Dom<HTMLElement> = _tag;
+// @ts-ignore
+export const tag: (
+    (<T extends HTMLElement>(tag: string) => ITagCreator<T> & Dom<T>) &
+    (<T extends HTMLElement>(tag: TDomName|T|Dom) => ITagCreator<T> & Dom<T>)
+) = _tag;
 
-function createFnObject (tag: TDomName|HTMLElement|Dom, key: string) {
+function createProxyEl (isTextNode: boolean, tag: any) {
+    const el = isTextNode ? new Frag() : new Dom(tag);
+    if (!isTextNode) return el;
+    const p = new Proxy(el, {
+        get (_, key) {
+            if (key === '__ld_type') return LinkDomType.Short;
+            if (key === 'el') return el.el;
+            if (typeof key !== 'string') return el[key];
+            if (key in el) {
+                const v = el[key];
+                return typeof v === 'function' ? v.bind(el) : v;
+            }
+            if (attrs.has(key)) {
+                return (...args: any) => {
+                    // @ts-ignore
+                    for (const child of Array.from(el.children)) {
+                        child[key](...args);
+                    }
+                    return p;
+                };
+            }
+            return el[key];
+        }
+    });
+    return p;
+}
+
+function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode: boolean) {
     let p: any = null;
     let el: any = null;
+
+    let callMap: any[] = [];
+
+    const initEl = () => createProxyEl(isTextNode, tag);
+
+    const callAttr = (k: string, args: any[]) => {
+        if (isTextNode) {
+            if (k === 'text') {
+                // ! 如果是文本比较特殊，得生成对应的文本元素
+                el.append(new Dom(tag).text(args[0]));
+            } else {
+                // ! 如果先调用属性的话，frag里面还没有元素，所以必须先存储下来
+                callMap.push({ k, args });
+            }
+        } else {
+            el[k](...args);
+        }
+    };
+
     const fn = (...args: any[]) => {
         if (!el) {
-            el = new Dom(tag) as any;
-            el[key](...args);
+            el = initEl();
+            callAttr(key, args);
         } else {
-            if (args.length) el.append(...args);
+            if (args.length) {
+                if (isTextNode) {
+                    if (tag === 'style') {
+                    // ! style返回值是数组 所以还需要解一层
+                        args.forEach((v: any) => el.append(...createStyles(v)));
+                    } else el.append(...(args.map((v: any) => script(v))));
+                } else {
+                    el.append(...args);
+                }
+            }
         }
         return p;
     };
     p = new Proxy(fn, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Short;
-            if (key === 'el') return el.el;
+            if (key === 'el') {
+                if (isTextNode) {
+                    debugger;
+                    callMap.forEach(({ k, args }) => {
+                        for (const child of Array.from((el as Frag).children)) {
+                            child[k](...args);
+                        }
+                    });
+                    callMap = [];
+                }
+                return el.el;
+            }
+            if (typeof key !== 'string') return fn[key];
             if (attrs.has(key as string)) {
-                return (...args: any[]) => {
-                    el[key](...args);
+                const fn = (...args: any[]) => {
+                    callAttr(key, args);
                     return p;
                 };
+                if (EventAttrs.has(key as any) && !isTextNode) {
+                    for (const k of DKeys) {
+                        fn[k] = (...args: any[]) => {
+                            el[key][k](...args);
+                            return p;
+                        };
+                    }
+                }
+                return fn;
             }
             if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
             return undefined;
@@ -107,11 +199,17 @@ export const text: (v: IReactiveLike<string|number|boolean>) => Text =
     (v) => new Text(v);
 export const comment:(v: IReactiveLike<string|number|boolean>) => Comment =
     (v) => new Comment(v);
-export const script: (v: string) => Dom<HTMLScriptElement> =
-    (v) => new Dom<HTMLScriptElement>('script').html(v);
+// export const script: (v: string) => Dom<HTMLScriptElement> =
+//     (v) => new Dom<HTMLScriptElement>('script').text(v);
 export const frag: (...doms: IChild[]) => Frag = (...doms) => new Frag().append(...doms);
 export const fromHTML: <T extends HTMLElement = HTMLElement>(v: string)=>Dom<T> =
     (v: string) => new Dom('div').html(v).firstChild() as any;
+
+export const style = tag('style');
+export const script = tag('script');
+
+window.ss = style;
+window.tt = tag;
 
 export const d = {
     ...Short,
@@ -121,6 +219,7 @@ export const d = {
     script,
     frag,
 };
+window.d = d;
 
 export const {
     switch: Switch,

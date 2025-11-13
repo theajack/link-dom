@@ -100,3 +100,39 @@ emit(a, a.value);
 # 模版模式是否可行
 
 基本原理：for 循环中 仅操作一次，后续所有操作复刻模版操作行为，优化内存占用和耗时
+
+
+
+1. .mounted(() => {
+        console.log(11);
+    })(
+        div(`当前页面:${page}`),
+        select.bind(feat).bind(feat)(
+            ForStatic(list, (item) => option(item))
+        ).on(),
+
+mounted 未生效 bind.on 会报错 【DONE】
+【修复on、click类型声明错误，修复short调用时on、click链式调用错误】
+
+2. feat: 新增toggle bool 【DONE】
+
+3. Show 默认未生效【DONE】
+
+<!-- 4. div.style({ })(`${page}: feat=${feat.value}`).click 报错 -->
+
+5. .style 支持 hover 【实现】
+
+6. style.text  有问题 【修复】
+
+7. click.stop 报错 【修复】
+
+8. style gap: 2 无效 不带单位无效【修复】
+9. script.attr src 不生效, style.id.xxx 【DONE】
+10. div.class(`${ns}btn`).style({
+            backgroundColor: () => showPanel.value ? '#266ddedd' : '#f44',
+        }).click(() => showPanel.value = !showPanel.value)(() => showPanel.value ? '+' : '×') 类型生命有问题 【修复】
+
+[todo]
+
+- [ ] class 前缀
+- [ ] if、switch、for api化

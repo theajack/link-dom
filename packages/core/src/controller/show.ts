@@ -56,27 +56,32 @@ export class ShowClass {
             }
             nodes.push([ dom, helper ]);
         });
-        if (!SharedStatus.isSSR) {
-            // todo static
-            this._clearWatch = watch(() => getReactiveValue(ref), (v) => {
-                nodes.forEach(([ node, helper ]) => {
-                    if (node.nodeType === Node.ELEMENT_NODE) {
+
+        const change = (v) => {
+            nodes.forEach(([ node, helper ]) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    // @ts-ignore
+                    if (node.style) {
                         // @ts-ignore
-                        if (node.style) {
-                            // @ts-ignore
-                            node.style.display = v ? helper : 'none';
-                        }
-                    } else if (node.nodeType === Node.TEXT_NODE) {
-                        if (v) {
-                            const parent = helper.parentNode!;
-                            parent.insertBefore(node, helper);
-                        } else {
-                            // @ts-ignore
-                            node.remove();
-                        }
+                        node.style.display = v ? helper : 'none';
                     }
-                });
+                } else if (node.nodeType === Node.TEXT_NODE) {
+                    if (v) {
+                        const parent = helper.parentNode!;
+                        parent.insertBefore(node, helper);
+                    } else {
+                        // @ts-ignore
+                        node.remove();
+                    }
+                }
             });
+        };
+        if (!SharedStatus.isSSR) {
+            // todo static 像if一样如果是静态元素就去掉comment
+            this._clearWatch = watch(() => getReactiveValue(ref), change);
+        }
+        if (!getReactiveValue(ref)) {
+            change(false);
         }
     }
     mounted (v: (el: Frag)=>void) {

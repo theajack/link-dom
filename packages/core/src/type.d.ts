@@ -72,7 +72,7 @@ export type IEventObject<E extends Event = Event, T extends Dom = Dom> = ((e: Ev
 export type IEventKey = keyof DocumentEventMap;
 
 export type IEventAttributes = {
-    [Key in keyof DocumentEventMap]?: IEventObject<DocumentEventMap[Key]>;
+    [Key in IEventKey]?: IEventObject<DocumentEventMap[Key]>;
 }
 
 

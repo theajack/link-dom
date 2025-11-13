@@ -6,7 +6,8 @@
 
 import {
     dom, mount, computed, watch, ref, style, collectRef, join, ctrl, reactive, link,
-    deepAssign, deepClone, raw
+    deepAssign, deepClone, raw,
+    Show
 } from 'link-dom';
 import { useRenderer, type CustomElement } from 'link-dom-render';
 // import './ssr';
@@ -23,12 +24,13 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 // import './short';
 // import './test';
 
-import './component/component';
+// import './component/component';
 
 // import './test-cleardep';
 
 // const value = reactive({ value: 1 });
 
+import './dev-test';
 
 // const list = reactive([
 //     { a: 1 },

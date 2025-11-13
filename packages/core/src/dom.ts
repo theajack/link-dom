@@ -11,9 +11,10 @@ import { Comment, Frag } from './text';
 import { Text } from './text';
 import type { IElement } from 'link-dom-shared';
 import { SharedStatus } from 'link-dom-shared';
+import { createStyles } from './style';
 import type { IStyleLink } from './style';
-import { style } from './style';
 import { LinkDomType } from './utils';
+// import { style } from './short';
 
 export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: Dom<E>
@@ -58,7 +59,7 @@ export const dom: {
 } & {
     text: (v: string|number|IComputedLike) => Text,
     comment:(v: string|number|IComputedLike) => Comment,
-    style: typeof style,
+    style: typeof createStyles,
     script: (v: string) => Dom<HTMLScriptElement>,
     frag: Frag,
     fromHTML: <T extends HTMLElement = HTMLElement>(v: string)=>Dom<T>,
@@ -74,7 +75,7 @@ export const dom: {
             case 'fromHTML': target[key] = (v: string) => new Dom('div').html(v).firstChild(); break;
             case 'query': return query;
             case 'find': return find;
-            case 'style': return style;
+            case 'style': return createStyles;
             case 'script': return (v: string) => new Dom('script').html(v);
             default: {
                 return new Dom(key as TDomName);

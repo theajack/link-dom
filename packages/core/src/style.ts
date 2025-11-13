@@ -6,13 +6,14 @@ import { LinkDomType, useReactive } from './utils';
 import type { IStyleKey } from './type.d';
 import type { IStyle } from './type.d';
 import type { ITagCreator } from './short';
+import { mount } from './dom';
 
 
 type IGlobalStyle = {
     [prop in string]: IStyle|string|number|IReactive<string|number>|IGlobalStyle|Join;
 }
 
-export function style (data: Record<string, IStyle|IGlobalStyle>|string|IReactive<string>): Dom<HTMLStyleElement>[] {
+export function createStyles (data: Record<string, IStyle|IGlobalStyle>|string|IReactive<string>): Dom<HTMLStyleElement>[] {
     const isReact = isReactiveLike(data);
     const addStyle = (v = '') => {
         return new Dom<HTMLStyleElement>('style').text(v);
@@ -130,7 +131,7 @@ function joinCssValue (key: string, value: any) {
     const { important, cssValue, cssKey } = formatCssKV(key, value);
     return `${cssKey}:${cssValue}${important ? `!${important}` : ''};`;
 }
-const NumberKeyReg = /(width$)|(height$)|(top$)|(bottom$)|(left$)|(right$)|(^margin)|(^padding)|(font-?size)/i;
+const NumberKeyReg = /(width$)|(height$)|(top$)|(bottom$)|(left$)|(right$)|(^margin)|(^padding)|(font-?size)|(gap$)/i;
 const ImportantReg = /!important$/;
 const NumberReg = /^[0-9]+$/;
 
@@ -175,27 +176,58 @@ export interface IStyleBuilder<T extends Dom, S = (ITagCreator<HTMLStyleElement>
     (this: T, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): T & S
 }
 
+function initPseudoId (dom: Dom) {
+    let id = dom.id();
+    if (!id) {
+        id = `_ld_id_${Date.now().toString(36)}_${Math.random().toString(36).substring(2)}`;
+        dom.id(id);
+    }
+    return id;
+}
+function handlePseudoStyle (dom: Dom, name: IStyleKey|IStyle|string, value?: any) {
+    const id = initPseudoId(dom);
+    mount(createStyles({ [`#${id}${name}`]: value }), 'head');
+}
+
 // let styleBuilder: IStyleBuilder<Dom>;
 
 function originStyle (this: Dom, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): Dom {
     if (typeof value !== 'undefined') {
+        if (name[0] === ':') {
+            // 伪属性
+            handlePseudoStyle(this, name, value);
+        } else {
         // @ts-ignore
-        this._useR(value, (v) => {
+            this._useR(value, (v) => {
             // @ts-ignore
-            const { important, cssValue, cssKey } = formatCssKV(name, v, imp);
-            this.el.style.setProperty(cssKey, cssValue, important);
-        });
+                const { important, cssValue, cssKey } = formatCssKV(name, v, imp);
+                this.el.style.setProperty(cssKey, cssValue, important);
+            });
+        }
 
         return this;
     }
     if (typeof name === 'string' || isJoin(value) || isReactiveLike(value)) {
         return this.attr('style', name);
     }
+    const map: any = {};
+    let _id = '';
+    const initId = () => {
+        if (!_id) return (_id = initPseudoId(this));
+        return _id;
+    };
     // @ts-ignore
     for (const k in name) {
         if (typeof name[k] === 'undefined' || name[k] === null) continue;
+        if (k[0] === ':') {
+            map[`#${initId()}${k}`] = name[k];
+        } else {
         // @ts-ignore
-        this.style(k, name[k]);
+            this.style(k, name[k]);
+        }
+    }
+    if (_id) {
+        mount(createStyles(map), 'head');
     }
     return this;
 };

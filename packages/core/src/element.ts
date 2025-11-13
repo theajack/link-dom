@@ -12,20 +12,19 @@ import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
 import { BaseNode } from './node';
 import type { IComponent } from './component';
+import { type ITagCreator } from './short';
 
-const DKeys = [ 'prevent', 'stop', 'capture', 'once', 'self' ];
-// eslint-disable-next-line no-undef
+export const TextTagKeys = new Set([ 'style', 'script' ] as const);
+export const DKeys = [ 'prevent', 'stop', 'capture', 'once', 'self' ];
 
 export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[]|IComponent;
-
 interface IClick<T  extends HTMLElement = HTMLElement> {
-    (value: IEventObject<DocumentEventMap['click'], Dom<T>>): Dom<T>;
+    (value: IEventObject<DocumentEventMap['click'], Dom<T>>): ITagCreator<T> & Dom<T>;
 }
-interface IEvent<T  extends HTMLElement = HTMLElement> {
-    (name: IEventAttributes): Dom<T>;
-    <K extends IEventKey>(name: T, value?: IEventObject<DocumentEventMap[K], Dom<T>>): Dom<T>;
+interface IEvent<T extends HTMLElement = HTMLElement> {
+    <K extends IEventKey>(name: K, value?: IEventObject<DocumentEventMap[K], Dom<T>>): ITagCreator<T> & Dom<T>;
+    (name: IEventAttributes): ITagCreator<T> & Dom<T>;
 }
-
 
 // @ts-ignore
 export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
@@ -38,6 +37,8 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
         [K in IEventDecorator]: IEvent<T>
     };
 
+    private _tag: string;
+    private _isTextNode: boolean;
     // eslint-disable-next-line no-undef
     constructor (key: (keyof HTMLElementTagNameMap)|T|Dom<T>) {
         // @ts-ignore
@@ -46,6 +47,8 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
         }
         super();
         this.el = (typeof key === 'string' ? SharedStatus.Renderer.createElement(key) : key) as T;
+        this._tag = this.el.tagName.toLowerCase();
+        this._isTextNode = TextTagKeys.has(this._tag as any);
         this._initEvents();
         checkHydrateEl(this);
     }
@@ -111,7 +114,7 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
         if (isJoin(val)) {
             return this.append((val as Join).toFrag());
         } else {
-            return this._ur('innerText', val);
+            return this._ur(this._isTextNode ? 'textContent' : 'innerText', val);
         }
     }
     attr (name: {[prop in IAttrKey]?: any} | Record<string, any>): this;

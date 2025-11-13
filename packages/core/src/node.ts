@@ -15,7 +15,7 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
     }
     // @ts-ignore
     private __mounted?: (el: T)=>void;
-    mounted (v: (el: T)=>void) {
+    mounted (v: (el: T)=>void): this {
         this.__mounted = v;
         return this;
     }
