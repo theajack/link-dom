@@ -1,4 +1,4 @@
-import { button, ForStatic, join, option, script, select, span } from 'link-dom';
+import { button, classPrefix, ForStatic, If, join, option, script, select, span, Switch } from 'link-dom';
 import { div, mount, ref, Show, style, toggle } from 'link-dom';
 
 const feat = ref('111');
@@ -62,7 +62,23 @@ mount(
 
         div.class(`btn`).style({
             backgroundColor: () => showPanel.value ? '#266ddedd' : '#f44',
-        }).click(() => showPanel.value = !showPanel.value)(() => showPanel.value ? '+' : '×')
+        }).click(() => showPanel.value = !showPanel.value)(() => showPanel.value ? '+' : '×'),
+
+        classPrefix('aa')(
+            div(
+                div.class('')('2222'),
+                classPrefix('-bb')(
+                    div.class('-33')('33333')
+                ),
+            )
+        ),
+        div.if(),
+        div.else(),
+
+        Switch(v)(
+            div.case(1)
+        )
+
     ),
     'body'
 );

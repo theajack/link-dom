@@ -26,6 +26,17 @@ interface IEvent<T extends HTMLElement = HTMLElement> {
     (name: IEventAttributes): ITagCreator<T> & Dom<T>;
 }
 
+
+const _classPrefix: string[] = [];
+
+export function classPrefix (...prefixs: string[]) {
+    _classPrefix.push(prefixs.join(''));
+    return (...args: any[]) => {
+        _classPrefix.pop();
+        return args;
+    };
+}
+
 // @ts-ignore
 export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     __ld_type = LinkDomType.Dom;
@@ -39,6 +50,7 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
 
     private _tag: string;
     private _isTextNode: boolean;
+    private _classPrefix: string = '';
     // eslint-disable-next-line no-undef
     constructor (key: (keyof HTMLElementTagNameMap)|T|Dom<T>) {
         // @ts-ignore
@@ -46,11 +58,17 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
             return key as any;
         }
         super();
+        if (_classPrefix.length) {
+            this._classPrefix = _classPrefix.join('');
+        }
         this.el = (typeof key === 'string' ? SharedStatus.Renderer.createElement(key) : key) as T;
         this._tag = this.el.tagName.toLowerCase();
         this._isTextNode = TextTagKeys.has(this._tag as any);
         this._initEvents();
         checkHydrateEl(this);
+    }
+    private _cp (v: string, pure = false) {
+        return pure ? v : this._classPrefix + v;
     }
     private _initEvents () {
         const click: any = (fn: any) => this._on('click', fn);
@@ -70,9 +88,15 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
         return this;
     }
     class (): string;
-    class (val: IReactiveLike<string>): this;
-    class (val?: IReactiveLike<string>): string | this {
-        return this._ur('className', val);
+    class (val: IReactiveLike<string>, pure?: boolean): this;
+    class (val?: IReactiveLike<string>, pure = false): string | this {
+        if (typeof val === 'undefined') {
+            return this.el.className;
+        }
+        this._useR(val, (v) => {
+            this.el.className = this._cp(v, pure);
+        });
+        return this;
     }
     id (): string;
     id (val: IReactiveLike<string>): this;
@@ -84,22 +108,22 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     placeholder (val?: IReactiveLike<string>): string | this {
         return this._ur('placeholder', val);
     }
-    addClass (name: string) {
-        this.el.classList.add(name);
+    addClass (name: string, pure = false) {
+        this.el.classList.add(this._cp(name, pure));
         return this;
     }
-    removeClass (name: string) {
-        this.el.classList.remove(name);
+    removeClass (name: string, pure = false) {
+        this.el.classList.remove(this._cp(name, pure));
         return this;
     }
-    hasClass (name: string): boolean {
-        return this.el?.classList.contains(name);
+    hasClass (name: string, pure = false): boolean {
+        return this.el?.classList.contains(this._cp(name, pure));
     }
-    toggleClass (name: string, force?: boolean): boolean {
-        return !!this.el?.classList.toggle(name, force);
+    toggleClass (name: string, force?: boolean, pure = false): boolean {
+        return !!this.el?.classList.toggle(this._cp(name, pure), force);
     }
-    replaceClass (n: string, old: string) {
-        return this.removeClass(old).addClass(n);
+    replaceClass (n: string, old: string, pure = false) {
+        return this.removeClass(this._cp(old, pure)).addClass(this._cp(n, pure));
     }
     remove () {
         this.el?.remove();

@@ -20,6 +20,8 @@ export type ITagCreator<T extends HTMLElement> = (
     ...doms: IChild[]
 ) => Dom<T>
 
+export type ITagCreatorProxy<prop extends TDomName> = ITagCreator<HTMLElementTagNameMap[prop]> & Dom<HTMLElementTagNameMap[prop]>
+
 const attrs = new Set([
     ...Object.getOwnPropertyNames(Dom.prototype),
     ...Object.getOwnPropertyNames(BaseNode.prototype),
@@ -27,8 +29,20 @@ const attrs = new Set([
 ]);
 const Map: any = {};
 
+// // const FirstCallApi = [ 'classPrefix', 'if', 'elif', 'else', 'case', 'default' ] as const;
+// const FirstCallApi = [ 'if', 'elif', 'else', 'case', 'default' ] as const;
+// const FirstCallApiSet = new Set(FirstCallApi);
+
 const Short: {
-    [prop in TDomName]: ITagCreator<HTMLElementTagNameMap[prop]> & Dom<HTMLElementTagNameMap[prop]>;
+    [prop in TDomName]: ITagCreatorProxy<prop> & {
+        // 这里是只有首次可以调用到的方法
+        // classPrefix: (...prefixs: string[]) => ITagCreatorProxy<prop>;
+        // if: (ref: IReactiveLike) => ITagCreatorProxy<prop>;
+        // elif: (ref: IReactiveLike) => ITagCreatorProxy<prop>;
+        // else: () => ITagCreatorProxy<prop>;
+        // case: (cond: any|(any[])|(()=>any)) => ITagCreatorProxy<prop>;
+        // default: () => ITagCreatorProxy<prop>;
+    };
 } = {} as any;
 
 (() => {
@@ -59,9 +73,16 @@ function createTagProxy <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom):
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Short;
             if (key === 'el') return initEl().el;
+            if (typeof key !== 'string') return initEl().el[key];
             if (attrs.has(key as string)) {
                 return createFnObject(tag, key as string, isTextNode);
             }
+            // if (FirstCallApiSet.has(key as any)) {
+            //     if (key === 'if') {
+
+            //     }
+            //     debugger;
+            // }
             if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
             return undefined;
         }
@@ -156,7 +177,6 @@ function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode:
             if (key === '__ld_type') return LinkDomType.Short;
             if (key === 'el') {
                 if (isTextNode) {
-                    debugger;
                     callMap.forEach(({ k, args }) => {
                         for (const child of Array.from((el as Frag).children)) {
                             child[k](...args);
@@ -208,8 +228,8 @@ export const fromHTML: <T extends HTMLElement = HTMLElement>(v: string)=>Dom<T> 
 export const style = tag('style');
 export const script = tag('script');
 
-window.ss = style;
-window.tt = tag;
+// window.ss = style;
+// window.tt = tag;
 
 export const d = {
     ...Short,
@@ -219,7 +239,7 @@ export const d = {
     script,
     frag,
 };
-window.d = d;
+// window.d = d;
 
 export const {
     switch: Switch,
