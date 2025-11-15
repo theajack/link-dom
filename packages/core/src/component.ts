@@ -7,9 +7,13 @@ import type { IController } from './controller';
 import type { Dom, IChild } from './element';
 import { getReactiveValue as read, LinkDomType } from './utils';
 import { mount, type IMountParent } from './mount';
+import type { Comment, Frag, Text } from './text';
+import type { IReactiveLike } from './type';
 // import { createLifeScope, LifeScopeType } from './lifes';
 
-export type ISlot = Dom | HTMLElement | Dom | IController | (()=>ISlot);
+type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController;
+export type ISlot = ISlotBase | (()=>ISlotBase);
+
 export type ISlots<T extends string = string> = {
     [key in T]: ISlot;
 }
@@ -175,12 +179,13 @@ function createEmit (getp: () => any) {
 function createSlot (getp: () => any) {
     const slots: ISlots = {} as any;
     const slotFn = function (key: any, value: any) {
+        debugger;
         if (arguments.length === 1) {
             value = key;
             key = 'default';
         }
         slots[key || 'default'] = value;
-        console.log('slot', slots, key, value);
+        // console.log('slot', slots, key, value);
         return getp();
     };
     return {
@@ -278,75 +283,60 @@ export function defineComponent<
     flow?: boolean,
     name?: string,
 } = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
-    const { scope, utils, setProxy } = createScope(flow);
-
-    let p: any = null;
     const target = (...slots: ISlot[]) => {
+        const { scope, utils, setProxy } = createScope(flow);
+        window.xxx = { scope, utils, setProxy };
+        debugger;
         for (const item of slots) {
             utils.slot((item as any).__slot_name, item);
         }
+        p = new Proxy(target, {
+            get (_, key) {
+                if (key === '__ld_type') return LinkDomType.Component;
+                if (key === 'name') return name;
+                if (key === 'el') {
+                    console.log('xxxxx', scope.slots);
+                    // ! 组合返回值
+                    return fn(scope as any);
+                // return createLifeScope(LifeScopeType.Component, () => fn(scope as any));
+                }
+                if (typeof key === 'symbol' || FnKeys.has(key as string)) {
+                    return fn[key];
+                }
+                if (key in utils) return utils[key];
+                return (value: any) => utils.prop(key, value);
+            }
+        });
+        setProxy(p);
         return p;
     };
 
-    p = new Proxy(target, {
+    // console.log('debug end', 'new comp');
+    let p = new Proxy(target, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Component;
             if (key === 'name') return name;
             if (key === 'el') {
+                debugger;
                 // ! 组合返回值
-                return fn(scope as any);
+                // @ts-ignore
+                return target().el;
                 // return createLifeScope(LifeScopeType.Component, () => fn(scope as any));
             }
             if (typeof key === 'symbol' || FnKeys.has(key as string)) {
                 return fn[key];
             }
-            if (key in utils) return utils[key];
-            return (value: any) => utils.prop(key, value);
+            const comp = target();
+            // @ts-ignore
+            return comp[key];
+            // // @ts-ignore
+            // if (key in comp.__utils) {
+            //     // @ts-ignore
+            //     return comp.__utils[key];
+            // }
+            // // @ts-ignore
+            // return (value: any) => comp.prop(key, value);
         }
     });
-    setProxy(p);
-    // console.log('debug end', 'new comp');
     return p as any;
 }
-
-export class ComponentScope {
-    children: ComponentScope[] = [];
-    parent: ComponentScope|null = null;
-    root: ComponentScope;
-    constructor (
-            public dom: IComponentProxy|null,
-            public isRoot = false,
-    ) {
-        // enterScope(this);
-    }
-}
-export const ComponentScopeProxy = (() => {
-    const ScopeLink: ComponentScope[] = [];
-    let current: ComponentScope|null = null;
-
-    return {
-        root (dom: IComponentProxy|null) {
-            const scope = new ComponentScope(dom, true);
-            current = scope.root = scope;
-            return scope;
-        },
-        enter (dom: IComponentProxy|null) {
-            const scope = new ComponentScope(dom);
-            ScopeLink.push(scope);
-            if (current) {
-                scope.parent = current;
-                scope.root = current.root;
-                current.children.push(scope);
-            }
-            current = scope;
-            return scope;
-        },
-        exit () {
-            ScopeLink.pop();
-            current = ScopeLink[ScopeLink.length - 1] || null;
-        },
-        getCurrent () {
-            return current;
-        },
-    };
-})();

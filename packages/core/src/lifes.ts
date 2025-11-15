@@ -1,7 +1,7 @@
 // mounted 和 unmounted
 
-import type { ComponentScope } from './component';
 import { type IComponentProxy } from './component';
+import type { AwaitClass } from './controller/await';
 import type { ForClass } from './controller/for/for';
 import type { IfClass } from './controller/if';
 import { LinkDomType } from './utils';
@@ -31,6 +31,8 @@ export enum LifeScopeType {
     If = LinkDomType.If,
     Component = LinkDomType.Component,
     RouterView = LinkDomType.RouterView,
+    Await = LinkDomType.Await,
+    Switch = LinkDomType.Switch,
 }
 
 export let CurrentScope: LifeScope|null = null;
@@ -38,6 +40,10 @@ export let CurrentScope: LifeScope|null = null;
 const LifeScopeLink: LifeScope[] = [];
 
 const scopes: LifeScope[] = [];
+
+type RouterView = any; // 暂时仅做语义使用
+type IScopeDynamicDom = IfClass|ForClass|RouterView|AwaitClass;
+type IScopeDom = IScopeDynamicDom|IComponentProxy|null;
 
 export class LifeScope {
     children: LifeScope[] = [];
@@ -47,17 +53,19 @@ export class LifeScope {
 
     constructor (
         public type: LifeScopeType,
-        public dom: IfClass|ForClass|IComponentProxy|null
+        public dom: IScopeDom
     ) {
-        // enterScope(this);
         scopes.push(this);
         if (type === LifeScopeType.Root) {
             this.root = this;
         }
+        if (dom) {
+            dom.__ld_scope = this;
+        }
     }
 }
 
-export function onEnterScope (type: LifeScopeType, dom: IfClass|ForClass|IComponentProxy|null, component: ComponentScope | null) {
+export function onEnterScope (type: LifeScopeType, dom: IScopeDom, component: ComponentScope | null) {
     const scope = new LifeScope(type, dom);
     scope.component = component;
     LifeScopeLink.push(scope);
@@ -74,3 +82,52 @@ export function onExitScope () {
     LifeScopeLink.pop();
     CurrentScope = LifeScopeLink[LifeScopeLink.length - 1] || null;
 }
+
+
+export function scopeMounted (target: IScopeDynamicDom) {
+
+}
+
+
+// ! 以下为组件的scope
+export class ComponentScope {
+    children: ComponentScope[] = [];
+    parent: ComponentScope|null = null;
+    root: ComponentScope;
+    constructor (
+            public dom: IComponentProxy|null,
+            public isRoot = false,
+    ) {
+        // enterScope(this);
+    }
+}
+export const ComponentScopeProxy = (() => {
+    const ScopeLink: ComponentScope[] = [];
+    let current: ComponentScope|null = null;
+
+    return {
+        root (dom: IComponentProxy|null) {
+            const scope = new ComponentScope(dom, true);
+            current = scope.root = scope;
+            return scope;
+        },
+        enter (dom: IComponentProxy|null) {
+            const scope = new ComponentScope(dom);
+            ScopeLink.push(scope);
+            if (current) {
+                scope.parent = current;
+                scope.root = current.root;
+                current.children.push(scope);
+            }
+            current = scope;
+            return scope;
+        },
+        exit () {
+            ScopeLink.pop();
+            current = ScopeLink[ScopeLink.length - 1] || null;
+        },
+        getCurrent () {
+            return current;
+        },
+    };
+})();

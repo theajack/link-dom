@@ -6,7 +6,7 @@
 import type { IChild } from '../element';
 import { Frag } from '../text';
 import type { IOptionStyle, IReactiveLike } from '../type.d';
-import { LinkDomType } from '../utils';
+import { LinkDomType, parseFuncWrap } from '../utils';
 import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { createMarkerNode } from './_marker';
@@ -44,8 +44,7 @@ export class ShowClass {
     ) {
         this.frag = new Frag();
         const nodes: [HTMLElement, any][] = [];
-        const el = typeof gene === 'function' ? gene() : gene;
-        traverseChildren([ el ], (dom: HTMLElement) => {
+        traverseChildren([ parseFuncWrap(gene) ], (dom: HTMLElement) => {
             if (!this._marker) this._marker = dom;
             let helper: any;
             if (dom.nodeType === Node.TEXT_NODE) {

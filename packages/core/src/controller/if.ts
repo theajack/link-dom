@@ -6,12 +6,13 @@
  */
 import type { IChild } from '../element';
 import { Frag } from '../text';
-import { LinkDomType } from '../utils';
+import { LinkDomType, parseFuncWrap } from '../utils';
 import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
 import type { IReactiveLike } from '../type.d';
 import { SharedStatus } from 'link-dom-shared';
+import type { SwitchClass } from './switch';
 // import { CurrentScope, LifeScope, LifeScopeType } from '../lifes';
 
 // let id = 0;
@@ -39,8 +40,9 @@ class IfScope {
     toFrag (): Frag {
         // console.log(this.id, SharedStatus.isHydrating, SharedStatus.isSSR);
         if (!this.frag) {
-            const el = typeof this.gene === 'function' ? this.gene() : this.gene;
-            this.frag = new Frag().append(el);
+            this.frag = new Frag().append(
+                parseFuncWrap(this.gene)
+            );
         } else {
             if (!SharedStatus.isHydrating &&
                 // @ts-ignore
@@ -69,6 +71,8 @@ export class IfClass {
 
     __ld_type = LinkDomType.If;
     id = id++;
+
+    _switchProxy?: SwitchClass; // 是否是代理Switch
 
     private frag: Frag;
 
@@ -171,6 +175,8 @@ export class IfClass {
         this.activeIndex = index;
         if (index >= 0) {
             this.frag.append(this.scopes[index].toFrag());
+            // // ! 初始化if加载
+            // debugger;
         }
         if (!isStatic) this.frag.append(this.marker.end!);
         this._el = this.frag.el;

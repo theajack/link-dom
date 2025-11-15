@@ -151,3 +151,11 @@ export function toggle (v: IComputed<boolean>|Ref<boolean>) {
 export function isJoin (v: any): v is Join {
     return v?.__is_join === true;
 }
+
+export function isPureFunc (v: any) {
+    return typeof v === 'function' && typeof v.__ld_type !== 'number';
+}
+
+export function parseFuncWrap (v: any) {
+    return (isPureFunc(v)) ? v() : v;
+}

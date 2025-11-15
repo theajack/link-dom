@@ -4,11 +4,10 @@ import type { IController } from './controller';
 import type { IChild } from './element';
 import { Dom } from './element';
 import type { Frag } from './text';
-import { LinkDomType } from './utils';
-import { LifeScopeType, onEnterScope, onExitScope } from './lifes';
+import { isPureFunc, LinkDomType } from './utils';
+import { ComponentScopeProxy, LifeScopeType, onEnterScope, onExitScope } from './lifes';
 import { IfClass } from './controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
-import { ComponentScopeProxy } from './component';
 
 export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: Dom<E>
@@ -69,7 +68,7 @@ function parseNode (node: IMountDom|IMountDom[]|IChild) {
         return node.map(item => parseNode(item));
     } else if (node.__ld_type === LinkDomType.StyleBuilder) {
         return node.dom;
-    } else if (typeof node === 'function') {
+    } else if (isPureFunc(node)) {
         return node();
     }
     return node;
@@ -79,6 +78,7 @@ const IsFcApiKeys = new Set([ 'if', 'elif', 'else' ]);
 const ScopeTypes = new Set([
     LifeScopeType.If, LifeScopeType.For,
     LifeScopeType.Component, LifeScopeType.RouterView,
+    LifeScopeType.Await, LifeScopeType.Switch,
 ]);
 
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
@@ -92,6 +92,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             return;
         }
         const ldType = dom.__ld_type;
+        if (ldType === LinkDomType.RouterView) debugger;
         const isScopeType = ScopeTypes.has(ldType);
         if (isScopeType && !isSSR) {
             const scope = (ldType === LinkDomType.Component) ? ComponentScopeProxy.enter(dom) : null;

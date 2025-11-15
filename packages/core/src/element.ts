@@ -26,7 +26,6 @@ interface IEvent<T extends HTMLElement = HTMLElement> {
     (name: IEventAttributes): ITagCreator<T> & Dom<T>;
 }
 
-
 const _classPrefix: string[] = [];
 
 export function classPrefix (...prefixs: string[]) {
