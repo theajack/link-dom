@@ -41,3 +41,5 @@ const App = () => {
 };
 
 mount(App, '#app');
+
+// Child.mounted

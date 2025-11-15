@@ -6,7 +6,7 @@ import { LinkDomType, useReactive } from './utils';
 import type { IStyleKey } from './type.d';
 import type { IStyle } from './type.d';
 import type { ITagCreator } from './short';
-import { mount } from './dom';
+import { mount } from './mount';
 
 
 type IGlobalStyle = {

@@ -6,6 +6,8 @@ import { reader } from 'link-dom-reactive';
 import type { IController } from './controller';
 import type { Dom, IChild } from './element';
 import { getReactiveValue as read, LinkDomType } from './utils';
+import { mount, type IMountParent } from './mount';
+// import { createLifeScope, LifeScopeType } from './lifes';
 
 export type ISlot = Dom | HTMLElement | Dom | IController | (()=>ISlot);
 export type ISlots<T extends string = string> = {
@@ -48,6 +50,7 @@ export type IComponentProxy<
     PropKey extends keyof Props = keyof Props,
 > = {
     (...slots: ISlot[]): IComponentProxy<Props, Emits, Slots, Exposes>;
+    prop<K extends PropKey>(key: K, prop: Props[K]): IComponentProxy<Props, Emits, Slots, Exposes>;
     props(props: Props): IComponentProxy<Props, Emits, Slots, Exposes>;
     slots(slots: Slots): IComponentProxy<Props, Emits, Slots, Exposes>;
     slot: {
@@ -65,6 +68,7 @@ export type IComponentProxy<
     },
     expose: Exposes,
     ref: (v: IComponentProxy|Ref) => IComponentProxy<Props, Emits, Slots, Exposes>;
+    mount: (parent: IMountParent) => IComponentProxy<Props, Emits, Slots, Exposes>;
 } & {
     [Key in PropKey]: (
         Props[Key] extends boolean ?
@@ -231,6 +235,10 @@ function createScope (flow = true) {
             }
             return p;
         },
+        mount (parent: IMountParent) {
+            mount(p, parent);
+            return p;
+        },
         expose,
         ...emitUtils,
         ...slotUtils,
@@ -266,6 +274,8 @@ export function defineComponent<
 > (fn: IComponent<Props, Emits, Slots, Exposes>, flow = true): IComponentProxy<Props, Emits, Slots, Exposes> {
     const { scope, utils, setProxy } = createScope(flow);
 
+    console.log('debug', 'new comp');
+
     let p: any = null;
     const target = (...slots: ISlot[]) => {
         for (const item of slots) {
@@ -277,7 +287,11 @@ export function defineComponent<
     p = new Proxy(target, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Component;
-            if (key === 'el') return fn(scope as any); // ! 组合返回值
+            if (key === 'el') {
+                // ! 组合返回值
+                return fn(scope as any);
+                // return createLifeScope(LifeScopeType.Component, () => fn(scope as any));
+            }
             if (typeof key === 'symbol' || FnKeys.has(key as string)) {
                 return fn[key];
             }
@@ -286,5 +300,6 @@ export function defineComponent<
         }
     });
     setProxy(p);
+    // console.log('debug end', 'new comp');
     return p as any;
 }

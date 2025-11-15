@@ -22,5 +22,6 @@ export { LinkDomType, getReactiveValue as read, toggle } from './utils';
 export { createStyles } from './style';
 
 export * from './short';
+export * from './mount';
 
 export * from './component';

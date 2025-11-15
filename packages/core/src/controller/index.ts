@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import type { IChild } from '../element';
+import type { Dom, IChild } from '../element';
 import { isReactive, type Ref } from 'link-dom-reactive';
 import type { IReactiveLike } from '../type.d';
 import { ForClass } from './for/for';
@@ -14,6 +14,7 @@ import type { IOptionStyle } from '../type.d';
 import { ShowClass } from './show';
 import { AwaitClass } from './await';
 import { SharedStatus } from 'link-dom-shared';
+import { LinkDomType } from '../utils';
 
 export type IController = ForClass | IfClass | SwitchClass;
 
@@ -44,8 +45,46 @@ export const ctrl = {
         }
         return target;
     },
-    switch (ref: IReactiveLike) {
-        return new SwitchClass(ref);
+    switch (ref: IReactiveLike): SwitchClass & {
+        (...args: Dom[]): SwitchClass
+    } {
+        const target = new SwitchClass(ref);
+        let p: any = null;
+        const fn = (...args: Dom[]) => {
+            let hasDefault = false;
+            for (const item of args) {
+                const type = (item as any).__fc_api_link;
+                if (!type) {
+                    throw new Error('Switch can only has case or default children');
+                }
+                if (hasDefault) {
+                    throw new Error('Switch can only has one default children');
+                }
+                if (type === 'default') {
+                    hasDefault = true;
+                    target.default(item);
+                } else if (type === 'case') {
+                    const value = (item as any).__fc_api_value;
+                    debugger;
+                    target.case(value, item);
+                }
+            }
+            return p;
+        };
+        p = new Proxy(fn, {
+            get (_, key) {
+                if (key === '__ld_type') return LinkDomType.Switch;
+                if (key === 'el') return target.el;
+                if (typeof target[key] === 'function') {
+                    return (...args: any[]) => {
+                        target[key](...args);
+                        return p;
+                    };
+                }
+                return target[key];
+            }
+        });
+        return p;
     },
     scope (gene: ()=>IChild) {
         return gene();

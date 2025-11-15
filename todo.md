@@ -135,5 +135,6 @@ mounted 未生效 bind.on 会报错 【DONE】
 [todo]
 
 - [x] class 前缀
-- [ ] if、switch、for api化
+- [x] if、switch、for api化
+- [x] .mount
 - [ ] unmounted mounted

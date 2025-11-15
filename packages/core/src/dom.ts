@@ -3,56 +3,15 @@
  * @Date: 2025-09-25 10:46:55
  * @Description: Coding something
  */
-import type { IController } from './controller';
-import type { IChild } from './element';
 import { Dom } from './element';
 import { type IComputedLike } from 'link-dom-reactive';
 import { Comment, Frag } from './text';
 import { Text } from './text';
-import type { IElement } from 'link-dom-shared';
-import { SharedStatus } from 'link-dom-shared';
 import { createStyles } from './style';
 import type { IStyleLink } from './style';
-import { LinkDomType } from './utils';
+import type { TDomName } from './mount';
+import { find, query } from './mount';
 // import { style } from './short';
-
-export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
-    [k in T[number]]: Dom<E>
-} {
-    const refs: any = {};
-    list.forEach(name => {
-        refs[name] = (ele: Dom) => { refs[name] = ele; };
-    });
-    return refs;
-}
-
-export const collectRef = refs;
-
-export type TDomName = keyof HTMLElementTagNameMap;
-
-export function query <T extends HTMLElement = HTMLElement>(selector: string, one: true): Dom<T>;
-export function query <T extends HTMLElement = HTMLElement>(selector: string, one?: false): Dom<T>[];
-export function query <T extends HTMLElement = HTMLElement> (selector: string, one = false): Dom<T>|Dom<T>[] {
-    return queryBase(selector, one, SharedStatus.Renderer);
-}
-
-export function find <T extends HTMLElement = HTMLElement> (selector: string): Dom<T> {
-    return queryBase(selector, true, SharedStatus.Renderer);
-}
-
-export function queryBase (selector: string, one = false, parent: any = SharedStatus.Renderer): any {
-    if (one) {
-        const el = parent.querySelector(selector);
-        if (el) return new Dom(el as HTMLElement);
-        throw new Error('Element is not exist' + selector);
-    }
-    const list = parent.querySelectorAll(selector);
-    const res: (Dom)[] = [];
-    for (let i = 0; i < list.length; i++) {
-        res.push(new Dom(list[i] as HTMLElement));
-    }
-    return res;
-}
 
 export const dom: {
     [prop in TDomName]: Dom<HTMLElementTagNameMap[prop]> & IStyleLink<Dom<HTMLElementTagNameMap[prop]>>;
@@ -84,32 +43,3 @@ export const dom: {
         return target[key];
     },
 }) as any;
-
-export type IMountDom = Dom|Frag|Text|Comment|IController;
-
-export function mount (node: IMountDom|IMountDom[]|IChild, parent: string|HTMLElement|Dom|Frag|IElement) {
-    let el: any = parent;
-    if (typeof parent === 'string') {
-        el = queryBase(parent, true);
-    } else {
-        el = new Dom(el);
-    }
-    node = parseNode(node);
-    Array.isArray(node) ? el.append(...node) : el.append(node);
-}
-
-function parseNode (node: IMountDom|IMountDom[]|IChild) {
-    if (Array.isArray(node)) {
-        return node.map(item => parseNode(item));
-    } else if (node.__ld_type === LinkDomType.StyleBuilder) {
-        return node.dom;
-    } else if (typeof node === 'function') {
-        return node();
-    }
-    return node;
-}
-
-export function childToFrag (node: IChild) {
-    const frag = new Frag().append(node);
-    return frag.el;
-}

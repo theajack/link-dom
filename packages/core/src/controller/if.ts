@@ -12,6 +12,7 @@ import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
 import type { IReactiveLike } from '../type.d';
 import { SharedStatus } from 'link-dom-shared';
+// import { CurrentScope, LifeScope, LifeScopeType } from '../lifes';
 
 // let id = 0;
 
@@ -21,6 +22,7 @@ import { SharedStatus } from 'link-dom-shared';
 class IfScope {
 
     frag: Frag;
+    // lifeScope: LifeScope;
 
     // id: number;
 
@@ -28,6 +30,8 @@ class IfScope {
         public ref: IReactiveLike,
         private gene: (()=>IChild)|IChild,
     ) {
+        // console.log('debug', 'new if scope', ref);
+        // this.lifeScope = new LifeScope(LifeScopeType.If);
     //     this.id = id++;
     //     window.a[this.id] = this;
     }
@@ -45,6 +49,7 @@ class IfScope {
                 this.frag.el = this.frag.el.toDom().el;
             }
         }
+        // console.log('debug end', 'new if scope', this.ref);
         return this.frag;
     }
 
@@ -59,9 +64,11 @@ class IfScope {
 }
 
 
+let id = 0;
 export class IfClass {
 
     __ld_type = LinkDomType.If;
+    id = id++;
 
     private frag: Frag;
 
@@ -89,8 +96,10 @@ export class IfClass {
         ref: IReactiveLike<any>,
         gene: (()=>IChild)|IChild,
     ) {
+        console.log('debug', 'new if', this.id, ref);
         this._addCond(ref, gene);
         this.marker = new Marker();
+        // console.warn('debug end', 'new if', ref);
     }
     elif (ref: IReactiveLike<any>, gene: (()=>IChild)|IChild) {
         return this._addCond(ref, gene);
@@ -105,6 +114,10 @@ export class IfClass {
     }
     private _clearWatch: ()=>void;
     __mounted () {
+        // this.scopes.forEach(scope => {
+        //     scope.lifeScope.parent = CurrentScope;
+        // });
+        // console.trace('11111111');
         if (!this.frag) return;
         // console.log('test:if mounted');
         // this._initChildren();

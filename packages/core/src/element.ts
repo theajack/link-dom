@@ -1,7 +1,8 @@
 import { type IReactive } from 'link-dom-reactive';
 import type { IAttrKey, IEventAttributes, IEventDecorator, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
-import { LinkDomType, traverseChildren, bind } from './utils';
-import { queryBase } from './dom';
+import { LinkDomType, bind } from './utils';
+import type { IMountParent } from './mount';
+import { mount, queryBase, traverseChildren } from './mount';
 import type { Comment, Frag, Text } from './text';
 import type { IReactiveLike } from './type.d';
 import type { Join } from './join';
@@ -311,6 +312,11 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
 
     bind (v: IReactive) {
         bind(this, v);
+        return this;
+    }
+
+    mount (parent: IMountParent) {
+        mount(this, parent);
         return this;
     }
 }

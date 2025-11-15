@@ -3,19 +3,15 @@
  * @Date: 2024-12-13 11:33:49
  * @Description: Coding something
  */
-import { type IChild } from './element';
 import type {
     IComputed,
     Ref
 } from 'link-dom-reactive';
 import {
-    isReactiveLike, DepUtil, observe, isReactive, type IReactive
+    DepUtil, observe, isReactive, type IReactive
 } from 'link-dom-reactive';
-import { Text } from './text';
-
 import type { Dom } from './element';
 import { type Join, isJoin } from './join';
-import { SharedStatus } from 'link-dom-shared';
 export enum LinkDomType {
     Dom,
     Text,
@@ -32,7 +28,6 @@ export enum LinkDomType {
     StyleBuilder,
     Short,
     Component,
-
 
     Ref = 1000,
 }
@@ -144,33 +139,7 @@ export function getReactiveValue<T extends any> (v: T|IReactive<T>): T {
         return v as T;
     }
 }
-export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
-    doms.forEach(dom => {
-        if (typeof dom === 'undefined' || dom === null) return;
-        if (Array.isArray(dom)) {
-            traverseChildren(dom, onChild);
-            return;
-        }
-        let el: any = dom;
-        if (el.__ld_type === LinkDomType.Component) {
-            const v = el.el;
-            el.__beforMount();
-            traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
-            el.__mounted();
-            return;
-        } else if (typeof el.__ld_type === 'number') {
-            el = el.el;
-        } else if (isReactiveLike(el)) {
-            el = new Text(el);
-            el = el.el;
-        } else if (!(dom instanceof Node) && !(dom?.__is_ssr)) {
-            el = SharedStatus.Renderer.createTextNode(`${dom}`);
-        }
-        onChild(el, dom);
-        // @ts-ignore
-        dom.__mounted?.(dom);
-    });
-}
+
 
 export function toggle (v: IComputed<boolean>|Ref<boolean>) {
     return () => {v.value = !v.value;};

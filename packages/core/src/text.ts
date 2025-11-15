@@ -5,10 +5,11 @@
  */
 
 import type { IChild } from './element';
-import { LinkDomType, traverseChildren } from './utils';
+import { LinkDomType } from './utils';
 import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
 import { BaseNode } from './node';
 import type { IReactiveLike } from './type';
+import { traverseChildren } from './mount';
 
 export class Text extends BaseNode<globalThis.Text> {
     __ld_type = LinkDomType.Text;

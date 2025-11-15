@@ -16,6 +16,14 @@ function SwitchApp () {
             .case([ 2, 3, 4 ], () => span('num < 5'))
             .case(5, () => span('num = 5'))
             .default(() => span(join`num = ${num}`)),
+
+        // or
+        Switch(num)(
+            span.case([ 0, 1 ])('num < 2'),
+            span.case([ 2, 3, 4 ])('num < 5'),
+            span.case(5)('num = 5'),
+            span.default()(join`num = ${num}`),
+        )
     );
 }
 mount(SwitchApp, '#app');

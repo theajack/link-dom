@@ -83,6 +83,7 @@ export class ForChild<T=any> {
         itemRef: boolean,
         useIndex?: ()=>void,
     ) {
+        // console.log('debug', 'new for child');
         // debugger;
         this.data = itemRef ? (isDeep ? ref(data) : { value: data } as Ref) : data;
         const _this = this;
@@ -97,6 +98,8 @@ export class ForChild<T=any> {
         };
         // if (!window.fcChild)window.fcChild = [];
         // window.fcChild.push(this);
+        // console.log('debug end', 'new for child');
+        // console.warn('debug end', 'new for child');
     }
     setIndex (v: number) {
         if (v === this._index) return;

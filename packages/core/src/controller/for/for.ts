@@ -18,6 +18,7 @@ import { ForGlobal } from './for-util';
 
 // }
 
+
 export class ForClass <T=any> {
 
     __ld_type = LinkDomType.For;
@@ -49,6 +50,7 @@ export class ForClass <T=any> {
         _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         private itemRef = false,
     ) {
+        console.log('debug', 'new for', _list);
         // window._for = this;
 
         // this._list = (isRef(_list)) ? _list.value : _list;
@@ -61,6 +63,7 @@ export class ForClass <T=any> {
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
         this._initChildren();
+        console.warn('debug end', 'new for');
     }
 
     // private resetList () {

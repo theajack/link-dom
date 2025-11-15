@@ -4,7 +4,6 @@
  * @Description: Coding something
  */
 
-import { type TDomName } from './dom';
 import type { IChild } from './element';
 import { DKeys, Dom, TextTagKeys } from './element';
 import { Comment, Frag, Text } from './text';
@@ -13,6 +12,7 @@ import { createStyles } from './style';
 import { ctrl } from './controller';
 import type { IReactiveLike } from './type';
 import { BaseNode } from './node';
+import type { TDomName } from './mount';
 
 export const EventAttrs = new Set([ 'click', 'on' ] as const);
 
@@ -30,18 +30,18 @@ const attrs = new Set([
 const Map: any = {};
 
 // // const FirstCallApi = [ 'classPrefix', 'if', 'elif', 'else', 'case', 'default' ] as const;
-// const FirstCallApi = [ 'if', 'elif', 'else', 'case', 'default' ] as const;
-// const FirstCallApiSet = new Set(FirstCallApi);
+const FirstCallApi = [ 'if', 'elif', 'else', 'case', 'default' ] as const;
+const FirstCallApiSet = new Set(FirstCallApi);
 
 const Short: {
     [prop in TDomName]: ITagCreatorProxy<prop> & {
         // 这里是只有首次可以调用到的方法
         // classPrefix: (...prefixs: string[]) => ITagCreatorProxy<prop>;
-        // if: (ref: IReactiveLike) => ITagCreatorProxy<prop>;
-        // elif: (ref: IReactiveLike) => ITagCreatorProxy<prop>;
-        // else: () => ITagCreatorProxy<prop>;
-        // case: (cond: any|(any[])|(()=>any)) => ITagCreatorProxy<prop>;
-        // default: () => ITagCreatorProxy<prop>;
+        if: (ref: IReactiveLike) => ITagCreatorProxy<prop>;
+        elif: (ref: IReactiveLike) => ITagCreatorProxy<prop>;
+        else: (...args: IChild[]) => ITagCreatorProxy<prop>;
+        case: (cond: any|(any[])|(()=>any)) => ITagCreatorProxy<prop>;
+        default: (...args: IChild[]) => ITagCreatorProxy<prop>;
     };
 } = {} as any;
 
@@ -73,16 +73,11 @@ function createTagProxy <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom):
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Short;
             if (key === 'el') return initEl().el;
-            if (typeof key !== 'string') return initEl().el[key];
-            if (attrs.has(key as string)) {
+            if (typeof key !== 'string') return undefined;
+            // if (typeof key !== 'string') return initEl().el[key];
+            if (attrs.has(key as string) || FirstCallApiSet.has(key as any)) {
                 return createFnObject(tag, key as string, isTextNode);
             }
-            // if (FirstCallApiSet.has(key as any)) {
-            //     if (key === 'if') {
-
-            //     }
-            //     debugger;
-            // }
             if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
             return undefined;
         }
@@ -141,6 +136,14 @@ function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode:
     const initEl = () => createProxyEl(isTextNode, tag);
 
     const callAttr = (k: string, args: any[]) => {
+        if (FirstCallApiSet.has(k as any)) {
+            el.__fc_api_link = k;
+            el.__fc_api_value = args[0];
+            if (k === 'default' || k === 'else') {
+                if (args.length) fn(...args);
+            }
+            return;
+        }
         if (isTextNode) {
             if (k === 'text') {
                 // ! 如果是文本比较特殊，得生成对应的文本元素
@@ -203,7 +206,7 @@ function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode:
                 return fn;
             }
             if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
-            return undefined;
+            return el[key];
         }
     });
     return p;

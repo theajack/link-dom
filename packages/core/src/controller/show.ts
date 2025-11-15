@@ -6,11 +6,12 @@
 import type { IChild } from '../element';
 import { Frag } from '../text';
 import type { IOptionStyle, IReactiveLike } from '../type.d';
-import { LinkDomType, traverseChildren } from '../utils';
+import { LinkDomType } from '../utils';
 import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { createMarkerNode } from './_marker';
 import { SharedStatus } from 'link-dom-shared';
+import { traverseChildren } from '../mount';
 
 function getDefaultStyle (el: HTMLElement, def?: any) {
     if (def) return def;
