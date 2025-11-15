@@ -5,6 +5,7 @@ import type { IChild } from './element';
 import { Dom } from './element';
 import type { Frag } from './text';
 import { isPureFunc, LinkDomType } from './utils';
+import type { ComponentScope } from './lifes';
 import { ComponentScopeProxy, LifeScopeType, onEnterScope, onExitScope } from './lifes';
 import { IfClass } from './controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
@@ -92,10 +93,10 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             return;
         }
         const ldType = dom.__ld_type;
-        if (ldType === LinkDomType.RouterView) debugger;
+        // if (ldType === LinkDomType.RouterView) debugger;
         const isScopeType = ScopeTypes.has(ldType);
         if (isScopeType && !isSSR) {
-            const scope = (ldType === LinkDomType.Component) ? ComponentScopeProxy.enter(dom) : null;
+            const scope = (ldType === LinkDomType.Component) ? ComponentScopeProxy.root(dom) : null;
             onEnterScope(ldType, dom, scope);
         }
         // if ([ LinkDomType.If ].includes(ldType)) {
@@ -113,13 +114,19 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         let el: any = dom;
         if (ldType === LinkDomType.Component) {
             const v = el.el;
-            el.__beforMount();
+            // ! 必须要在el之后 组件才会初始化，才会挂载生命周期函数
+            if (!isSSR) {
+                dom.__beforeMount();
+            }
             traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
-            el.__mounted();
-            console.warn('debug end', 'component');
+            // console.warn('debug end', 'component');
             if (!isSSR) {
                 ComponentScopeProxy.exit();
                 onExitScope();
+                if (!v.__first_mount) {
+                    dom.__mounted();
+                    v.__first_mount = true;
+                }
             }
             return;
         } else if (typeof ldType === 'number') {

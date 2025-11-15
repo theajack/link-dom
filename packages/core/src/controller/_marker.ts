@@ -65,14 +65,12 @@ export class Marker {
         if (!parent) {
             throw new Error('parent is null');
         }
-        const list = this.clear();
         const next = this.start.nextSibling;
         if (!next) {
             parent.appendChild(frag);
         } else {
             parent.insertBefore(frag, next);
         }
-        return list;
     }
 }
 

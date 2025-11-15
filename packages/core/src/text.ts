@@ -61,7 +61,7 @@ export class Frag {
     get children () {
         return this._isMounted ? this.el.children : this._children;
     }
-    _mounted?: (el: Frag)=>void;
+    _mounted: ((el: Frag)=>void)[];
     // @ts-ignore
     __mounted = (el: Frag = this) => {
         if (this._isMounted) return;
@@ -69,11 +69,12 @@ export class Frag {
             child.__mounted?.(child);
         });
         this._children = [];
-        this._mounted?.(el);
+        this._mounted?.forEach(fn => fn(el));
         this._isMounted = true;
     };
     mounted (v: (el: Frag)=>void) {
-        this._mounted = v;
+        if (!this._mounted) this._mounted = [];
+        this._mounted.push(v);
         return this;
     }
 }

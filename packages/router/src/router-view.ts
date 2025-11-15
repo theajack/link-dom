@@ -73,6 +73,7 @@ export class RouterView {
             if (isFirst) {
                 isFirst = false;
                 this.if = ctrl.if(cond, comp);
+                this.if.__ifProxy = this;
             } else {
                 this.if.elif(cond, comp);
             }
@@ -83,6 +84,7 @@ export class RouterView {
         if (route404) {
             if (isFirst) {
                 this.if = ctrl.if(() => false, () => []);
+                this.if.__ifProxy = this;
             };
             this.if.else(() => route404!.component(useRouter()._getRouteComponentArgs()));
         }

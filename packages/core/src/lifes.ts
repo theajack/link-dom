@@ -1,5 +1,6 @@
 // mounted 和 unmounted
 
+import { SharedStatus } from 'link-dom-shared';
 import { type IComponentProxy } from './component';
 import type { AwaitClass } from './controller/await';
 import type { ForClass } from './controller/for/for';
@@ -37,6 +38,8 @@ export enum LifeScopeType {
 
 export let CurrentScope: LifeScope|null = null;
 
+window.cur = () => CurrentScope;
+
 const LifeScopeLink: LifeScope[] = [];
 
 const scopes: LifeScope[] = [];
@@ -51,6 +54,9 @@ export class LifeScope {
     root: LifeScope;
     component: ComponentScope|null = null;
 
+
+    childrenMap: any = null;
+
     constructor (
         public type: LifeScopeType,
         public dom: IScopeDom
@@ -63,10 +69,33 @@ export class LifeScope {
             dom.__ld_scope = this;
         }
     }
+    beforeUnmount () {
+        this.children.forEach(child => child.beforeUnmount());
+        // @ts-ignore
+        this.component?.dom.__beforeUnmount();
+    }
+    mounted () {
+        debugger;
+        this.children.forEach(child => child.mounted());
+        // @ts-ignore
+        this.component?.dom.__mounted();
+    }
+    beforeMount () {
+        this.children.forEach(child => child.beforeMount());
+        // @ts-ignore
+        this.component?.dom.__beforeMount();
+    }
+    unmounted () {
+        this.children.forEach(child => child.unmounted());
+        // @ts-ignore
+        this.component?.dom.__unmounted();
+        this.children = [];
+    }
 }
 
 export function onEnterScope (type: LifeScopeType, dom: IScopeDom, component: ComponentScope | null) {
     const scope = new LifeScope(type, dom);
+    // debugger;
     scope.component = component;
     LifeScopeLink.push(scope);
     if (CurrentScope) {
@@ -83,9 +112,50 @@ export function onExitScope () {
     CurrentScope = LifeScopeLink[LifeScopeLink.length - 1] || null;
 }
 
+/*
 
-export function scopeMounted (target: IScopeDynamicDom) {
+beforeMount
+mounted
 
+beforUnmount
+unmounted
+
+beforHydrate
+hydrated
+
+*/
+
+export function updateIfScopeBranch (scope: LifeScope, prev: number, active: number) {
+    const isSSR = SharedStatus.isSSR;
+    CurrentScope = scope;
+    // window.scope = scope;
+    return {
+        beforeUnmount () {
+            if (isSSR) return;
+            scope.beforeUnmount();
+            if (!scope.childrenMap) {
+                scope.childrenMap = {};
+            }
+            if (!scope.childrenMap[prev]) {
+                scope.childrenMap[prev] = scope.children;
+            }
+        },
+        mounted () {
+            if (isSSR) return;
+            if (!scope.childrenMap[active]) {
+                scope.childrenMap[active] = scope.children;
+            }
+            scope.mounted();
+        },
+        unmounted () {
+            if (isSSR) return;
+            scope.unmounted();
+            if (scope.childrenMap[active]) {
+                scope.children = scope.childrenMap[active];
+                scope.beforeMount();
+            }
+        },
+    };
 }
 
 

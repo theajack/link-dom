@@ -12,7 +12,7 @@ import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
 import type { IReactiveLike } from '../type.d';
 import { SharedStatus } from 'link-dom-shared';
-import type { SwitchClass } from './switch';
+import { updateIfScopeBranch, type LifeScope } from '../lifes';
 // import { CurrentScope, LifeScope, LifeScopeType } from '../lifes';
 
 // let id = 0;
@@ -70,9 +70,10 @@ let id = 0;
 export class IfClass {
 
     __ld_type = LinkDomType.If;
+    __ld_scope: LifeScope;
     id = id++;
 
-    _switchProxy?: SwitchClass; // 是否是代理Switch
+    __ifProxy?: any; // 是否是代理Switch
 
     private frag: Frag;
 
@@ -127,6 +128,7 @@ export class IfClass {
         // console.log('test:if mounted');
         // this._initChildren();
         if (this.__mountedFn) {
+            // life
             this.frag.mounted(this.__mountedFn);
         }
         this.frag?.__mounted?.(this.frag);
@@ -136,15 +138,24 @@ export class IfClass {
         this.frag = null;
     }
 
+    get _lifeScope () {
+        return this.__ld_scope || this.__ifProxy?.__ld_scope;
+    }
+
     private _initElements () {
         if (SharedStatus.isSSR || !this._renderered) return;
         let list: Node[];
         if (this.activeIndex === -1) {
             list = this.marker.clear();
         } else {
+            const life = updateIfScopeBranch(this._lifeScope, this.prevIndex, this.activeIndex);
+            life.beforeUnmount();
+            list = this.marker.clear();
+            life.unmounted();
             const frag = this.scopes[this.activeIndex].toFrag();
             frag.__mounted();
-            list = this.marker.replace(frag.el);
+            this.marker.replace(frag.el);
+            life.mounted();
         }
         this.scopes[this.prevIndex]?.store(list);
     }
@@ -174,9 +185,8 @@ export class IfClass {
         // console.log('test:if switch1', index, this.activeIndex);
         this.activeIndex = index;
         if (index >= 0) {
+            // ! 初始化if加载
             this.frag.append(this.scopes[index].toFrag());
-            // // ! 初始化if加载
-            // debugger;
         }
         if (!isStatic) this.frag.append(this.marker.end!);
         this._el = this.frag.el;

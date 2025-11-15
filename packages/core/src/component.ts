@@ -33,7 +33,9 @@ export type IExposes<T extends string = string> = {
     [key in T]: IExpose;
 }
 
-export type ILifeKeys = 'beforeMount' | 'mounted';
+const LifeKeys = [ 'beforeMount', 'mounted', 'beforeUnmount', 'unmounted', 'beforeHydrate', 'hydrated' ] as const;
+
+export type ILifeKeys = (typeof LifeKeys)[number];
 
 export function componentRefs <E extends IComponentProxy = IComponentProxy, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: E
@@ -98,11 +100,6 @@ interface IComponentArgs<
         [key in keyof Emits]: (...args: Parameters<Emits[key]>) => void
     }
     expose: Exposes,
-    // onUnmounted: () => void,
-    // onUpdated: () => void,
-    // onBeforeMount: () => void,
-    // onBeforeUnmount: () => void,
-    // onBeforeUpdate: () => void,
 }
 
 export type IComponent<
@@ -116,28 +113,27 @@ export type IComponent<
 const FnKeys = new Set([ 'apply' ]); // 是否需要不代理这些key，代理会导致打包后可能导致错误
 // ! 如 a.slot(...args) => a.slot.apply(a, args)
 
+let id = 0;
 function createLifes () {
-    const _mountedList: any[] = [];
-    const mounted = (fn: any) => {
-        _mountedList.push(fn);
+    const result = {
+        lifes: {} as Record<ILifeKeys, any>,
+        triggers: {} as any,
     };
 
-    const _beforeMountList: any[] = [];
-    const beforeMount = (fn: any) => {
-        _beforeMountList.push(fn);
-    };
+    for (const key of LifeKeys) {
+        const list: any[] = [];
+        const a = id ++;
+        result.lifes[key] = (fn: any) => {
+            console.log(`add life ${key} ${a}`);
+            list.push(fn);
+        };
+        result.triggers[`__${key}`] = () => {
+            list.forEach(fn => fn());
+            console.log(`trigger life ${key} ${a}`);
+        };
+    }
 
-    return {
-        lifes: { mounted, beforeMount },
-        triggers: {
-            __mounted () {
-                _mountedList.forEach(fn => fn());
-            },
-            __beforeMount () {
-                _beforeMountList.forEach(fn => fn());
-            },
-        }
-    };
+    return result;
 }
 
 function createEmit (getp: () => any) {
@@ -179,7 +175,6 @@ function createEmit (getp: () => any) {
 function createSlot (getp: () => any) {
     const slots: ISlots = {} as any;
     const slotFn = function (key: any, value: any) {
-        debugger;
         if (arguments.length === 1) {
             value = key;
             key = 'default';
@@ -285,8 +280,6 @@ export function defineComponent<
 } = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
     const target = (...slots: ISlot[]) => {
         const { scope, utils, setProxy } = createScope(flow);
-        window.xxx = { scope, utils, setProxy };
-        debugger;
         for (const item of slots) {
             utils.slot((item as any).__slot_name, item);
         }
@@ -295,7 +288,6 @@ export function defineComponent<
                 if (key === '__ld_type') return LinkDomType.Component;
                 if (key === 'name') return name;
                 if (key === 'el') {
-                    console.log('xxxxx', scope.slots);
                     // ! 组合返回值
                     return fn(scope as any);
                 // return createLifeScope(LifeScopeType.Component, () => fn(scope as any));
@@ -317,7 +309,6 @@ export function defineComponent<
             if (key === '__ld_type') return LinkDomType.Component;
             if (key === 'name') return name;
             if (key === 'el') {
-                debugger;
                 // ! 组合返回值
                 // @ts-ignore
                 return target().el;
@@ -329,13 +320,6 @@ export function defineComponent<
             const comp = target();
             // @ts-ignore
             return comp[key];
-            // // @ts-ignore
-            // if (key in comp.__utils) {
-            //     // @ts-ignore
-            //     return comp.__utils[key];
-            // }
-            // // @ts-ignore
-            // return (value: any) => comp.prop(key, value);
         }
     });
     return p as any;

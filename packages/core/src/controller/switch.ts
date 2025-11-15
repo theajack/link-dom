@@ -28,7 +28,7 @@ export class SwitchClass {
         };
         if (!this.if) {
             this.if = new IfClass(fn, gene);
-            this.if._switchProxy = this;
+            this.if.__ifProxy = this;
         } else {
             this.if.elif(fn, gene);
         }
@@ -37,7 +37,7 @@ export class SwitchClass {
     default (gene: (()=>IChild)|IChild) {
         if (!this.if) {
             this.if = new IfClass(() => false, gene);
-            this.if._switchProxy = this;
+            this.if.__ifProxy = this;
         } else {
             this.if.else(gene);
         }
