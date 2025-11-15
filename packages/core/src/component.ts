@@ -271,10 +271,14 @@ export function defineComponent<
     Emits extends IEmits = IEmits,
     Slots extends ISlots = ISlots,
     Exposes extends IExposes = IExposes
-> (fn: IComponent<Props, Emits, Slots, Exposes>, flow = true): IComponentProxy<Props, Emits, Slots, Exposes> {
+> (fn: IComponent<Props, Emits, Slots, Exposes>, {
+    flow = true,
+    name = Math.random().toString(36).substring(2),
+}: {
+    flow?: boolean,
+    name?: string,
+} = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
     const { scope, utils, setProxy } = createScope(flow);
-
-    console.log('debug', 'new comp');
 
     let p: any = null;
     const target = (...slots: ISlot[]) => {
@@ -287,6 +291,7 @@ export function defineComponent<
     p = new Proxy(target, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Component;
+            if (key === 'name') return name;
             if (key === 'el') {
                 // ! 组合返回值
                 return fn(scope as any);
@@ -303,3 +308,45 @@ export function defineComponent<
     // console.log('debug end', 'new comp');
     return p as any;
 }
+
+export class ComponentScope {
+    children: ComponentScope[] = [];
+    parent: ComponentScope|null = null;
+    root: ComponentScope;
+    constructor (
+            public dom: IComponentProxy|null,
+            public isRoot = false,
+    ) {
+        // enterScope(this);
+    }
+}
+export const ComponentScopeProxy = (() => {
+    const ScopeLink: ComponentScope[] = [];
+    let current: ComponentScope|null = null;
+
+    return {
+        root (dom: IComponentProxy|null) {
+            const scope = new ComponentScope(dom, true);
+            current = scope.root = scope;
+            return scope;
+        },
+        enter (dom: IComponentProxy|null) {
+            const scope = new ComponentScope(dom);
+            ScopeLink.push(scope);
+            if (current) {
+                scope.parent = current;
+                scope.root = current.root;
+                current.children.push(scope);
+            }
+            current = scope;
+            return scope;
+        },
+        exit () {
+            ScopeLink.pop();
+            current = ScopeLink[ScopeLink.length - 1] || null;
+        },
+        getCurrent () {
+            return current;
+        },
+    };
+})();

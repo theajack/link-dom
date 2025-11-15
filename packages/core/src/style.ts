@@ -1,8 +1,8 @@
 
 import { Dom } from './element';
 import { isReactiveLike, type IReactive } from 'link-dom-reactive';
-import { isJoin, type Join } from './join';
-import { LinkDomType, useReactive } from './utils';
+import { type Join } from './join';
+import { LinkDomType, useReactive, isJoin } from './utils';
 import type { IStyleKey } from './type.d';
 import type { IStyle } from './type.d';
 import type { ITagCreator } from './short';

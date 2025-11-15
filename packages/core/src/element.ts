@@ -1,24 +1,23 @@
 import { type IReactive } from 'link-dom-reactive';
 import type { IAttrKey, IEventAttributes, IEventDecorator, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
-import { LinkDomType, bind } from './utils';
+import { LinkDomType, bind, isJoin } from './utils';
 import type { IMountParent } from './mount';
 import { mount, queryBase, traverseChildren } from './mount';
 import type { Comment, Frag, Text } from './text';
 import type { IReactiveLike } from './type.d';
 import type { Join } from './join';
-import { isJoin } from './join';
 import type { IController } from './controller';
 import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
 import { BaseNode } from './node';
-import type { IComponent } from './component';
+import type { IComponentProxy } from './component';
 import { type ITagCreator } from './short';
 
 export const TextTagKeys = new Set([ 'style', 'script' ] as const);
 export const DKeys = [ 'prevent', 'stop', 'capture', 'once', 'self' ];
 
-export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[]|IComponent;
+export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[]|IComponentProxy;
 interface IClick<T  extends HTMLElement = HTMLElement> {
     (value: IEventObject<DocumentEventMap['click'], Dom<T>>): ITagCreator<T> & Dom<T>;
 }

@@ -17,9 +17,11 @@ export * from 'link-dom-reactive';
 
 export { flow } from './flow';
 export { type IfClass } from './controller/if';
-export { LinkDomType, getReactiveValue as read, toggle } from './utils';
+export { LinkDomType, getReactiveValue as read, toggle, isJoin } from './utils';
 
 export { createStyles } from './style';
+
+export { onEnterScope, onExitScope } from './lifes';
 
 export * from './short';
 export * from './mount';

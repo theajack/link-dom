@@ -5,9 +5,10 @@ import type { IChild } from './element';
 import { Dom } from './element';
 import type { Frag } from './text';
 import { LinkDomType } from './utils';
-import { LifeScope, LifeScopeType } from './lifes';
+import { LifeScopeType, onEnterScope, onExitScope } from './lifes';
 import { IfClass } from './controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
+import { ComponentScopeProxy } from './component';
 
 export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: Dom<E>
@@ -51,7 +52,7 @@ export type IMountDom = Dom|Frag|Text|Comment|IController;
 export type IMountParent = string|HTMLElement|Dom|Frag|IElement;
 
 export function mount (node: IMountDom|IMountDom[]|IChild, parent: IMountParent) {
-    const root = new LifeScope(LifeScopeType.Root);
+    const root = onEnterScope(LifeScopeType.Root, null, ComponentScopeProxy.root(null));
     let el: any = parent;
     if (typeof parent === 'string') {
         el = queryBase(parent, true);
@@ -75,8 +76,13 @@ function parseNode (node: IMountDom|IMountDom[]|IChild) {
 }
 
 const IsFcApiKeys = new Set([ 'if', 'elif', 'else' ]);
+const ScopeTypes = new Set([
+    LifeScopeType.If, LifeScopeType.For,
+    LifeScopeType.Component, LifeScopeType.RouterView,
+]);
 
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
+    const isSSR = SharedStatus.isSSR;
     // console.log('debug', doms);
     doms.forEach((dom, index) => {
         // console.log('debug', dom, index);
@@ -85,15 +91,37 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             traverseChildren(dom, onChild);
             return;
         }
+        const ldType = dom.__ld_type;
+        const isScopeType = ScopeTypes.has(ldType);
+        if (isScopeType && !isSSR) {
+            const scope = (ldType === LinkDomType.Component) ? ComponentScopeProxy.enter(dom) : null;
+            onEnterScope(ldType, dom, scope);
+        }
+        // if ([ LinkDomType.If ].includes(ldType)) {
+        //     console.log('debug2 start if', dom.id, dom.scopes[0].ref);
+        //     // onEnterScope(LifeScopeType.If);
+        // }
+        // if ([ LinkDomType.For ].includes(ldType)) {
+        //     console.log('debug2 start for', dom._list);
+        //     // onEnterScope(LifeScopeType.For);
+        // }
+        // if ([ LinkDomType.Component ].includes(ldType)) {
+        //     console.log('debug2 start component');
+        //     // onEnterScope(LifeScopeType.Component);
+        // }
         let el: any = dom;
-        if (el.__ld_type === LinkDomType.Component) {
+        if (ldType === LinkDomType.Component) {
             const v = el.el;
             el.__beforMount();
             traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
             el.__mounted();
             console.warn('debug end', 'component');
+            if (!isSSR) {
+                ComponentScopeProxy.exit();
+                onExitScope();
+            }
             return;
-        } else if (typeof el.__ld_type === 'number') {
+        } else if (typeof ldType === 'number') {
             // ! 处理if链式调用逻辑
             if (el.__fc_api_link && IsFcApiKeys.has(el.__fc_api_link)) {
                 if (!el.__if_link_done) {
@@ -133,8 +161,21 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             el = SharedStatus.Renderer.createTextNode(`${dom}`);
         }
         onChild(el, dom);
-        if ([ LinkDomType.If ].includes(dom.__ld_type))
-            console.warn('debug end if', el, dom.id);
+        if (isScopeType && !isSSR) {
+            onExitScope();
+        }
+        // if ([ LinkDomType.If ].includes(ldType)) {
+        //     console.warn('debug2 end if', el, dom.id);
+        //     onExitScope();
+        // }
+        // if ([ LinkDomType.For ].includes(ldType)) {
+        //     console.warn('debug2 end for', el);
+        //     onExitScope();
+        // }
+        // if ([ LinkDomType.Component ].includes(ldType)) {
+        //     console.warn('debug2 end component');
+        //     onExitScope();
+        // }
         // @ts-ignore
         dom.__mounted?.(dom);
         // console.log('__mounted', dom, el.textContent);

@@ -11,7 +11,7 @@ import {
     DepUtil, observe, isReactive, type IReactive
 } from 'link-dom-reactive';
 import type { Dom } from './element';
-import { type Join, isJoin } from './join';
+import { type Join } from './join';
 export enum LinkDomType {
     Dom,
     Text,
@@ -28,8 +28,10 @@ export enum LinkDomType {
     StyleBuilder,
     Short,
     Component,
+    Root, // ! 虚拟节点，用来作为scope根节点
 
     Ref = 1000,
+
 }
 
 
@@ -143,4 +145,9 @@ export function getReactiveValue<T extends any> (v: T|IReactive<T>): T {
 
 export function toggle (v: IComputed<boolean>|Ref<boolean>) {
     return () => {v.value = !v.value;};
+}
+
+
+export function isJoin (v: any): v is Join {
+    return v?.__is_join === true;
 }

@@ -14,16 +14,12 @@ import { DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
 
-// class ForTpl {
-
-// }
-
 
 export class ForClass <T=any> {
 
     __ld_type = LinkDomType.For;
 
-    el: DocumentFragment;
+    private _el: DocumentFragment;
 
     frag: Frag;
 
@@ -44,13 +40,18 @@ export class ForClass <T=any> {
 
     private _clearWatch: ()=>void;
 
+
+    get el () {
+        this._initChildren();
+        return this._el;
+    }
+
     constructor (
         // _list: Ref<T[]>|T[],
         public _list: T[],
         _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         private itemRef = false,
     ) {
-        console.log('debug', 'new for', _list);
         // window._for = this;
 
         // this._list = (isRef(_list)) ? _list.value : _list;
@@ -62,8 +63,6 @@ export class ForClass <T=any> {
         }
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
-        this._initChildren();
-        console.warn('debug end', 'new for');
     }
 
     // private resetList () {
@@ -151,6 +150,7 @@ export class ForClass <T=any> {
         return this;
     }
     private _initChildren () {
+        if (this._el) return;
         this.frag = this._initListFrag();
         checkHydrateMarker(this);
         // if (!this.isStatic) {
@@ -158,7 +158,7 @@ export class ForClass <T=any> {
         this.end = createMarkerNode('');
         this.frag.append(this.end);
         // }
-        this.el = this.frag.el;
+        this._el = this.frag.el;
     }
 
     private _initListFrag () {

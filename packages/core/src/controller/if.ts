@@ -84,6 +84,7 @@ export class IfClass {
     private scopes: IfScope[] = [];
 
     get el () {
+        // console.log('debug', 'new if', this.id);
         this._initChildren();
         return this._el;
     }
@@ -96,10 +97,10 @@ export class IfClass {
         ref: IReactiveLike<any>,
         gene: (()=>IChild)|IChild,
     ) {
-        console.log('debug', 'new if', this.id, ref);
+        // console.log('debug', 'new if', this.id, ref);
         this._addCond(ref, gene);
         this.marker = new Marker();
-        // console.warn('debug end', 'new if', ref);
+        // console.log('%cdebug end new if', 'color: red');
     }
     elif (ref: IReactiveLike<any>, gene: (()=>IChild)|IChild) {
         return this._addCond(ref, gene);

@@ -102,6 +102,14 @@
 
 import type { IProps } from 'link-dom';
 import { a, button, collectRef, componentRef, defineComponent, div, For, If, mount, p, reactive, ref, slot, span } from 'link-dom';
+import { createRouter, routerLink, routerView } from 'link-dom-router';
+
+const Child2 = defineComponent(({ slots, props }) => {
+    console.log('slots', slots, props);
+    return p(
+        span('Child2'),
+    );
+});
 
 const Child = defineComponent(({ slots, props, mounted }) => {
     console.log('slots', slots, props);
@@ -111,28 +119,45 @@ const Child = defineComponent(({ slots, props, mounted }) => {
     const list = ref([ 1, 2 ]);
     const list2 = ref([ 1, 2 ]);
     return p(
+        Child2,
+        // If(() => props.data.x1 % 2 === 0, () => '% 2 === 0')
+        //     .else(() => [
+        //         span('11'),
+        //         If(() => props.data.y1 % 2 === 0, () => 'xxx % 2 === 0')
+        //             .elif(() => props.data.y2 === 33, span('33'))
+        //             .else(() => 'xxx'),
+        //         For(list2, (item) => {
+        //             return If(() => props.data.xxxxx % 2 === 0, () => '% 2 === 0')
+        //                 .else(() => span(`if${item}`));
+        //         }),
+        //     ]),
+
+        // For(list, (item) => {
+        //     return If(() => props.data.ewqewq % 2 === 0, () => '% 2 === 0')
+        //         .else(() => [
+        //             For(list2, (item) => {
+        //                 return If(() => props.data.xxxxx % 2 === 0, () => '% 2 === 0')
+        //                     .else(() => span(`if${item}`));
+        //             }),
+        //         ]);
+        // }),
+
         If(() => props.data.x1 % 2 === 0, () => '% 2 === 0')
             .else(() => [
+                Child2,
                 span('11'),
                 If(() => props.data.y1 % 2 === 0, () => 'xxx % 2 === 0')
                     .elif(() => props.data.y2 === 33, span('33'))
-                    .else(() => 'xxx'),
+                    .else(() => Child2),
                 For(list2, (item) => {
                     return If(() => props.data.xxxxx % 2 === 0, () => '% 2 === 0')
                         .else(() => span(`if${item}`));
                 }),
             ]),
-        // a.if(() => props.data.age % 2 === 0)('% 2 === 0'),
-        // button.else('% 2 === 1'),
 
         For(list, (item) => {
             return If(() => props.data.ewqewq % 2 === 0, () => '% 2 === 0')
-                .else(() => [
-                    For(list2, (item) => {
-                        return If(() => props.data.xxxxx % 2 === 0, () => '% 2 === 0')
-                            .else(() => span(`if${item}`));
-                    }),
-                ]);
+                .else(() => span('11'));
         }),
         button('add').click(() => list.value.push(11))
     );
@@ -150,5 +175,27 @@ const App = () => {
     );
 };
 
-mount(App, '#app');
 
+createRouter({
+    routes: [
+        {
+            path: '/',
+            component: () => div('Page Index'),
+        },
+        {
+            path: '/a',
+            component: App,
+        },
+    ],
+});
+
+function RouterApp () {
+    return [
+        div('Sub Start'),
+        routerView(),
+        div('Sub End'),
+    ];
+}
+
+const root = mount(RouterApp, '#app');
+console.log(root, root.component);
