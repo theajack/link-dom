@@ -50,7 +50,7 @@ export class Ref<T = any> {
         DepUtil.clear(this);
     }
 }
-export function ref<T> (v?: T, deep = true) {
+export function ref<T> (v?: T, deep = true): Ref<T> {
     if (arguments.length === 0) {
         return {
             __ld_type: 1000,
@@ -58,9 +58,9 @@ export function ref<T> (v?: T, deep = true) {
             get value () {
                 return this.el;
             }
-        } as any as Ref;
+        } as any as Ref<T>;
     }
-    return new Ref(v, deep);
+    return new Ref<T>(v as T, deep);
 }
 export function isRef (v: any): v is Ref {
     return !!v?.__isReactive;

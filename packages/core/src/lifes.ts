@@ -75,7 +75,6 @@ export class LifeScope {
         this.component?.dom.__beforeUnmount();
     }
     mounted () {
-        debugger;
         this.children.forEach(child => child.mounted());
         // @ts-ignore
         this.component?.dom.__mounted();
@@ -126,6 +125,39 @@ hydrated
 */
 
 export function updateIfScopeBranch (scope: LifeScope, prev: number, active: number) {
+    const isSSR = SharedStatus.isSSR;
+    CurrentScope = scope;
+    // window.scope = scope;
+    return {
+        beforeUnmount () {
+            if (isSSR) return;
+            scope.beforeUnmount();
+            if (!scope.childrenMap) {
+                scope.childrenMap = {};
+            }
+            if (!scope.childrenMap[prev]) {
+                scope.childrenMap[prev] = scope.children;
+            }
+        },
+        mounted () {
+            if (isSSR) return;
+            if (!scope.childrenMap[active]) {
+                scope.childrenMap[active] = scope.children;
+            }
+            scope.mounted();
+        },
+        unmounted () {
+            if (isSSR) return;
+            scope.unmounted();
+            if (scope.childrenMap[active]) {
+                scope.children = scope.childrenMap[active];
+                scope.beforeMount();
+            }
+        },
+    };
+}
+
+export function updateForScopeBranch (scope: LifeScope, prev: number, active: number) {
     const isSSR = SharedStatus.isSSR;
     CurrentScope = scope;
     // window.scope = scope;

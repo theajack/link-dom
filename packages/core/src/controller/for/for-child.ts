@@ -22,12 +22,15 @@ export class ForChild<T=any> {
     get frag () {
         if (!this._frag) {
             const el = this._generator(this.data, this.index);
-            if (typeof el.__ld_type !== 'number') {
+            debugger;
+            if (typeof el.__ld_type !== 'number' || el.__ld_type === LinkDomType.Component) {
                 this._frag = new Frag().append(el);
-                this._start = this._frag.children[0];
             } else {
                 this._frag = el;
             }
+
+            this.ensureStart();
+
             let container: any = this._frag;
             if (!container.children) {
                 container = this._frag.el;
@@ -40,34 +43,35 @@ export class ForChild<T=any> {
         return this._frag;
     }
 
+    private ensureStart () {
+        if (this._start) return this._start;
+        if (this._frag.__ld_type === LinkDomType.Frag) {
+            this._start = this._frag.children[0]?.el;
+            if (!this._start) {
+                this._start = createMarkerNode();
+                this._frag.prepend(this._start);
+            }
+        } else {
+            // @ts-ignore
+            this._start = this._frag.getMarker?.() || this._frag.el;
+        }
+        this._start.__marker = true; // ! 标记为分割节点
+        return this._start;
+    }
+
     get marker () {
         if (!this._marker) {
-            const f = this.frag;
-            const lg = f.__ld_type;
-            let start: any;
-            // debugger;
-            if (lg === LinkDomType.Frag) {
-                start = this._start?.el;
-                if (!start) {
-                    start = createMarkerNode();
-                    f.prepend(start);
-                }
-            } else {
-                // if (f.getMarker) {
-                //     console.log(f.getMarker());
-                // }
-                // @ts-ignore
-                start = f.getMarker?.() || f.el;
-            }
+            const start = this.ensureStart();
             this._marker = new Marker({ start, clearSelf: true, end: false });
         }
         return this._marker;
     }
 
     destroy () {
-        if (this.removed) return;
+        if (this.removed) return false;
         this.marker.clear();
         this.removed = true;
+        return true;
     }
 
     data: Ref<T>|T;

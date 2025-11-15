@@ -13,11 +13,13 @@ import type { Ref } from 'link-dom-reactive';
 import { DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
+import type { LifeScope } from '../../lifes';
 
 
 export class ForClass <T=any> {
 
     __ld_type = LinkDomType.For;
+    __ld_scope: LifeScope;
 
     private _el: DocumentFragment;
 
@@ -176,7 +178,7 @@ export class ForClass <T=any> {
         // console.log('delete item', index);
         const child = this.children[index];
         if (child) {
-            child.destroy();
+            this.destroyChild(child, index);
             DepUtil.clearDep(getTarget(this._list), index.toString());
         }
     }
@@ -185,7 +187,7 @@ export class ForClass <T=any> {
         for (let i = start; i < start + count; i++) {
             const child = this.children[i];
             if (child) {
-                child.destroy();
+                this.destroyChild(child, i);
                 DepUtil.clearDep(getTarget(this._list), i.toString());
             }
         }
@@ -236,7 +238,7 @@ export class ForClass <T=any> {
         if (length >= this.children.length) return;
         const start = length;
         this.children.splice(length).forEach((child, i) => {
-            child.destroy();
+            this.destroyChild(child, start + i);
             DepUtil.clearDep(getTarget(this._list), (start + i).toString());
         });
     }
@@ -246,13 +248,24 @@ export class ForClass <T=any> {
         this._clearWatch?.();
         if (this.children.length > 0) {
             removeBetween(this.children[0].marker.start, this.end);
-            this.children.forEach(child => {
-                child.destroy();
+            this.children.forEach((child, index) => {
+                this.destroyChild(child, index);
             });
             this.children = [];
         }
         // @ts-ignore
         this.end.remove();
+    }
+
+    private destroyChild (child: ForChild, index: number) {
+        if (child.destroy()) {
+            const scope = this.__ld_scope.children[index];
+            if (scope) {
+                // scope.unmounted();
+            }
+            console.log(index, this.__ld_scope.children);
+            // debugger;
+        }
     }
 }
 

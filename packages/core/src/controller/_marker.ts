@@ -44,6 +44,7 @@ export class Marker {
 
         let next = this._clearSelf ? this.start : this.start.nextSibling;
         const list: Node[] = [];
+        // @ts-ignore
         while (next) {
             if (next.nodeType === Node.COMMENT_NODE) {
                 const comment = next as Element;
@@ -52,10 +53,23 @@ export class Marker {
                     break;
                 }
             }
+            if (!this._clearSelf) {
+                // @ts-ignore
+                next.remove();
+                list.push(next);
+                next = this.start.nextSibling;
+            } else {
+                const _next = next.nextSibling;
+                debugger;
+                // @ts-ignore
+                next.remove();
+                list.push(next);
+                next = _next;
+            }
             // @ts-ignore
-            next.remove();
-            list.push(next);
-            next = this.start.nextSibling;
+            if (next.__marker) {
+                break;
+            }
         }
         return list;
     }

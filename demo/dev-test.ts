@@ -6,7 +6,7 @@
 
 
 import type { IProps } from 'link-dom';
-import { a, button, collectRef, componentRef, defineComponent, div, For, If, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
+import { a, button, collectRef, componentRef, defineComponent, div, For, ForRef, frag, If, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 
 const Child2 = defineComponent(({ slots, props }) => {
@@ -133,11 +133,33 @@ const App = () => {
 const App2 = () => {
     const bool = ref(false);
 
+    const list = ref([ 1, 2, 3 ]);
+    let id = 0;
+
     return div(
-        If(bool, () => Child3('true'))
-            .else(() => App()),
+        // If(bool, () => Child3('true'))
+        //     .else(() => App()),
+        // div(
+        //     button.click(toggle(bool))('xxx')
+        // )
+        For(list, (item) => {
+            // return frag(
+            //     Child3(`item${item}`),
+            //     Child3(`item${item}`),
+            // );
+            return frag(
+                Child3(`Aitem${item}`),
+                Child3(`Bitem${item}`),
+            );
+            // return frag(
+            //     div(`item${item}`),
+            //     div(`item${item}`),
+            // );
+        }),
         div(
-            button.click(toggle(bool))('xxx')
+            button.click(() => list.value.push(id++))('add'),
+            button.click(() => list.value.splice(1, 1))('delete'),
+            button.click(() => list.value = [])('clear')
         )
     );
 };
