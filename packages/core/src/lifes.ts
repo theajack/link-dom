@@ -39,7 +39,15 @@ export enum LifeScopeType {
 
 export let CurrentScope: LifeScope|null = null;
 
-window.cur = () => CurrentScope;
+export function setCurrentScope (scope: LifeScope|null) {
+    CurrentScope = scope;
+}
+
+export function getCurrentScope () {
+    return CurrentScope;
+}
+
+// window.cur = () => CurrentScope;
 
 const LifeScopeLink: LifeScope[] = [];
 

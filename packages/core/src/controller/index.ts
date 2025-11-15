@@ -65,7 +65,6 @@ export const ctrl = {
                     target.default(item);
                 } else if (type === 'case') {
                     const value = (item as any).__fc_api_value;
-                    debugger;
                     target.case(value, item);
                 }
             }

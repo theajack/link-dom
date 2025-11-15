@@ -113,7 +113,6 @@ export type IComponent<
 const FnKeys = new Set([ 'apply' ]); // 是否需要不代理这些key，代理会导致打包后可能导致错误
 // ! 如 a.slot(...args) => a.slot.apply(a, args)
 
-let id = 0;
 function createLifes () {
     const result = {
         lifes: {} as Record<ILifeKeys, any>,
@@ -122,14 +121,13 @@ function createLifes () {
 
     for (const key of LifeKeys) {
         const list: any[] = [];
-        const a = id ++;
         result.lifes[key] = (fn: any) => {
-            console.log(`add life ${key} ${a}`);
+            // console.log(`add life ${key} ${a}`);
             list.push(fn);
         };
         result.triggers[`__${key}`] = () => {
             list.forEach(fn => fn());
-            console.log(`trigger life ${key} ${a}`);
+            // console.log(`trigger life ${key} ${a}`);
         };
     }
 

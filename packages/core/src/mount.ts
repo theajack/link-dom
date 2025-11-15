@@ -92,7 +92,6 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             return;
         }
         const ldType = dom.__ld_type;
-        // if (ldType === LinkDomType.RouterView) debugger;
         const isScopeType = ScopeTypes.has(ldType);
         if (isScopeType && !isSSR) {
             onEnterScope(ldType, dom);

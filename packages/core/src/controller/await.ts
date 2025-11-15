@@ -4,15 +4,28 @@
  * @Description: Coding something
  */
 import { LinkDomType } from '../utils';
-import { createMarkerNode } from './_marker';
+import { createMarkerNode, removeBetween } from './_marker';
 import { Frag } from '../text';
 import type { IChild } from '../element';
 import { SharedStatus } from 'link-dom-shared';
+import type { LifeScope } from '../lifes';
+import { setCurrentScope } from '../lifes';
 
 export class AwaitClass {
     __ld_type = LinkDomType.Await;
-    el: any;
+    __ld_scope: LifeScope;
+    _frag: Frag;
+    _default: IChild[] = [];
+    get el () {
+        if (!this._frag) {
+            this._frag = new Frag().append(this.start, ...this._default, this.end);
+            // @ts-ignore
+            this._default = null;
+        }
+        return this._frag.el;
+    }
     start: Node;
+    end: Node;
     getMarker () {
         return this.start;
     }
@@ -21,9 +34,17 @@ export class AwaitClass {
         _generator: (data: any)=>IChild,
     ) {
         this.start = createMarkerNode();
-        this.el = new Frag().append(this.start).el;
         if (!SharedStatus.isSSR) {
             _promise.then(data => {
+                const scope = this.__ld_scope;
+                if (this.end) {
+                    scope.beforeUnmount();
+                    removeBetween(this.start, this.end, false);
+                    // @ts-ignore
+                    this.end.remove();
+                    scope.unmounted();
+                }
+                setCurrentScope(scope);
                 const child = _generator(data);
                 const frag = new Frag().append(child);
                 frag.__mounted();
@@ -36,5 +57,10 @@ export class AwaitClass {
                 }
             });
         }
+    }
+    default (...doms: IChild[]) {
+        this._default = doms;
+        this.end = createMarkerNode();
+        return this;
     }
 }

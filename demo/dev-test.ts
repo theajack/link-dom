@@ -6,7 +6,7 @@
 
 
 import type { IProps } from 'link-dom';
-import { a, button, collectRef, componentRef, defineComponent, div, For, ForRef, frag, If, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
+import { a, Await, button, collectRef, componentRef, defineComponent, div, For, ForRef, frag, If, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 
 const Child2 = defineComponent(({ slots, props }) => {
@@ -135,27 +135,36 @@ const App2 = () => {
 
     const list = ref([ 1, 2, 3 ]);
     let id = 0;
-
+    const mockFetch = () => {
+        return new Promise<{id: number, name: string}>((resolve) => {
+            setTimeout(() => {
+                resolve({ id: 1, name: 'Tack' });
+            }, 1000);
+        });
+    };
     return div(
         // If(bool, () => Child3('true'))
         //     .else(() => App()),
         // div(
         //     button.click(toggle(bool))('xxx')
         // )
-        For(list, (item) => {
-            // return frag(
-            //     Child3(`item${item}`),
-            //     Child3(`item${item}`),
-            // );
-            return frag(
-                Child3(`Aitem${item}`),
-                Child3(`Bitem${item}`),
-            );
-            // return frag(
-            //     div(`item${item}`),
-            //     div(`item${item}`),
-            // );
-        }),
+        // For(list, (item) => {
+        //     // return frag(
+        //     //     Child3(`item${item}`),
+        //     //     Child3(`item${item}`),
+        //     // );
+        //     return frag(
+        //         Child3(`Aitem${item}`),
+        //         Child3(`Bitem${item}`),
+        //     );
+        //     // return frag(
+        //     //     div(`item${item}`),
+        //     //     div(`item${item}`),
+        //     // );
+        // }),
+        Await(mockFetch(), data =>
+            Child3(`id = ${data.id}; name = ${data.name}`)
+        ).default(Child3('loading')),
         div(
             button.click(() => list.value.push(id++))('add'),
             button.click(() => list.value.splice(1, 0, id++))('insert'),

@@ -137,4 +137,4 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] class 前缀
 - [x] if、switch、for api化
 - [x] .mount
-- [ ] unmounted mounted
+- [x] unmounted mounted

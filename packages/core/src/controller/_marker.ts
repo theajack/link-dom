@@ -55,7 +55,6 @@ export class Marker {
                 next = this.start.nextSibling;
             } else {
                 const _next = next.nextSibling;
-                debugger;
                 // @ts-ignore
                 next.remove();
                 list.push(next);
@@ -90,8 +89,8 @@ export function createMarkerNode (text = ''): Comment {
     return node;
 }
 
-export function removeBetween (start: Node, end: Node) {
-    let next: any = start;
+export function removeBetween (start: Node, end: Node, includeStart = true) {
+    let next: any = includeStart ? start : start.nextSibling;
     while (next) {
         if (next === end) {
             break;
