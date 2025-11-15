@@ -159,3 +159,17 @@ export function isPureFunc (v: any) {
 export function parseFuncWrap (v: any) {
     return (isPureFunc(v)) ? v() : v;
 }
+
+export function toLinkDomLink<T extends any>(v: T, el?: ()=>any): T & {
+    __ld_type: LinkDomType,
+    el: Dom,
+}{
+    // @ts-ignore
+    v.__ld_type = LinkDomType.Dom;
+    Object.defineProperty(v, 'el', {
+        get(){
+            return el ? el(): (v as any)().el;
+        }
+    }) as any
+    return v as any;
+}

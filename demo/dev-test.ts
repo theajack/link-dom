@@ -10,7 +10,7 @@ import { a, Await, button, collectRef, componentRef, defineComponent, div, For, 
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 
 const Child2 = defineComponent(({ slots, props }) => {
-    console.log('slots', slots, props);
+    console.log('Child2 slots', slots, props);
     return p(
         span('Child2'),
     );
@@ -142,7 +142,9 @@ const App2 = () => {
             }, 1000);
         });
     };
+    debugger;
     return div(
+        Child2.color('333').a('33')(),
         // If(bool, () => Child3('true'))
         //     .else(() => App()),
         // div(
@@ -162,15 +164,16 @@ const App2 = () => {
         //     //     div(`item${item}`),
         //     // );
         // }),
-        Await(mockFetch(), data =>
-            Child3(`id = ${data.id}; name = ${data.name}`)
-        ).default(Child3('loading')),
-        div(
-            button.click(() => list.value.push(id++))('add'),
-            button.click(() => list.value.splice(1, 0, id++))('insert'),
-            button.click(() => list.value.splice(1, 1))('delete'),
-            button.click(() => list.value = [])('clear')
-        )
+
+        // Await(mockFetch(), data =>
+        //     Child3(`id = ${data.id}; name = ${data.name}`)
+        // ).default(Child3('loading')),
+        // div(
+        //     button.click(() => list.value.push(id++))('add'),
+        //     button.click(() => list.value.splice(1, 0, id++))('insert'),
+        //     button.click(() => list.value.splice(1, 1))('delete'),
+        //     button.click(() => list.value = [])('clear')
+        // )
     );
 };
 

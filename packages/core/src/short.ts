@@ -94,11 +94,15 @@ function _tag <T extends HTMLElement> (tag: TDomName|T|Dom): ITagCreator<T> & Do
     return Map[tag];
 }
 
-// @ts-ignore
-export const tag: (
-    (<T extends HTMLElement>(tag: string) => ITagCreator<T> & Dom<T>) &
-    (<T extends HTMLElement>(tag: TDomName|T|Dom) => ITagCreator<T> & Dom<T>)
-) = _tag;
+type ITag = {
+    <T extends HTMLElement>(tag: T): ITagCreator<T> & Dom<T>
+} & {
+   <T extends TDomName>(tag: T): ITagCreator<HTMLElementTagNameMap[T]> & Dom<HTMLElementTagNameMap[T]>
+} & {
+   (tag: string|Dom|HTMLElement): ITagCreator<HTMLElement> & Dom<HTMLElement>
+};
+
+export const tag: ITag = _tag as any;
 
 function createProxyEl (isTextNode: boolean, tag: any) {
     const el = isTextNode ? new Frag() : new Dom(tag);

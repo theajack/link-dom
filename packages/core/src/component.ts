@@ -272,22 +272,38 @@ export function defineComponent<
 > (fn: IComponent<Props, Emits, Slots, Exposes>, {
     flow = true,
     name = Math.random().toString(36).substring(2),
+    defaultProps,
 }: {
     flow?: boolean,
     name?: string,
+    defaultProps?: Partial<Props>
 } = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
     const target = (...slots: ISlot[]) => {
         const { scope, utils, setProxy } = createScope(flow);
-        for (const item of slots) {
-            utils.slot((item as any).__slot_name, item);
+        const assignSlots = (slots: any[])=>{
+            for (const item of slots) {
+                utils.slot((item as any).__slot_name, item);
+            }
         }
-        p = new Proxy(target, {
+        assignSlots(slots);
+
+        const callComp = ()=>{
+            if(defaultProps){
+               scope.props = Object.assign(defaultProps, scope.props)
+            }
+            return fn(scope as any); // ! 组合返回值
+        }
+
+        const targetFn = (...args: any)=>{
+            assignSlots(args);
+            return callComp();
+        }
+        p = new Proxy(targetFn, {
             get (_, key) {
                 if (key === '__ld_type') return LinkDomType.Component;
                 if (key === 'name') return name;
                 if (key === 'el') {
-                    // ! 组合返回值
-                    return fn(scope as any);
+                    return callComp();
                 // return createLifeScope(LifeScopeType.Component, () => fn(scope as any));
                 }
                 if (typeof key === 'symbol' || FnKeys.has(key as string)) {
