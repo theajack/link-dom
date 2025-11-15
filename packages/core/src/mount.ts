@@ -96,26 +96,15 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         // if (ldType === LinkDomType.RouterView) debugger;
         const isScopeType = ScopeTypes.has(ldType);
         if (isScopeType && !isSSR) {
-            const scope = (ldType === LinkDomType.Component) ? ComponentScopeProxy.root(dom) : null;
-            onEnterScope(ldType, dom, scope);
+            onEnterScope(ldType, dom);
         }
-        // if ([ LinkDomType.If ].includes(ldType)) {
-        //     console.log('debug2 start if', dom.id, dom.scopes[0].ref);
-        //     // onEnterScope(LifeScopeType.If);
-        // }
-        // if ([ LinkDomType.For ].includes(ldType)) {
-        //     console.log('debug2 start for', dom._list);
-        //     // onEnterScope(LifeScopeType.For);
-        // }
-        // if ([ LinkDomType.Component ].includes(ldType)) {
-        //     console.log('debug2 start component');
-        //     // onEnterScope(LifeScopeType.Component);
-        // }
         let el: any = dom;
         if (ldType === LinkDomType.Component) {
+            debugger;
             const v = el.el;
             // ! 必须要在el之后 组件才会初始化，才会挂载生命周期函数
             if (!isSSR) {
+                ComponentScopeProxy.enter(dom);
                 dom.__beforeMount();
             }
             traverseChildren(Array.isArray(v) ? v : [ v ], onChild);

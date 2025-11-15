@@ -28,6 +28,7 @@ mounted 触发时机
 
 export enum LifeScopeType {
     Root = 1001,
+    ForChild = 1002,
     For = LinkDomType.For,
     If = LinkDomType.If,
     Component = LinkDomType.Component,
@@ -92,7 +93,7 @@ export class LifeScope {
     }
 }
 
-export function onEnterScope (type: LifeScopeType, dom: IScopeDom, component: ComponentScope | null) {
+export function onEnterScope (type: LifeScopeType, dom: IScopeDom, component: ComponentScope | null = null) {
     const scope = new LifeScope(type, dom);
     // debugger;
     scope.component = component;
@@ -207,13 +208,18 @@ export const ComponentScopeProxy = (() => {
     const ScopeLink: ComponentScope[] = [];
     let current: ComponentScope|null = null;
 
+    const ll = [];
+    window.csl = ll;
+
     return {
         root (dom: IComponentProxy|null) {
             const scope = new ComponentScope(dom, true);
+            ScopeLink.push(scope);
             current = scope.root = scope;
             return scope;
         },
         enter (dom: IComponentProxy|null) {
+            debugger;
             const scope = new ComponentScope(dom);
             ScopeLink.push(scope);
             if (current) {
@@ -225,6 +231,8 @@ export const ComponentScopeProxy = (() => {
             return scope;
         },
         exit () {
+            debugger;
+            console.warn('exit 111111111111111');
             ScopeLink.pop();
             current = ScopeLink[ScopeLink.length - 1] || null;
         },

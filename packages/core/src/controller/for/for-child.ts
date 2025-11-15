@@ -4,6 +4,7 @@
  * @Date: 2025-09-11 20:56:49
  * @Description: Coding something
  */
+import { LifeScopeType, onEnterScope, onExitScope } from '../../lifes';
 import type { Dom, IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
@@ -21,6 +22,8 @@ export class ForChild<T=any> {
 
     get frag () {
         if (!this._frag) {
+            debugger;
+            // onEnterScope(LifeScopeType.ForChild, this, null);
             const el = this._generator(this.data, this.index);
             debugger;
             if (typeof el.__ld_type !== 'number' || el.__ld_type === LinkDomType.Component) {
@@ -29,7 +32,7 @@ export class ForChild<T=any> {
                 this._frag = el;
             }
 
-            this.ensureStart();
+            // this.ensureStart();
 
             let container: any = this._frag;
             if (!container.children) {
@@ -39,6 +42,7 @@ export class ForChild<T=any> {
             if (container.children.length === 0) {
                 container.prepend(createMarkerNode());
             }
+            onExitScope();
         }
         return this._frag;
     }
