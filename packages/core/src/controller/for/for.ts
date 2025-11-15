@@ -13,7 +13,7 @@ import type { Ref } from 'link-dom-reactive';
 import { DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
-import type { LifeScope } from '../../lifes';
+import { updateForScopeBranch, type LifeScope } from '../../lifes';
 
 
 export class ForClass <T=any> {
@@ -131,16 +131,12 @@ export class ForClass <T=any> {
 
     private insertChildNode (data: T, index: number, marker: Node) {
         // console.time();
-        // const frag = new Frag();
         const child = this.newChild(data, index);
         // console.log('insertChildNode', index, data);
-        // frag.append(child.frag);
         const parent = marker.parentNode!;
         // @ts-ignore
         child.frag.__mounted?.();
         parent.insertBefore(child.frag.el, marker);
-        // console.log('insertChildNode end', index, data);
-        // console.timeEnd();
     }
 
     get __mounted () {
@@ -261,10 +257,9 @@ export class ForClass <T=any> {
         if (child.destroy()) {
             const scope = this.__ld_scope.children[index];
             if (scope) {
-                // scope.unmounted();
+                scope.unmounted();
+                this.__ld_scope.children.splice(index, 1);
             }
-            console.log(index, this.__ld_scope.children);
-            // debugger;
         }
     }
 }

@@ -22,18 +22,14 @@ export class ForChild<T=any> {
 
     get frag () {
         if (!this._frag) {
-            debugger;
-            // onEnterScope(LifeScopeType.ForChild, this, null);
+            onEnterScope(LifeScopeType.ForChild, this, this.index.value);
             const el = this._generator(this.data, this.index);
-            debugger;
             if (typeof el.__ld_type !== 'number' || el.__ld_type === LinkDomType.Component) {
                 this._frag = new Frag().append(el);
             } else {
                 this._frag = el;
             }
-
-            // this.ensureStart();
-
+            this.ensureStart();
             let container: any = this._frag;
             if (!container.children) {
                 container = this._frag.el;

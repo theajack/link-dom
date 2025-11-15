@@ -158,6 +158,7 @@ const App2 = () => {
         }),
         div(
             button.click(() => list.value.push(id++))('add'),
+            button.click(() => list.value.splice(1, 0, id++))('insert'),
             button.click(() => list.value.splice(1, 1))('delete'),
             button.click(() => list.value = [])('clear')
         )

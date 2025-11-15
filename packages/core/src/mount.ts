@@ -5,8 +5,7 @@ import type { IChild } from './element';
 import { Dom } from './element';
 import type { Frag } from './text';
 import { isPureFunc, LinkDomType } from './utils';
-import type { ComponentScope } from './lifes';
-import { ComponentScopeProxy, LifeScopeType, onEnterScope, onExitScope } from './lifes';
+import { LifeScopeType, onEnterScope, onExitScope } from './lifes';
 import { IfClass } from './controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
 
@@ -52,7 +51,7 @@ export type IMountDom = Dom|Frag|Text|Comment|IController;
 export type IMountParent = string|HTMLElement|Dom|Frag|IElement;
 
 export function mount (node: IMountDom|IMountDom[]|IChild, parent: IMountParent) {
-    const root = onEnterScope(LifeScopeType.Root, null, ComponentScopeProxy.root(null));
+    const root = onEnterScope(LifeScopeType.Root, null);
     let el: any = parent;
     if (typeof parent === 'string') {
         el = queryBase(parent, true);
@@ -100,17 +99,14 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         }
         let el: any = dom;
         if (ldType === LinkDomType.Component) {
-            debugger;
             const v = el.el;
             // ! 必须要在el之后 组件才会初始化，才会挂载生命周期函数
             if (!isSSR) {
-                ComponentScopeProxy.enter(dom);
                 dom.__beforeMount();
             }
             traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
             // console.warn('debug end', 'component');
             if (!isSSR) {
-                ComponentScopeProxy.exit();
                 onExitScope();
                 if (!v.__first_mount) {
                     dom.__mounted();

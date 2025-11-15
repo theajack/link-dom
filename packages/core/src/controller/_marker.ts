@@ -41,17 +41,12 @@ export class Marker {
         if (!this.start.parentNode) {
             throw new Error('parent is null');
         }
-
         let next = this._clearSelf ? this.start : this.start.nextSibling;
         const list: Node[] = [];
         // @ts-ignore
         while (next) {
             if (next.nodeType === Node.COMMENT_NODE) {
-                const comment = next as Element;
-                // @ts-ignore
-                if (comment === this.end) {
-                    break;
-                }
+                if (next as Element === this.end) break;
             }
             if (!this._clearSelf) {
                 // @ts-ignore

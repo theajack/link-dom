@@ -53,10 +53,10 @@ export class LifeScope {
     children: LifeScope[] = [];
     parent: LifeScope|null = null;
     root: LifeScope;
-    component: ComponentScope|null = null;
-
 
     childrenMap: any = null;
+
+    component: IComponentProxy|null = null;
 
     constructor (
         public type: LifeScopeType,
@@ -73,35 +73,41 @@ export class LifeScope {
     beforeUnmount () {
         this.children.forEach(child => child.beforeUnmount());
         // @ts-ignore
-        this.component?.dom.__beforeUnmount();
+        this.component?.__beforeUnmount();
     }
     mounted () {
         this.children.forEach(child => child.mounted());
         // @ts-ignore
-        this.component?.dom.__mounted();
+        this.component?.__mounted();
     }
     beforeMount () {
         this.children.forEach(child => child.beforeMount());
         // @ts-ignore
-        this.component?.dom.__beforeMount();
+        this.component?.__beforeMount();
     }
     unmounted () {
         this.children.forEach(child => child.unmounted());
         // @ts-ignore
-        this.component?.dom.__unmounted();
+        this.component?.__unmounted();
         this.children = [];
     }
 }
 
-export function onEnterScope (type: LifeScopeType, dom: IScopeDom, component: ComponentScope | null = null) {
+export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: number) {
     const scope = new LifeScope(type, dom);
-    // debugger;
-    scope.component = component;
     LifeScopeLink.push(scope);
+    if (dom?.__ld_type === LinkDomType.Component) {
+        scope.component = dom;
+    }
     if (CurrentScope) {
         scope.parent = CurrentScope;
         scope.root = CurrentScope.root;
-        CurrentScope.children.push(scope);
+        const list = CurrentScope.children;
+        if (typeof index === 'number' && index < list.length) {
+            CurrentScope.children.splice(index, 0, scope);
+        } else {
+            CurrentScope.children.push(scope);
+        }
     }
     CurrentScope = scope;
     return scope;
@@ -157,87 +163,3 @@ export function updateIfScopeBranch (scope: LifeScope, prev: number, active: num
         },
     };
 }
-
-export function updateForScopeBranch (scope: LifeScope, prev: number, active: number) {
-    const isSSR = SharedStatus.isSSR;
-    CurrentScope = scope;
-    // window.scope = scope;
-    return {
-        beforeUnmount () {
-            if (isSSR) return;
-            scope.beforeUnmount();
-            if (!scope.childrenMap) {
-                scope.childrenMap = {};
-            }
-            if (!scope.childrenMap[prev]) {
-                scope.childrenMap[prev] = scope.children;
-            }
-        },
-        mounted () {
-            if (isSSR) return;
-            if (!scope.childrenMap[active]) {
-                scope.childrenMap[active] = scope.children;
-            }
-            scope.mounted();
-        },
-        unmounted () {
-            if (isSSR) return;
-            scope.unmounted();
-            if (scope.childrenMap[active]) {
-                scope.children = scope.childrenMap[active];
-                scope.beforeMount();
-            }
-        },
-    };
-}
-
-
-// ! 以下为组件的scope
-export class ComponentScope {
-    children: ComponentScope[] = [];
-    parent: ComponentScope|null = null;
-    root: ComponentScope;
-    constructor (
-            public dom: IComponentProxy|null,
-            public isRoot = false,
-    ) {
-        // enterScope(this);
-    }
-}
-export const ComponentScopeProxy = (() => {
-    const ScopeLink: ComponentScope[] = [];
-    let current: ComponentScope|null = null;
-
-    const ll = [];
-    window.csl = ll;
-
-    return {
-        root (dom: IComponentProxy|null) {
-            const scope = new ComponentScope(dom, true);
-            ScopeLink.push(scope);
-            current = scope.root = scope;
-            return scope;
-        },
-        enter (dom: IComponentProxy|null) {
-            debugger;
-            const scope = new ComponentScope(dom);
-            ScopeLink.push(scope);
-            if (current) {
-                scope.parent = current;
-                scope.root = current.root;
-                current.children.push(scope);
-            }
-            current = scope;
-            return scope;
-        },
-        exit () {
-            debugger;
-            console.warn('exit 111111111111111');
-            ScopeLink.pop();
-            current = ScopeLink[ScopeLink.length - 1] || null;
-        },
-        getCurrent () {
-            return current;
-        },
-    };
-})();
