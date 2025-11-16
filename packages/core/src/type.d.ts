@@ -5,7 +5,7 @@
  */
 
 import type { IReactive } from 'link-dom-reactive';
-import type { Dom } from './element';
+import type { Dom, IChild } from './element';
 import type { Join } from './join';
 
 type TCssCommonValue = 'inherit' | 'initial' | 'unset' | 'revert' | 'none' | 'auto';
@@ -110,3 +110,10 @@ export type IAttrKey = 'accesskey' | 'alt' | 'async' | 'autoplay' | 'checked' | 
 // Reactive
 
 export type IReactiveLike<T=any> = IReactive<T> | T | Join;
+
+export interface IControlLink {
+    __fc_api_link: 'if' | 'elif' | 'else' | 'case' | 'default',
+    __fc_api_value?: any,
+    __ld_type: number,
+    readonly el: IChild,
+}

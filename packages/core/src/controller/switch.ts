@@ -3,12 +3,12 @@
  * @Date: 2025-09-05 22:26:21
  * @Description: Coding something
  */
-import type { IReactiveLike } from '../type.d';
+import type { IControlLink, IReactiveLike } from '../type.d';
 import { IfClass } from './if';
 import { getReactiveValue } from '../utils';
 import type { IChild } from '../element';
 import { LinkDomType } from '../utils';
-import type { Frag } from '../text';
+import { frag, type Frag } from '../text';
 export class SwitchClass {
     __ld_type = LinkDomType.Switch;
     private if: IfClass;
@@ -54,4 +54,23 @@ export class SwitchClass {
     destroy () {
         this.if?.destroy();
     }
+}
+
+export function Case (cond: any|(any[])|(()=>any)) {
+    return (...args: IChild[]) => {
+        return {
+            __fc_api_link: 'case',
+            __fc_api_value: cond,
+            __ld_type: LinkDomType.Dom,
+            get el () {return frag(...args).el;}
+        } as IControlLink;
+    };
+}
+
+export function Default (...args: IChild[]) {
+    return {
+        __fc_api_link: 'default',
+        __ld_type: LinkDomType.Dom,
+        get el () {return frag(...args).el;}
+    } as IControlLink;
 }

@@ -5,14 +5,14 @@
  * @Description: Coding something
  */
 import type { IChild } from '../element';
-import { Frag } from '../text';
+import { frag, Frag } from '../text';
 import { LinkDomType, parseFuncWrap } from '../utils';
 import { watch } from 'link-dom-reactive';
 import { getReactiveValue } from '../utils';
 import { Marker } from './_marker';
-import type { IReactiveLike } from '../type.d';
+import type { IControlLink, IReactiveLike } from '../type.d';
 import { SharedStatus } from 'link-dom-shared';
-import { updateIfScopeBranch, type LifeScope } from '../lifes';
+import { updateIfScopeBranch, type LifeScope, IsFcApiKeys } from '../lifes';
 // import { CurrentScope, LifeScope, LifeScopeType } from '../lifes';
 
 // let id = 0;
@@ -124,6 +124,7 @@ export class IfClass {
         //     scope.lifeScope.parent = CurrentScope;
         // });
         // console.trace('11111111');
+        debugger;
         if (!this.frag) return;
         // console.log('test:if mounted');
         // this._initChildren();
@@ -167,8 +168,10 @@ export class IfClass {
     }
     private _initChildren () {
         if (this._el) return;
+        debugger;
         this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
             const index = this.switchCase();
+            debugger;
             // console.log('test:if switch', index, this.activeIndex);
             // console.log('if switch', index);
             if (index !== this.activeIndex) {
@@ -209,4 +212,81 @@ export class IfClass {
         this.scopes = null;
         this._clearWatch?.();
     }
+}
+
+export type IfShortUseFn = {
+    (...args: IChild[]): IControlLink,
+    same(): IControlLink;
+}
+
+export function IfInner (ref: IReactiveLike): IfShortUseFn {
+    const fn: any = ((...args: IChild[]) => {
+        return {
+            __fc_api_link: 'if',
+            __fc_api_value: ref,
+            __ld_type: LinkDomType.Dom,
+            get el () {return frag(...args).el;}
+        } as IControlLink;
+    });
+    fn.same = () => fn(ref);
+    return fn;
+};
+
+export function Elif (ref: IReactiveLike<any>) {
+    const fn: any = (...args: IChild[]) => {
+        return {
+            __fc_api_link: 'elif',
+            __fc_api_value: ref,
+            __ld_type: LinkDomType.Dom,
+            get el () {return frag(...args).el;}
+        } as IControlLink;
+    };
+    fn.same = () => fn(ref);
+    return fn;
+}
+
+export function Else (...args: IChild[]) {
+    return {
+        __fc_api_link: 'else',
+        __ld_type: LinkDomType.Dom,
+        get el () {return frag(...args).el;}
+    } as IControlLink;
+}
+
+
+// ! 处理if链式调用逻辑
+export function handleIfLinkChildren (el: any, list: any[], start: number = 0) {
+    if (el?.__fc_api_link && IsFcApiKeys.has(el.__fc_api_link)) {
+        if (!el.__if_link_done) {
+            const type = el.__fc_api_link as 'if'|'elif'|'else';
+            if (type === 'if') {
+                const ifEl = new IfClass(el.__fc_api_value, el);
+                let count = 0;
+                for (let i = start + 1; i < list.length; i++) {
+                    const cur = list[i];
+                    if (!cur.__fc_api_link) break;
+                    if (cur.__fc_api_link === 'elif') {
+                        cur.__if_link_done = true;
+                        ifEl.elif(cur.__fc_api_value, cur);
+                        count ++;
+                    } else if (cur.__fc_api_link === 'else') {
+                        cur.__if_link_done = true;
+                        ifEl.else(cur);
+                        count ++;
+                        break; // ! else 之后就结束了 不然会印象影响后面的
+                    } else {
+                        break; // ! 同上
+                    }
+                }
+                if (count) list.splice(start + 1, count);
+                // list[start] = ifEl;
+                el.__if_link_done = true;
+                // ! 此处要把dom一起改掉
+                return ifEl;
+            } else {
+                throw new Error(`${type} can not use without if`);
+            }
+        }
+    }
+    return null;
 }

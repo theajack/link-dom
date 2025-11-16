@@ -103,6 +103,5 @@ export function routerView () {
     // debugger;
     const view = RouterMap.get(RouterCurrentComp);
     if (!view) throw new Error('view not found');
-    debugger;
     return view;
 }

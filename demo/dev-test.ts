@@ -6,7 +6,7 @@
 
 
 import type { IProps } from 'link-dom';
-import { a, Await, button, collectRef, componentRef, defineComponent, div, For, ForRef, frag, If, input, join, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
+import { a, Await, button, Case, collectRef, componentRef, Default, defineComponent, div, Elif, Else, For, ForRef, frag, If, input, join, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 
 const Child2 = defineComponent(({ slots, props }) => {
@@ -153,9 +153,32 @@ const App2 = () => {
 
         Child3(() => span(11)),
 
-        span.if(() => num.value < 2)(() => 11),
+        If(() => num.value < 2, () => span('num < 2'))
+            .elif(() => num.value < 5, () => span('num < 5'))
+            .else(() => span('num >= 5')),
+
+        // or
+        span.if(() => num.value < 2)(span('num < 2')),
         span.elif(() => num.value < 5)('num < 5'),
-        span.else('num >= 5'),
+
+
+        If(() => num.value < 2)(() => span('num < 2')),
+        Elif(() => num.value < 5)(span('num < 5')),
+        Else(span('num >= 5')),
+
+        // Switch(num)(
+        //     span.case([ 0, 1 ])('11num < 2'),
+        //     span.case([ 2, 3, 4 ])('22num < 5'),
+        //     span.case(5)('num = 5'),
+        //     span.default()(join`num = ${num}`),
+        // )
+
+        Switch(num)(
+            Case([ 0, 1 ])('11num < 2'),
+            Case([ 2, 3, 4 ])('22num < 5'),
+            Case(5)('num = 5'),
+            Default(join`num = ${num}`),
+        )
     );
     return div(
 

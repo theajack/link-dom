@@ -9,14 +9,11 @@ export * from './dom';
 export { Text, Frag, Comment } from './text';
 export * from './type.d';
 
-export { ctrl, type IController } from './controller';
+export * from './controller';
 
 export { join } from './join';
-
 export * from 'link-dom-reactive';
-
 export { flow } from './flow';
-export { type IfClass } from './controller/if';
 export { LinkDomType, getReactiveValue as read, toggle, isJoin, toLinkDomLink } from './utils';
 
 export { createStyles } from './style';

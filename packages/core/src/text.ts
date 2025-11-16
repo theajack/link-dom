@@ -78,3 +78,7 @@ export class Frag {
         return this;
     }
 }
+
+export function frag (...doms: IChild[]) {
+    return new Frag().append(...doms);
+}

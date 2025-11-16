@@ -36,8 +36,8 @@
 - [x] 内存泄漏
 - [x] 内存占用
 
-- [ ] 支持 click.stop.self();
-- [ ] 支持 defineComponent
+- [x] 支持 click.stop.self();
+- [x] 支持 defineComponent
 
 
 
@@ -138,6 +138,7 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] if、switch、for api化
 - [x] .mount
 - [x] unmounted mounted
-- [ ] 修复component
-- [ ] 支持link传入函数
-- [ ] traverseChildren
+- [x] 修复component
+- [x] 支持link传入函数
+- [x] 支持IChild传入 Dom函数
+- [ ] 

@@ -6,13 +6,15 @@
 
 import type { IChild } from './element';
 import { DKeys, Dom, TextTagKeys } from './element';
-import { Comment, Frag, Text } from './text';
+import { Comment, frag, Frag, Text } from './text';
 import { LinkDomType } from './utils';
 import { createStyles } from './style';
 import { ctrl } from './controller';
 import type { IReactiveLike } from './type';
 import { BaseNode } from './node';
 import type { TDomName } from './mount';
+
+export { frag } from './text';
 
 export const EventAttrs = new Set([ 'click', 'on' ] as const);
 
@@ -228,7 +230,6 @@ export const comment:(v: IReactiveLike<string|number|boolean>) => Comment =
     (v) => new Comment(v);
 // export const script: (v: string) => Dom<HTMLScriptElement> =
 //     (v) => new Dom<HTMLScriptElement>('script').text(v);
-export const frag: (...doms: IChild[]) => Frag = (...doms) => new Frag().append(...doms);
 export const fromHTML: <T extends HTMLElement = HTMLElement>(v: string)=>Dom<T> =
     (v: string) => new Dom('div').html(v).firstChild() as any;
 
@@ -258,3 +259,4 @@ export const {
     await: Await,
     show: Show,
 } = ctrl;
+

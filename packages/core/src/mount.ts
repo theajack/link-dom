@@ -5,8 +5,8 @@ import type { IChild } from './element';
 import { Dom } from './element';
 import { Text, type Frag } from './text';
 import { isPureFunc, LinkDomType } from './utils';
-import { LifeScopeType, onEnterScope, onExitScope } from './lifes';
-import { IfClass } from './controller/if';
+import { LifeScopeType, onEnterScope, onExitScope, ScopeTypes } from './lifes';
+import { handleIfLinkChildren } from './controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
 
 export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
@@ -18,7 +18,6 @@ export function refs <E extends HTMLElement = HTMLElement, T extends string[] = 
     });
     return refs;
 }
-
 export const collectRef = refs;
 
 export type TDomName = keyof HTMLElementTagNameMap;
@@ -74,16 +73,11 @@ function parseNode (node: IMountDom|IMountDom[]|IChild) {
     return node;
 }
 
-const IsFcApiKeys = new Set([ 'if', 'elif', 'else' ]);
-const ScopeTypes = new Set([
-    LifeScopeType.If, LifeScopeType.For,
-    LifeScopeType.Component, LifeScopeType.RouterView,
-    LifeScopeType.Await, LifeScopeType.Switch,
-]);
 
 export function traverseChildren (doms: IChild[], onChild: (child: Node, origin: IChild) => void) {
     const isSSR = SharedStatus.isSSR;
     // console.log('debug', doms);
+    // ! 为了保序 这里必须使用foreach
     doms.forEach((dom, index) => {
         // console.log('debug', dom, index);
         if (typeof dom === 'undefined' || dom === null) return;
@@ -114,37 +108,8 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             }
             return;
         } else if (typeof ldType === 'number') {
-            // ! 处理if链式调用逻辑
-            if (el.__fc_api_link && IsFcApiKeys.has(el.__fc_api_link)) {
-                if (!el.__if_link_done) {
-                    const type = el.__fc_api_link as 'if'|'elif'|'else';
-                    if (type === 'if') {
-                        const ifEl = new IfClass(el.__fc_api_value, el);
-                        let count = 0;
-                        for (let i = index + 1; i < doms.length; i++) {
-                            const dom = doms[i];
-                            if (!dom.__fc_api_link) break;
-                            if (dom.__fc_api_link === 'elif') {
-                                dom.__if_link_done = true;
-                                ifEl.elif(dom.__fc_api_value, dom);
-                                count ++;
-                            } else if (dom.__fc_api_link === 'else') {
-                                dom.__if_link_done = true;
-                                ifEl.else(dom);
-                                count ++;
-                            }
-                        }
-                        if (count) doms.splice(index + 1, count);
-                        dom.__if_link_done = true;
-                        // ! 此处要把dom一起改掉
-                        dom = el = ifEl;
-                    } else {
-                        throw new Error(`${type} can not use without if`);
-                    }
-                }
-            }
-            // if ([ LinkDomType.For ].includes(el.__ld_type))
-            //     console.warn('debug end for', el);
+            const result = handleIfLinkChildren(el, doms, index);
+            if (result) dom = el = result; // ! 需要把dom也一起修改
             el = el.el;
         } else if (isReactiveLike(el)) {
             el = new Text(el as any);

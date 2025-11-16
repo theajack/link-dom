@@ -6,9 +6,10 @@
 
 import type { Dom, IChild } from '../element';
 import { isReactive, type Ref } from 'link-dom-reactive';
-import type { IReactiveLike } from '../type.d';
+import type { IControlLink, IReactiveLike } from '../type.d';
 import { ForClass } from './for/for';
-import { IfClass } from './if';
+import type { IfShortUseFn } from './if';
+import { IfClass, IfInner } from './if';
 import { SwitchClass } from './switch';
 import type { IOptionStyle } from '../type.d';
 import { ShowClass } from './show';
@@ -16,12 +17,20 @@ import { AwaitClass } from './await';
 import { SharedStatus } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
 
+export { Elif, Else, type IfClass } from './if';
+export { Default, Case, type SwitchClass } from './switch';
+
 export type IController = ForClass | IfClass | SwitchClass;
 
 function parseForList <T> (list: Ref<T[]>|T[]) {
     const arr = (isReactive(list)) ? list.value : list;
     const isStatic = !arr[SharedStatus.OriginTarget];
     return { arr, isStatic };
+}
+
+export interface IfCtrl {
+    (ref: IReactiveLike): IfShortUseFn;
+    (ref: IReactiveLike, gene?: (()=>IChild)|IChild, elseGen?: (()=>IChild)|IChild): IfClass;
 }
 
 export const ctrl = {
@@ -38,15 +47,18 @@ export const ctrl = {
     forStatic: <T = any> (list: Ref<T[]>|T[], fn: (item:T, index: number)=>IChild) => {
         return (isReactive(list) ? list.value : list).map((item, index) => fn(item, index));
     },
-    if (ref: IReactiveLike, gene: (()=>IChild)|IChild, elseGen?: (()=>IChild)|IChild) {
+    if: ((ref: IReactiveLike, gene?: (()=>IChild)|IChild, elseGen?: (()=>IChild)|IChild) => {
+        if (!gene) {
+            return IfInner(ref);
+        }
         const target = new IfClass(ref, gene);
         if (elseGen) {
             target.else(elseGen);
         }
         return target;
-    },
+    }) as IfCtrl,
     switch (ref: IReactiveLike): SwitchClass & {
-        (...args: Dom[]): SwitchClass
+        (...args: (Dom|IControlLink)[]): SwitchClass
     } {
         const target = new SwitchClass(ref);
         let p: any = null;

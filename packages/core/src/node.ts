@@ -5,6 +5,7 @@ import { LinkDomType, useReactive } from './utils';
 
 export class BaseNode<T extends Text|Comment|HTMLElement> {
     el: T;
+    __isFnProxy = false;
     remove () {
         this.el?.remove();
         return this;
@@ -77,22 +78,30 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
         if (typeof val === 'undefined') {
             return this.el.textContent;
         }
-        let isDom = false;
         const clear = this._useR(val, (v) => {
-            if (typeof v === 'object' && typeof v?.__ld_type === 'number') {
+            if (typeof v?.__ld_type === 'number') {
                 // @ts-ignore ! 如果函数里为Dom 则移接到Dom上
                 this.__ld_type = v.__ld_type;
                 Object.defineProperty(this, 'el', {
-                    get () { return v.el; },
-                    set (el) { v.el = el; }
+                    get () {
+                        // ! 组件结合short
+                        const el = v.el;
+                        return el?.__ld_type ? el.el : el;
+                    },
+                    set (el) {
+                        if (v.el?.__ld_type) {
+                            v.el.el = el;
+                        } else {
+                            v.el = el;
+                        }
+                    }
                 });
-                isDom = true;
-                debugger;
+                this.__isFnProxy = true;
             } else {
-                this.el.textContent = v;
+                this.el.textContent = 'xx';
             }
         });
-        if (isDom) {clear?.(); }
+        if (this.__isFnProxy) {clear?.(); }
         return this;
     }
 }

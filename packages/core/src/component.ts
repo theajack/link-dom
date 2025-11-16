@@ -7,8 +7,9 @@ import type { IController } from './controller';
 import type { Dom, IChild } from './element';
 import { getReactiveValue as read, LinkDomType, assignDefault } from './utils';
 import { mount, type IMountParent } from './mount';
-import type { Comment, Frag, Text } from './text';
+import { frag, type Comment, type Frag, type Text } from './text';
 import type { IReactiveLike } from './type';
+import { handleIfLinkChildren } from './controller/if';
 // import { createLifeScope, LifeScopeType } from './lifes';
 
 type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController;
@@ -249,8 +250,20 @@ function createScope (flow = true) {
         scope: { props, slots, emit, expose, ...lifes } as IComponentArgs,
         utils,
         setProxy (proxy: any) {return (p = proxy);},
-        assignSlots: (slots: any[])=>{
-            for (const item of slots) {
+        assignSlots: (slots: any[]) => {
+            // 处理If Else
+            // ! 为了保序 这里必须使用foreach
+            slots.forEach((el, index) => {
+                const result = handleIfLinkChildren(el, slots, index);
+                if (result) {
+                    slots[index] = result;
+                }
+            });
+            for (let item of slots) {
+                // ! 处理数组逻辑
+                if (Array.isArray(item)) {
+                    item = frag(...item);
+                }
                 utils.slot((item as any).__slot_name, item);
             }
         }
@@ -283,10 +296,11 @@ export function defineComponent<
     defaultProps?: Partial<Props>
 } = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
     const target = (...slots: ISlot[]) => {
+        let result: any = null;
         const { scope, utils, setProxy, assignSlots } = createScope(flow);
         // console.log('call target', name)
         assignSlots(slots); // ! 此处为首次调用组件
-        const p = new Proxy((...slots: any[])=>{
+        const p = new Proxy((...slots: any[]) => {
             assignSlots(slots); // ! 此处为先点调用属性之后调用组件
             return p;
         }, {
@@ -294,8 +308,10 @@ export function defineComponent<
                 if (key === '__ld_type') return LinkDomType.Component;
                 if (key === 'name') return name;
                 if (key === 'el') {
+                    // ! 需要缓存组件元素
+                    if (result) return result;
                     assignDefault(scope.props, defaultProps);
-                    return fn(scope as any); // ! 最终组合返回值
+                    return result = fn(scope as any); // ! 最终组合返回值
                 }
                 if (typeof key === 'symbol' || FnKeys.has(key as string)) {
                     return fn[key];
@@ -308,7 +324,7 @@ export function defineComponent<
         return p;
     };
 
-   return new Proxy(target, {
+    return new Proxy(target, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Component;
             if (key === 'name') return name;

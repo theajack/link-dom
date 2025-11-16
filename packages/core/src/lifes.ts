@@ -180,3 +180,10 @@ export function updateIfScopeBranch (scope: LifeScope, prev: number, active: num
         },
     };
 }
+
+export const IsFcApiKeys = new Set([ 'if', 'elif', 'else' ]);
+export const ScopeTypes = new Set([
+    LifeScopeType.If, LifeScopeType.For,
+    LifeScopeType.Component, LifeScopeType.RouterView,
+    LifeScopeType.Await, LifeScopeType.Switch,
+]);
