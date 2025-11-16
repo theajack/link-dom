@@ -102,6 +102,7 @@ export class LifeScope {
 }
 
 export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: number) {
+    if (SharedStatus.isSSR) return;
     const scope = new LifeScope(type, dom);
     LifeScopeLink.push(scope);
     if (dom?.__ld_type === LinkDomType.Component) {
@@ -122,6 +123,7 @@ export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: numbe
 }
 
 export function onExitScope () {
+    if (SharedStatus.isSSR) return;
     LifeScopeLink.pop();
     CurrentScope = LifeScopeLink[LifeScopeLink.length - 1] || null;
 }

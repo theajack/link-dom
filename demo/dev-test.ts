@@ -265,32 +265,33 @@ import { ref, div, button, join, collectRef, mount, link, For, If, span } from '
 function CommonComponent (data) {
     const list = ref(data);
     const selected = ref('label2');
-    const id = 0;
+    let id = 0;
+    id ++;
     return div.style('borderBottom', '2px solid #000')(
         button('clear').click(() => {
             list.value = [];
             // console.log(111);
         }),
-        // button('init').click(() => {
-        //     console.time();
-        //     for (let i = 0; i < 10000; i++) {
-        //         list.value.push({ label: `item${i}` });
-        //     }
-        //     console.timeEnd();
-        // }),
-        // button('reset').click(() => {
-        //     list.value = [ { label: 'test' }, { label: 'test2' } ];
-        // }),
-        // button('reverse').click(() => {
-        //     list.value.reverse();
-        // }),
-        // button('sort').click(() => {
-        //     list.value.sort((a, b) => a.label.localeCompare(b.label));
-        // }),
-        // button('add').click(() => {
-        //     list.value.push({ label: `item${id++}` });
-        // }),
-        // span(join`selected:${selected}`),
+        button('init').click(() => {
+            console.time();
+            for (let i = 0; i < 20; i++) {
+                list.value.push({ label: `item${i}` });
+            }
+            console.timeEnd();
+        }),
+        button('reset').click(() => {
+            list.value = [ { label: 'test' }, { label: 'test2' } ];
+        }),
+        button('reverse').click(() => {
+            list.value.reverse();
+        }),
+        button('sort').click(() => {
+            list.value.sort((a, b) => a.label.localeCompare(b.label));
+        }),
+        button('add').click(() => {
+            list.value.push({ label: `item${id++}` });
+        }),
+        span(join`selected:${selected}`),
         For(list, (item, index) => {
             return div.style('color', () => selected.value === item.label ? 'red' : 'green')(
                 If(() => selected.value === item.label, () => span('selected'))

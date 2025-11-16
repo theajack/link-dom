@@ -64,6 +64,7 @@ export class ForClass <T=any> {
 
         if (!SharedStatus.isSSR) {
             ForGlobal.add(this._list, this);
+            debugger;
         }
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
@@ -86,6 +87,7 @@ export class ForClass <T=any> {
     };
 
     private newChild (data: T, index: number) {
+        console.log('debugadd new Child', data, index);
         const child = new ForChild(
             this._generator,
             this._isDeep,
@@ -120,6 +122,7 @@ export class ForClass <T=any> {
         this.children[index].data.value = data;
     }
     _newItem (index: number, data: T) {
+        console.log('debugadd _newItem', data, index);
         // console.log('newItem', index, this._list.length, data);
         const cc = this.children, n = cc.length;
         let marker = this.end, markerIndex = index;
@@ -155,7 +158,7 @@ export class ForClass <T=any> {
         checkHydrateMarker(this);
         // if (!this.isStatic) {
         // 后面加一个结尾
-        this.end = createMarkerNode('');
+        this.end = createMarkerNode('for-end');
         this.frag.append(this.end);
         // }
         this._el = this.frag.el;

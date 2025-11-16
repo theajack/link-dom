@@ -38,6 +38,8 @@ export class Marker {
 
     // 清除marker中间的内容
     clear () {
+
+        debugger;
         if (!this.start.parentNode) {
             throw new Error('parent is null');
         }
@@ -61,7 +63,7 @@ export class Marker {
                 next = _next;
             }
             // @ts-ignore
-            if (next.__marker) {
+            if (next?.__marker) {
                 break;
             }
         }

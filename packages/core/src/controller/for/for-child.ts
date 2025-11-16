@@ -10,7 +10,9 @@ import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { Marker, createMarkerNode } from '../_marker';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';
+import { SharedStatus } from 'link-dom-shared';
 
+// window.list = [];
 export class ForChild<T=any> {
 
     private _marker: Marker;
@@ -45,6 +47,7 @@ export class ForChild<T=any> {
 
     private ensureStart () {
         if (this._start) return this._start;
+
         if (this._frag.__ld_type === LinkDomType.Frag) {
             this._start = this._frag.children[0]?.el;
             if (!this._start) {
@@ -55,8 +58,22 @@ export class ForChild<T=any> {
             // @ts-ignore
             this._start = this._frag.getMarker?.() || this._frag.el;
         }
+
+        if (SharedStatus.isHydrating) {
+            console.log('debug for-child', this._start, this._start.dom.el);
+            this._start.__for_child = this;
+        }
+
+        console.log('Ensure start', this._start);
         this._start.__marker = true; // ! 标记为分割节点
         return this._start;
+    }
+
+    __replaceHydrateStart (el: any) {
+        if (SharedStatus.isHydrating) {
+            this._start = el;
+            this._start.__marker = true;
+        }
     }
 
     get marker () {
@@ -64,6 +81,26 @@ export class ForChild<T=any> {
             const start = this.ensureStart();
             this._marker = new Marker({ start, clearSelf: true, end: false });
         }
+        // if (!this._marker) {
+        //     const f = this.frag;
+        //     const lg = f.__ld_type;
+        //     let start: any;
+        //     // debugger;
+        //     if (lg === LinkDomType.Frag) {
+        //         start = this._start?.el;
+        //         if (!start) {
+        //             start = createMarkerNode();
+        //             f.prepend(start);
+        //         }
+        //     } else {
+        //         // if (f.getMarker) {
+        //         //     console.log(f.getMarker());
+        //         // }
+        //         // @ts-ignore
+        //         start = f.getMarker?.() || f.el;
+        //     }
+        //     this._marker = new Marker({ start, clearSelf: true, end: false });
+        // }
         return this._marker;
     }
 
@@ -87,6 +124,7 @@ export class ForChild<T=any> {
         itemRef: boolean,
         useIndex?: ()=>void,
     ) {
+        // window.list.push(this);
         // console.log('debug', 'new for child');
         // debugger;
         this.data = itemRef ? (isDeep ? ref(data) : { value: data } as Ref) : data;

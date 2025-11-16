@@ -9,7 +9,7 @@ import { Comment } from 'link-dom';
 import { Frag, Text } from 'link-dom';
 import { NodeType } from '../utils';
 import type { SSRElement } from './element';
-import { SharedStatus, type IComment, type IFragment, type ITextNode } from 'link-dom-shared';
+import { isWeb, SharedStatus, type IComment, type IFragment, type ITextNode } from 'link-dom-shared';
 
 
 export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
@@ -25,13 +25,18 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
         }
     }
     hydrate (el: any) {
+        console.log('hydrate', el);
         // 部分text这里没有dom
         if (!this.dom) {
             // console.log('not dom', this);
             return;
         }
+        console.log('hydrate', el);
+        console.log('debug hydrate', el);
         // 指定真实的dom节点: 将SSRElement替换为真实dom节点
         this.dom.el = el;
+        // @ts-ignore
+        this.__for_child?.__replaceHydrateStart(el);
     }
 
     parentElement: SSRContainer<Dom|Frag>|null = null;
@@ -86,8 +91,9 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
             const node = childNodes[i];
             // @ts-ignore
             if (node?.tagName === 'ST') {
-                // ! 此处只能web平台使用了
-                const text: any = document.createTextNode((item as any).textContent);
+                const content = (item as any).textContent;
+                // ! web 平台需要转换成textNode
+                const text: any = isWeb ? document.createTextNode(content) : content;
                 node.replaceWith(text);
                 item.hydrate(text);
             } else {
