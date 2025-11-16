@@ -13,10 +13,17 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
     nodeType = NodeType.ELEMENT_NODE;
     classList: ClassList = new ClassList();
     hydrate (el: HTMLElement): void {
+        const scope = this.dom.__componentScope;
+        if (scope && SharedStatus.isHydrating) {
+            scope.beforeHydrate();
+        }
         super.hydrate(el);
         // 遍历 _eventsListeners
         for (const [ handler, [ name, options ] ] of this._eventsListeners) {
             el.addEventListener(name as any, handler as any, options);
+        }
+        if (scope && SharedStatus.isHydrating) {
+            scope.hydrated();
         }
     }
     toHtml (): string {

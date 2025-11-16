@@ -13,9 +13,12 @@ import { isWeb, SharedStatus, type IComment, type IFragment, type ITextNode } fr
 
 
 export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
-    dom: T;
+    dom: T & {
+        __componentScope: any
+    };
     __is_ssr = true;
     __is_hydrate = false;
+    __componentScope: any = null;
     nodeType: NodeType;
     private __for_child?: any;
     abstract toHtml (isSingle: boolean): string;

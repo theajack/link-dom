@@ -141,4 +141,5 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] 修复component
 - [x] 支持link传入函数
 - [x] 支持IChild传入 Dom函数
-- [ ] 
+- [x] 修复ssr的bug和其他bug
+- [x] hydrate生命周期

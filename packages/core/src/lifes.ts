@@ -100,6 +100,16 @@ export class LifeScope {
         this.component?.__unmounted();
         this.children = [];
     }
+    beforeHydrate () {
+        this.children.forEach(child => child.beforeHydrate());
+        // @ts-ignore
+        this.component?.__beforeHydrate();
+    }
+    hydrated () {
+        this.children.forEach(child => child.hydrated());
+        // @ts-ignore
+        this.component?.__hydrated();
+    }
 }
 
 export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: number) {
@@ -108,6 +118,9 @@ export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: numbe
     LifeScopeLink.push(scope);
     if (dom?.__ld_type === LinkDomType.Component) {
         scope.component = dom;
+        if (SharedStatus.isHydrating) {
+            dom.el.__componentScope = scope;
+        }
     }
     if (CurrentScope) {
         scope.parent = CurrentScope;
