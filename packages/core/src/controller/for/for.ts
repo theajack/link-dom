@@ -60,6 +60,8 @@ export class ForClass <T=any> {
         // this.isStatic = !this._list[SharedStatus.OriginTarget];
         // console.log('init for');
 
+        console.log('1111', SharedStatus.isSSR);
+
         if (!SharedStatus.isSSR) {
             ForGlobal.add(this._list, this);
         }
@@ -171,6 +173,7 @@ export class ForClass <T=any> {
     }
 
     _deleteItem (index: number) {
+        debugger;
         // console.log('delete item', index);
         const child = this.children[index];
         if (child) {
@@ -191,6 +194,7 @@ export class ForClass <T=any> {
         this._updateIndex(start + count - 1);
     }
     _addDoms (start: number, count: number) {
+        debugger;
         for (let i = start; i < start + count; i++) {
             this.children.splice(i, 0, null as any);
             this._newItem(i, this._list[i]);

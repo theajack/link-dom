@@ -96,6 +96,7 @@ const FnMap = {
         return proxy;
     },
     splice (this: any[], start: number, ...items: any[]) {
+        debugger;
         const count = items.length;
         let removeCount = 0;
         let addCount = 0;

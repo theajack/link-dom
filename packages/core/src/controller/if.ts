@@ -124,7 +124,6 @@ export class IfClass {
         //     scope.lifeScope.parent = CurrentScope;
         // });
         // console.trace('11111111');
-        debugger;
         if (!this.frag) return;
         // console.log('test:if mounted');
         // this._initChildren();
@@ -134,7 +133,7 @@ export class IfClass {
         }
         this.frag?.__mounted?.(this.frag);
         this._renderered = true;
-        // debugger;
+        //
         // @ts-ignore
         this.frag = null;
     }
@@ -168,10 +167,8 @@ export class IfClass {
     }
     private _initChildren () {
         if (this._el) return;
-        debugger;
         this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
             const index = this.switchCase();
-            debugger;
             // console.log('test:if switch', index, this.activeIndex);
             // console.log('if switch', index);
             if (index !== this.activeIndex) {

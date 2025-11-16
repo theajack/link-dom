@@ -78,7 +78,7 @@ function geneDevConfig (): UserConfig {
         server: {
             host: '0.0.0.0',
             port: 8090,
-            hmr: false,
+            hmr: true,
             headers: { // 使用sharedArrayBuffer
                 'Cross-Origin-Embedder-Policy': 'require-corp',
                 'Cross-Origin-Opener-Policy': 'same-origin',
