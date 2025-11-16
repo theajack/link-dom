@@ -10,12 +10,12 @@ import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../_marker';
 import { checkHydrateMarker, getTarget, SharedStatus } from 'link-dom-shared';
 import type { Ref } from 'link-dom-reactive';
-import { DepUtil, isDeepReactive } from 'link-dom-reactive';
+import { isRef, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
 import { type LifeScope } from '../../lifes';
 
-
+window._fl = [];
 export class ForClass <T=any> {
 
     __ld_type = LinkDomType.For;
@@ -27,47 +27,42 @@ export class ForClass <T=any> {
 
     private children: ForChild[] = [];
 
-    // private _list: T[];
+    private _list: T[];
     private _generator: (item: Ref<T>, index: {readonly value: number})=>IChild;
 
     end: Node;
 
-    // isStatic: boolean; ;
+    start: Node;
 
     getMarker () {
-        return this.end;
+        return this.start;
     }
 
     _isDeep = false;
 
     private _clearWatch: ()=>void;
 
-
     get el () {
         this._initChildren();
         return this._el;
     }
-
     constructor (
-        // _list: Ref<T[]>|T[],
-        public _list: T[],
+        _list: Ref<T[]>|T[],
         _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
         private itemRef = false,
     ) {
         // window._for = this;
-
-        // this._list = (isRef(_list)) ? _list.value : _list;
-        // this.isStatic = !this._list[SharedStatus.OriginTarget];
+        this._list = (isRef(_list)) ? _list.value : _list;
         // console.log('init for');
-
-        console.log('1111', SharedStatus.isSSR);
 
         if (!SharedStatus.isSSR) {
             ForGlobal.add(this._list, this);
-            debugger;
         }
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
+        // this._initChildren();
+
+        window._fl.push(this);
     }
 
     // private resetList () {
@@ -87,7 +82,6 @@ export class ForClass <T=any> {
     };
 
     private newChild (data: T, index: number) {
-        console.log('debugadd new Child', data, index);
         const child = new ForChild(
             this._generator,
             this._isDeep,
@@ -122,7 +116,6 @@ export class ForClass <T=any> {
         this.children[index].data.value = data;
     }
     _newItem (index: number, data: T) {
-        console.log('debugadd _newItem', data, index);
         // console.log('newItem', index, this._list.length, data);
         const cc = this.children, n = cc.length;
         let marker = this.end, markerIndex = index;
@@ -136,12 +129,16 @@ export class ForClass <T=any> {
 
     private insertChildNode (data: T, index: number, marker: Node) {
         // console.time();
+        // const frag = new Frag();
         const child = this.newChild(data, index);
         // console.log('insertChildNode', index, data);
+        // frag.append(child.frag);
         const parent = marker.parentNode!;
         // @ts-ignore
         child.frag.__mounted?.();
         parent.insertBefore(child.frag.el, marker);
+        // console.log('insertChildNode end', index, data);
+        // console.timeEnd();
     }
 
     get __mounted () {
@@ -154,25 +151,23 @@ export class ForClass <T=any> {
     }
     private _initChildren () {
         if (this._el) return;
-        this.frag = this._initListFrag();
-        checkHydrateMarker(this);
-        // if (!this.isStatic) {
+        this.start = createMarkerNode('f-s');
         // 后面加一个结尾
-        this.end = createMarkerNode('for-end');
-        this.frag.append(this.end);
-        // }
-        this._el = this.frag.el;
-    }
-
-    private _initListFrag () {
+        this.end = createMarkerNode('f-e');
         const frag = new Frag();
+        frag.append(this.start);
         const list = this._list;
         const size = list.length;
         for (let i = 0; i < size; i++) {
             const child = this.newChild(list[i], i);
             frag.append(child.frag);
         }
-        return frag;
+        frag.append(this.end);
+
+        this.frag = frag;
+        checkHydrateMarker(this);
+        // this.frag.append(this.start, this.end);
+        this._el = this.frag.el;
     }
 
     _deleteItem (index: number) {
@@ -186,6 +181,7 @@ export class ForClass <T=any> {
     }
 
     _removeDoms (start: number, count: number) {
+        debugger;
         for (let i = start; i < start + count; i++) {
             const child = this.children[i];
             if (child) {
@@ -197,7 +193,6 @@ export class ForClass <T=any> {
         this._updateIndex(start + count - 1);
     }
     _addDoms (start: number, count: number) {
-        debugger;
         for (let i = start; i < start + count; i++) {
             this.children.splice(i, 0, null as any);
             this._newItem(i, this._list[i]);

@@ -31,9 +31,20 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
             // console.log('not dom', this);
             return;
         }
-        console.log('hydrate', el);
-        console.log('debug hydrate', el);
+        // console.log('hydrate', el);
+        // console.log('debug hydrate', el);
         // 指定真实的dom节点: 将SSRElement替换为真实dom节点
+        // @ts-ignore
+        // if (this.dom.el.__marker) {
+        //     console.log('inhe marker', el);
+        //     // @ts-ignore
+        //     el.__marker = this.dom.el.__marker; // ! 继承marker 非常重要
+        // }
+        // if (this.dom.__marker) {
+        //     console.log('inhe marker2', el);
+        //     // @ts-ignore
+        //     el.__marker = this.dom.__marker; // ! 继承marker 非常重要
+        // }
         this.dom.el = el;
         // @ts-ignore
         this.__for_child?.__replaceHydrateStart(el);

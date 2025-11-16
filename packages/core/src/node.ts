@@ -98,7 +98,7 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
                 });
                 this.__isFnProxy = true;
             } else {
-                this.el.textContent = 'xx';
+                this.el.textContent = v;
             }
         });
         if (this.__isFnProxy) {clear?.(); }

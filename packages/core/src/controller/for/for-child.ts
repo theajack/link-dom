@@ -60,7 +60,7 @@ export class ForChild<T=any> {
         }
 
         if (SharedStatus.isHydrating) {
-            console.log('debug for-child', this._start, this._start.dom.el);
+            // console.log('debug for-child', this._start, this._start.dom.el);
             this._start.__for_child = this;
         }
 
