@@ -23,6 +23,8 @@ export const ForGlobal = {
     },
 };
 
+// window.ForGlobal = ForGlobal;
+
 setArrayListeners({
     deleteIndex (target: any[], index: number) {
         ForGlobal.Map.get(target)?.forEach(item => item._deleteItem(index));
@@ -96,7 +98,6 @@ const FnMap = {
         return proxy;
     },
     splice (this: any[], start: number, ...items: any[]) {
-        debugger;
         const count = items.length;
         let removeCount = 0;
         let addCount = 0;

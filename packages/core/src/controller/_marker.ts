@@ -38,8 +38,6 @@ export class Marker {
 
     // 清除marker中间的内容
     clear () {
-
-        debugger;
         if (!this.start.parentNode) {
             throw new Error('parent is null');
         }

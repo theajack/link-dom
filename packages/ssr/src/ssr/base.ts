@@ -17,6 +17,7 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
     __is_ssr = true;
     __is_hydrate = false;
     nodeType: NodeType;
+    private __for_child?: any;
     abstract toHtml (isSingle: boolean): string;
     abstract toDom (): Frag|Dom|Text|Comment;
     constructor () {
@@ -25,29 +26,21 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
         }
     }
     hydrate (el: any) {
-        console.log('hydrate', el);
+        // console.log('hydrate', el);
         // 部分text这里没有dom
         if (!this.dom) {
-            // console.log('not dom', this);
             return;
         }
-        // console.log('hydrate', el);
-        // console.log('debug hydrate', el);
-        // 指定真实的dom节点: 将SSRElement替换为真实dom节点
         // @ts-ignore
         // if (this.dom.el.__marker) {
-        //     console.log('inhe marker', el);
-        //     // @ts-ignore
-        //     el.__marker = this.dom.el.__marker; // ! 继承marker 非常重要
-        // }
-        // if (this.dom.__marker) {
         //     console.log('inhe marker2', el);
-        //     // @ts-ignore
-        //     el.__marker = this.dom.__marker; // ! 继承marker 非常重要
         // }
+        // 指定真实的dom节点: 将SSRElement替换为真实dom节点
         this.dom.el = el;
-        // @ts-ignore
-        this.__for_child?.__replaceHydrateStart(el);
+        if (this.__for_child) {
+            el.__marker = true;
+            this.__for_child._start = el;
+        }
     }
 
     parentElement: SSRContainer<Dom|Frag>|null = null;
@@ -92,6 +85,7 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
         // const curChildren = this.flatChildren();
         const curChildren = this.children;
         const len = curChildren.length;
+        // debugger;
 
         if (childNodes.length !== len) {
             throw new Error('hydrate error');
@@ -269,6 +263,7 @@ export class SSRComment extends SSRBase<Comment> implements IComment {
             // throw new Error('dom is not set');
             return;
         }
+        el.__marker = true; // ! 重要
         // 指定真实的dom节点
         this.dom[this.markerType] = el;
     }

@@ -265,7 +265,7 @@ import { link } from 'link-dom';
 
 function CommonComponent (data) {
     const list = ref(data);
-    const selected = ref('label2');
+    const selected = ref('item2');
     let id = 0;
     id ++;
     return div.style('borderBottom', '2px solid #000')(
@@ -302,7 +302,8 @@ function CommonComponent (data) {
                 }),
                 button('×').click(() => {
                     list.value.splice(index.value, 1);
-                })
+                }),
+                Child3(`child${item.label}`),
             );
         }),
     );
@@ -336,7 +337,6 @@ function SSRContainer () {
         div.ref(refs.container),
     );
 }
-mount(SSRContainer, '#app');
+// mount(SSRContainer, '#app');
 
-// const data = [ { label: 'label1' }, { label: 'label2' } ];
-// mount(CommonComponent(data), '#app');
+mount(CommonComponent([ { label: 'label1' }, { label: 'label2' } ]), '#app');

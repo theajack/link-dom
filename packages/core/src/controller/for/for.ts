@@ -15,7 +15,7 @@ import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
 import { type LifeScope } from '../../lifes';
 
-window._fl = [];
+// window._fl = [];
 export class ForClass <T=any> {
 
     __ld_type = LinkDomType.For;
@@ -28,7 +28,7 @@ export class ForClass <T=any> {
     private children: ForChild[] = [];
 
     private _list: T[];
-    private _generator: (item: Ref<T>, index: {readonly value: number})=>IChild;
+    _generator: (item: Ref<T>, index: {readonly value: number})=>IChild;
 
     end: Node;
 
@@ -49,7 +49,7 @@ export class ForClass <T=any> {
     constructor (
         _list: Ref<T[]>|T[],
         _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
-        private itemRef = false,
+        public _itemRef = false,
     ) {
         // window._for = this;
         this._list = (isRef(_list)) ? _list.value : _list;
@@ -61,8 +61,7 @@ export class ForClass <T=any> {
         this._isDeep = isDeepReactive(this._list);
         this._generator = _generator;
         // this._initChildren();
-
-        window._fl.push(this);
+        // window._fl.push(this);
     }
 
     // private resetList () {
@@ -75,25 +74,17 @@ export class ForClass <T=any> {
     // }
 
     private _useIndex = false;
-    private useIndex = () => {
+    _$useIndex = () => {
         this._useIndex = true;
         // @ts-ignore
-        this.useIndex = null;
+        this._$useIndex = null;
     };
 
     private newChild (data: T, index: number) {
-        const child = new ForChild(
-            this._generator,
-            this._isDeep,
-            // this._list,
-            data,
-            index,
-            this.itemRef,
-            this.useIndex,
-        );
+        const child = new ForChild(this, data, index);
 
         // 处理简单值类型 ref set和原始数据同步
-        if (this.itemRef && this._isDeep && typeof data !== 'object') {
+        if (this._itemRef && this._isDeep && typeof data !== 'object') {
             DepUtil.sub(child.data, 'value', (newValue) => {
                 const index = child.index.value;
                 const target = this._list[SharedStatus.OriginTarget];
@@ -170,26 +161,24 @@ export class ForClass <T=any> {
         this._el = this.frag.el;
     }
 
-    _deleteItem (index: number) {
-        debugger;
+    _deleteItem (i: number) {
         // console.log('delete item', index);
-        const child = this.children[index];
+        const child = this.children[i];
         if (child) {
-            this.destroyChild(child, index);
-            DepUtil.clearDep(getTarget(this._list), index.toString());
+            this._removeChildScope(child, i);
+            this.__ld_scope?.children.splice(i, 1);
         }
     }
 
     _removeDoms (start: number, count: number) {
-        debugger;
         for (let i = start; i < start + count; i++) {
             const child = this.children[i];
             if (child) {
-                this.destroyChild(child, i);
-                DepUtil.clearDep(getTarget(this._list), i.toString());
+                this._removeChildScope(child, start + i);
             }
         }
         this.children.splice(start, count);
+        this.__ld_scope?.children.splice(start, count);
         this._updateIndex(start + count - 1);
     }
     _addDoms (start: number, count: number) {
@@ -236,32 +225,32 @@ export class ForClass <T=any> {
         if (length >= this.children.length) return;
         const start = length;
         this.children.splice(length).forEach((child, i) => {
-            this.destroyChild(child, start + i);
-            DepUtil.clearDep(getTarget(this._list), (start + i).toString());
+            this._removeChildScope(child, start + i);
         });
+        this.__ld_scope?.children.splice(length);
+    }
+
+    private _removeChildScope (child: ForChild, i: number) {
+        const scope = this.__ld_scope?.children[i];
+        scope?.beforeUnmount();
+        if (child.destroy()) {
+            scope?.unmounted();
+        }
+        DepUtil.clearDep(getTarget(this._list), (i).toString());
     }
 
     destroy () {
         this._clearWatch?.();
         if (this.children.length > 0) {
             removeBetween(this.children[0].marker.start, this.end);
-            this.children.forEach((child, index) => {
-                this.destroyChild(child, index);
+            this.children.forEach((child, i) => {
+                this._removeChildScope(child, i);
             });
             this.children = [];
+            this.__ld_scope.children = [];
         }
         // @ts-ignore
         this.end.remove();
-    }
-
-    private destroyChild (child: ForChild, index: number) {
-        if (child.destroy()) {
-            const scope = this.__ld_scope?.children[index];
-            if (scope) {
-                scope.unmounted();
-                this.__ld_scope.children.splice(index, 1);
-            }
-        }
     }
 }
 

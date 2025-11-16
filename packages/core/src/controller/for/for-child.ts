@@ -4,13 +4,14 @@
  * @Date: 2025-09-11 20:56:49
  * @Description: Coding something
  */
-import { LifeScopeType, onEnterScope, onExitScope } from '../../lifes';
-import type { Dom, IChild } from '../../element';
+import { CurrentScope, LifeScopeType, onEnterScope, onExitScope, setCurrentScope } from '../../lifes';
+import type { Dom } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { Marker, createMarkerNode } from '../_marker';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';
 import { SharedStatus } from 'link-dom-shared';
+import type { ForClass } from './for';
 
 // window.list = [];
 export class ForChild<T=any> {
@@ -24,8 +25,9 @@ export class ForChild<T=any> {
 
     get frag () {
         if (!this._frag) {
+            setCurrentScope(this.parent.__ld_scope);
             onEnterScope(LifeScopeType.ForChild, this, this.index.value);
-            const el = this._generator(this.data, this.index);
+            const el = this.parent._generator(this.data as any, this.index);
             if (typeof el.__ld_type !== 'number' || el.__ld_type === LinkDomType.Component) {
                 this._frag = new Frag().append(el);
             } else {
@@ -60,20 +62,12 @@ export class ForChild<T=any> {
         }
 
         if (SharedStatus.isHydrating) {
-            // console.log('debug for-child', this._start, this._start.dom.el);
-            this._start.__for_child = this;
+            this._start.__for_child = this; // ! 标记需要替换marker
         }
 
-        console.log('Ensure start', this._start);
+        // console.log('Ensure start', this._start);
         this._start.__marker = true; // ! 标记为分割节点
         return this._start;
-    }
-
-    __replaceHydrateStart (el: any) {
-        if (SharedStatus.isHydrating) {
-            this._start = el;
-            this._start.__marker = true;
-        }
     }
 
     get marker () {
@@ -116,22 +110,19 @@ export class ForChild<T=any> {
     index: {readonly value: number};
 
     constructor (
-        private _generator: (item: Ref<T>|T, index: {readonly value: number})=>IChild,
-        // private list: T[],
-        isDeep: boolean,
+        private parent: ForClass,
         data: T,
         private _index: number,
-        itemRef: boolean,
-        useIndex?: ()=>void,
     ) {
+        const { _itemRef, _isDeep } = parent;
         // window.list.push(this);
         // console.log('debug', 'new for child');
         // debugger;
-        this.data = itemRef ? (isDeep ? ref(data) : { value: data } as Ref) : data;
+        this.data = _itemRef ? (_isDeep ? ref(data) : { value: data } as Ref) : data;
         const _this = this;
         this.index = {
             get value () {
-                useIndex?.();
+                parent._$useIndex?.();
                 DepUtil.add(this, 'value');
                 return _this._index;
             },

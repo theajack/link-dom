@@ -40,6 +40,7 @@ export enum LifeScopeType {
 export let CurrentScope: LifeScope|null = null;
 
 export function setCurrentScope (scope: LifeScope|null) {
+    if (SharedStatus.isSSR) return;
     CurrentScope = scope;
 }
 
