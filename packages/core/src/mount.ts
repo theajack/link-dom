@@ -3,7 +3,7 @@ import { SharedStatus } from 'link-dom-shared';
 import type { IController } from './controller';
 import type { IChild } from './element';
 import { Dom } from './element';
-import type { Frag } from './text';
+import { Text, type Frag } from './text';
 import { isPureFunc, LinkDomType } from './utils';
 import { LifeScopeType, onEnterScope, onExitScope } from './lifes';
 import { IfClass } from './controller/if';

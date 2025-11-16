@@ -5,7 +5,7 @@ import type { Ref } from 'link-dom-reactive';
 import { reader } from 'link-dom-reactive';
 import type { IController } from './controller';
 import type { Dom, IChild } from './element';
-import { getReactiveValue as read, LinkDomType } from './utils';
+import { getReactiveValue as read, LinkDomType, assignDefault } from './utils';
 import { mount, type IMountParent } from './mount';
 import type { Comment, Frag, Text } from './text';
 import type { IReactiveLike } from './type';
@@ -77,7 +77,7 @@ export type IComponentProxy<
     mount: (parent: IMountParent) => IComponentProxy<Props, Emits, Slots, Exposes>;
 } & {
     [Key in PropKey]: (
-        Props[Key] extends boolean ?
+        Props[Key] extends (boolean|IReactiveLike<boolean>|(()=>boolean)) ?
             ((prop?: Props[Key]) => IComponentProxy<Props, Emits, Slots, Exposes>):
             ((prop: Props[Key]) => IComponentProxy<Props, Emits, Slots, Exposes>)
     )
@@ -248,8 +248,12 @@ function createScope (flow = true) {
         // scope是组件内部使用的
         scope: { props, slots, emit, expose, ...lifes } as IComponentArgs,
         utils,
-        setProxy (proxy: any) {return (p = proxy);}
-        // todo 生命周期
+        setProxy (proxy: any) {return (p = proxy);},
+        assignSlots: (slots: any[])=>{
+            for (const item of slots) {
+                utils.slot((item as any).__slot_name, item);
+            }
+        }
     };
 }
 
@@ -279,32 +283,19 @@ export function defineComponent<
     defaultProps?: Partial<Props>
 } = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
     const target = (...slots: ISlot[]) => {
-        const { scope, utils, setProxy } = createScope(flow);
-        const assignSlots = (slots: any[])=>{
-            for (const item of slots) {
-                utils.slot((item as any).__slot_name, item);
-            }
-        }
-        assignSlots(slots);
-
-        const callComp = ()=>{
-            if(defaultProps){
-               scope.props = Object.assign(defaultProps, scope.props)
-            }
-            return fn(scope as any); // ! 组合返回值
-        }
-
-        const targetFn = (...args: any)=>{
-            assignSlots(args);
-            return callComp();
-        }
-        p = new Proxy(targetFn, {
+        const { scope, utils, setProxy, assignSlots } = createScope(flow);
+        // console.log('call target', name)
+        assignSlots(slots); // ! 此处为首次调用组件
+        const p = new Proxy((...slots: any[])=>{
+            assignSlots(slots); // ! 此处为先点调用属性之后调用组件
+            return p;
+        }, {
             get (_, key) {
                 if (key === '__ld_type') return LinkDomType.Component;
                 if (key === 'name') return name;
                 if (key === 'el') {
-                    return callComp();
-                // return createLifeScope(LifeScopeType.Component, () => fn(scope as any));
+                    assignDefault(scope.props, defaultProps);
+                    return fn(scope as any); // ! 最终组合返回值
                 }
                 if (typeof key === 'symbol' || FnKeys.has(key as string)) {
                     return fn[key];
@@ -317,8 +308,7 @@ export function defineComponent<
         return p;
     };
 
-    // console.log('debug end', 'new comp');
-    let p = new Proxy(target, {
+   return new Proxy(target, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Component;
             if (key === 'name') return name;
@@ -326,15 +316,14 @@ export function defineComponent<
                 // ! 组合返回值
                 // @ts-ignore
                 return target().el;
-                // return createLifeScope(LifeScopeType.Component, () => fn(scope as any));
             }
             if (typeof key === 'symbol' || FnKeys.has(key as string)) {
                 return fn[key];
             }
+            // console.log('call key', key)
             const comp = target();
             // @ts-ignore
             return comp[key];
         }
-    });
-    return p as any;
+    }) as any;
 }

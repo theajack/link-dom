@@ -138,3 +138,6 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] if、switch、for api化
 - [x] .mount
 - [x] unmounted mounted
+- [ ] 修复component
+- [ ] 支持link传入函数
+- [ ] traverseChildren

@@ -85,7 +85,14 @@ export class Link<T = any> {
         DepUtil.trigger(this, 'value');
     }
     constructor (_value: T) {
-        if (typeof _value === 'function') throw new Error('Link 不能传入函数');
+        if (typeof _value === 'function') {
+            this._clearDep = observe(_value as any, (v) => {
+                this._value = v;
+                DepUtil.trigger(this, 'value');
+            }, (value) => { this._value = value; });
+            this._value = _value;
+            return;
+        };
         if (isReactive(_value)) return _value as any;
         const react = generateReactiveByValue(_value);
         if (react) {

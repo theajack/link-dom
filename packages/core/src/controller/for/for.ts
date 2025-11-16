@@ -13,7 +13,7 @@ import type { Ref } from 'link-dom-reactive';
 import { DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
-import { updateForScopeBranch, type LifeScope } from '../../lifes';
+import { type LifeScope } from '../../lifes';
 
 
 export class ForClass <T=any> {
@@ -240,7 +240,6 @@ export class ForClass <T=any> {
     }
 
     destroy () {
-
         this._clearWatch?.();
         if (this.children.length > 0) {
             removeBetween(this.children[0].marker.start, this.end);
@@ -255,7 +254,7 @@ export class ForClass <T=any> {
 
     private destroyChild (child: ForChild, index: number) {
         if (child.destroy()) {
-            const scope = this.__ld_scope.children[index];
+            const scope = this.__ld_scope?.children[index];
             if (scope) {
                 scope.unmounted();
                 this.__ld_scope.children.splice(index, 1);

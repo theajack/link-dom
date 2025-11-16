@@ -14,6 +14,12 @@ function IfApp () {
         If(() => num.value < 2, () => span('num < 2'))
             .elif(() => num.value < 5, () => span('num < 5'))
             .else(() => span('num >= 5')),
+
+        // or 
+
+        span.if(() => num.value < 2)(span('num < 2')),
+        span.elif(() => num.value < 5)('num < 5'),
+        span.else('num >= 5'),
     );
 }
 mount(IfApp, '#app');

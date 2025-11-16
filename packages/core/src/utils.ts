@@ -112,7 +112,10 @@ function parseVType (el: Dom<HTMLElement>, value: any): {
     return { type, isChecked };
 }
 
-export function useReactive (v: any|IReactive<any>, apply: (v:any, isInit: boolean)=>void) {
+export function useReactive (
+    v: any|IReactive<any>,
+    apply: (v:any, isInit: boolean)=>void,
+) {
     if (isReactive(v)) {
         const origin = v;
         v = () => origin.value;
@@ -120,13 +123,11 @@ export function useReactive (v: any|IReactive<any>, apply: (v:any, isInit: boole
         v = (v as Join).toFn();
     }
     if (typeof (v) === 'function') {
-        observe(v, v => { apply(v, false); }, v => { apply(v, true); });
-        // observe(v, v => { apply(v, false); }, v => { apply(v, true); }, el);
+        return observe(v, v => { apply(v, false); }, v => { apply(v, true); });
     } else {
         apply(v, true);
-        return false;
+        return null;
     }
-    return true;
 }
 
 export function getReactiveValue<T extends any> (v: T|IReactive<T>): T {
@@ -160,16 +161,28 @@ export function parseFuncWrap (v: any) {
     return (isPureFunc(v)) ? v() : v;
 }
 
-export function toLinkDomLink<T extends any>(v: T, el?: ()=>any): T & {
+export function toLinkDomLink<T extends any> (v: T, el?: ()=>any): T & {
     __ld_type: LinkDomType,
     el: Dom,
-}{
+} {
     // @ts-ignore
     v.__ld_type = LinkDomType.Dom;
     Object.defineProperty(v, 'el', {
-        get(){
-            return el ? el(): (v as any)().el;
+        get () {
+            return el ? el() : (v as any)().el;
         }
-    }) as any
+    }) as any;
     return v as any;
+}
+
+export function assignDefault<T> (target: T, def: T) {
+    if (!def) return target;
+    for (const k in def) {
+        // @ts-ignore
+        if (typeof target[k] === 'undefined') {
+            // @ts-ignore
+            target[k] = def[k];
+        }
+    }
+    return target;
 }

@@ -6,7 +6,7 @@
 
 
 import type { IProps } from 'link-dom';
-import { a, Await, button, collectRef, componentRef, defineComponent, div, For, ForRef, frag, If, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
+import { a, Await, button, collectRef, componentRef, defineComponent, div, For, ForRef, frag, If, input, join, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 
 const Child2 = defineComponent(({ slots, props }) => {
@@ -134,7 +134,7 @@ const App2 = () => {
     const bool = ref(false);
 
     const list = ref([ 1, 2, 3 ]);
-    let id = 0;
+    const id = 0;
     const mockFetch = () => {
         return new Promise<{id: number, name: string}>((resolve) => {
             setTimeout(() => {
@@ -142,9 +142,24 @@ const App2 = () => {
             }, 1000);
         });
     };
-    debugger;
+    const num = ref(0);
     return div(
-        Child2.color('333').a('33')(),
+        div(
+            span(join`num = ${num}`),
+            input.bind(num),
+            button('Increase').click(() => { num.value++; }),
+            button('toggle').click(toggle(bool))
+        ),
+
+        Child3(() => span(11)),
+
+        span.if(() => num.value < 2)(() => 11),
+        span.elif(() => num.value < 5)('num < 5'),
+        span.else('num >= 5'),
+    );
+    return div(
+
+        // Child2.color('333').a('33')(),
         // If(bool, () => Child3('true'))
         //     .else(() => App()),
         // div(

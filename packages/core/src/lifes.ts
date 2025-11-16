@@ -140,6 +140,15 @@ hydrated
 */
 
 export function updateIfScopeBranch (scope: LifeScope, prev: number, active: number) {
+
+    if (!scope) {
+        return {
+            beforeUnmount () {},
+            mounted () {},
+            unmounted () {},
+        };
+    }
+
     const isSSR = SharedStatus.isSSR;
     CurrentScope = scope;
     // window.scope = scope;

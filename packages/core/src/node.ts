@@ -11,7 +11,7 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
     }
     protected _useR (v: any, apply: (v: any, isInit: boolean) => void) {
         // useReactive(v, apply, this.el);
-        useReactive(v, apply);
+        return useReactive(v, apply);
     }
     // @ts-ignore
     private __mounted?: (el: T)=>void;
@@ -77,7 +77,22 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
         if (typeof val === 'undefined') {
             return this.el.textContent;
         }
-        this._useR(val, (v) => this.el.textContent = v);
+        let isDom = false;
+        const clear = this._useR(val, (v) => {
+            if (typeof v === 'object' && typeof v?.__ld_type === 'number') {
+                // @ts-ignore ! 如果函数里为Dom 则移接到Dom上
+                this.__ld_type = v.__ld_type;
+                Object.defineProperty(this, 'el', {
+                    get () { return v.el; },
+                    set (el) { v.el = el; }
+                });
+                isDom = true;
+                debugger;
+            } else {
+                this.el.textContent = v;
+            }
+        });
+        if (isDom) {clear?.(); }
         return this;
     }
 }
