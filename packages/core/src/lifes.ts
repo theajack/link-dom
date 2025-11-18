@@ -117,6 +117,8 @@ export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: numbe
     const scope = new LifeScope(type, dom);
     LifeScopeLink.push(scope);
     if (dom?.__ld_type === LinkDomType.Component) {
+        dom.__ld_scope = scope;
+
         scope.component = dom;
         if (SharedStatus.isHydrating) {
             dom.el.__componentScope = scope;
@@ -141,6 +143,45 @@ export function onExitScope () {
     LifeScopeLink.pop();
     CurrentScope = LifeScopeLink[LifeScopeLink.length - 1] || null;
 }
+
+export function getAncestorProvide (comp: IComponentProxy, key: string) {
+    const scope = comp.__ld_scope as any;
+    let parent = scope.parent;
+    // console.log('findAllParentComp', comp.name, comp.__aaa, scope, parent);
+
+    // let i = 0;
+    while (parent) {
+        // i ++;
+        // if (i > 100) {
+        //     console.log('111111');
+        //     debugger;
+        //     break;
+        // }
+        if (!!parent.component) {
+            const provides = parent.component.__use_store();
+            if (key in provides) {
+                return provides[key];
+            }
+        }
+        parent = parent.parent;
+    }
+    return null;
+}
+
+// export function findAllParentComp (comp: IComponentProxy) {
+//     const scope = comp.__ld_scope as any;
+//     console.log('findAllParentComp', comp.name, comp.__aaa, scope);
+
+//     const parent = scope.parent;
+
+//     while (parent) {
+//         const provides =
+//         scope = scope.parent;
+//     }
+//     return null;
+// }
+
+// window.findAllParentComp = findAllParentComp;
 
 /*
 

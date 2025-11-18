@@ -7,10 +7,10 @@
 import type  { IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
-import { createMarkerNode, removeBetween } from '../_marker';
+import { createMarkerNode, removeBetween } from '../marker';
 import { checkHydrateMarker, getTarget, SharedStatus } from 'link-dom-shared';
 import type { Ref } from 'link-dom-reactive';
-import { isRef, DepUtil, isDeepReactive } from 'link-dom-reactive';
+import { isReactive, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
 import { type LifeScope } from '../../lifes';
@@ -52,7 +52,7 @@ export class ForClass <T=any> {
         public _itemRef = false,
     ) {
         // window._for = this;
-        this._list = (isRef(_list)) ? _list.value : _list;
+        this._list = (isReactive(_list)) ? _list.value : _list;
         // console.log('init for');
 
         if (!SharedStatus.isSSR) {

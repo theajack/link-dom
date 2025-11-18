@@ -6,7 +6,7 @@
 
 import type { IReactive } from 'link-dom-reactive';
 import { Frag, Text } from './text';
-import { LinkDomType, getReactiveValue } from './utils';
+import { LinkDomType, read } from './utils';
 
 export class Join {
     __is_join = true;
@@ -38,7 +38,7 @@ export class Join {
             let value = '';
             const n = this.values.length;
             for (let i = 0; i < n; i++) {
-                value += (this.strs[i]) + getReactiveValue(this.values[i]);
+                value += (this.strs[i]) + read(this.values[i]);
             }
             return value + this.strs[n] as T;
         };

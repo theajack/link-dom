@@ -9,11 +9,31 @@ import type { IProps } from 'link-dom';
 import { a, Await, button, Case, collectRef, componentRef, Default, defineComponent, div, Elif, Else, For, ForRef, frag, If, input, join, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 
-const Child2 = defineComponent(({ slots, props }) => {
+const Child1 = defineComponent(({ slots, props, inject }) => {
     console.log('Child2 slots', slots, props);
+    const a1 = inject('child-inject');
+    const a2 = inject('child2-inject');
+    console.log('inject content:', a1, a2);
+    return p(
+        span('Child111'),
+    );
+}, {
+    name: 'Child1'
+});
+
+const Child2 = defineComponent(({ slots, props, inject, provide }) => {
+    console.log('Child2 slots', slots, props);
+    const a1 = inject('child-inject');
+    console.log('inject content:', a1);
+    provide('child2-inject', 'Child2 inject content');
+    // todo
+    debugger;
     return p(
         span('Child2'),
+        Child1,
     );
+}, {
+    name: 'Child2'
 });
 
 const Child3 = defineComponent(({
@@ -42,11 +62,14 @@ const Child3 = defineComponent(({
         span('Child3'),
         slots.default,
     );
+}, {
+    name: 'Child3'
 });
 
 const Child = defineComponent(({
-    slots, props, mounted, unmounted, beforeMount, beforeUnmount
+    slots, props, mounted, unmounted, beforeMount, beforeUnmount, provide
 }) => {
+    provide('child-inject', 'Child inject test content');
     console.log('slots', slots, props);
     const a = ref();
     beforeMount(() => {
@@ -87,6 +110,7 @@ const Child = defineComponent(({
         }),
 
         Child2,
+        Child2(),
         If(() => props.data.x1 % 2 === 0, () => '% 2 === 0')
             .else(() => [
                 Child2,
@@ -100,31 +124,33 @@ const Child = defineComponent(({
                 }),
             ]),
         div.id('child-div')(
-            // Switch(() => props.data.age)
-            //     .case(31, () => Child3('s1 31'))
-            //     .case(32, () => Child3('s1 32'))
-            //     .default(() => Child3('s1 default1 > 32')),
-            // Switch(() => props.data.age)
-            //     .case(31, Child3('s2 31'))
-            //     .case(32, Child3('s2 32'))
-            //     .default(Child3('s2 default2 > 32')),
-            // If(() => props.data.age === 31, () => Child3('s3 31'))
-            //     .elif(() => props.data.age === 32, () => Child3('s3 32'))
-            //     .else(() => Child3('s3 default > 32')),
-            // If(() => props.data.age === 31, Child3('s4 31'))
-            //     .elif(() => props.data.age === 32, Child3('s4 32'))
-            //     .else(Child3('s4 default > 32')),
-            // If(() => props.data.y1 % 2 === 0, () => 'xxx % 2 === 0')
-            //     .elif(() => props.data.y2 === 33, span('33'))
-            //     .else(() => Child2),
+            Switch(() => props.data.age)
+                .case(31, () => Child3('s1 31'))
+                .case(32, () => Child3('s1 32'))
+                .default(() => Child3('s1 default1 > 32')),
+            Switch(() => props.data.age)
+                .case(31, Child3('s2 31'))
+                .case(32, Child3('s2 32'))
+                .default(Child3('s2 default2 > 32')),
+            If(() => props.data.age === 31, () => Child3('s3 31'))
+                .elif(() => props.data.age === 32, () => Child3('s3 32'))
+                .else(() => Child3('s3 default > 32')),
+            If(() => props.data.age === 31, Child3('s4 31'))
+                .elif(() => props.data.age === 32, Child3('s4 32'))
+                .else(Child3('s4 default > 32')),
+            If(() => props.data.y1 % 2 === 0, () => 'xxx % 2 === 0')
+                .elif(() => props.data.y2 === 33, span('33'))
+                .else(() => Child2),
         ),
 
-        // For(list, (item) => {
-        //     return If(() => props.data.ewqewq % 2 === 0, () => '% 2 === 0')
-        //         .else(() => span('11'));
-        // }),
+        For(list, (item) => {
+            return If(() => props.data.ewqewq % 2 === 0, () => '% 2 === 0')
+                .else(() => span('11'));
+        }),
         button('add').click(() => list.value.push(11))
     );
+}, {
+    name: 'Child'
 });
 
 const App = () => {
@@ -224,9 +250,13 @@ const App2 = () => {
     );
 };
 
-// const root = mount(App, '#app');
-// console.log(root, root.component, root.children[0].children.map(item => item.type));
-// window.root = root;
+const root = mount(App, '#app');
+console.log(root, root.component, root.children[0].children.map(item => item.type));
+window.root = root;
+
+// const root = mount(div(
+//     Child2(33),
+// ), '#app');
 
 // const root = mount(App, '#app');
 // console.log(root, root.component);
@@ -332,12 +362,12 @@ function SSRContainer () {
         hydrate(CommonComponent)(data);
     };
 
-    setTimeout(() => {
-        startSSR();
-        setTimeout(() => {
-            startHydrate();
-        }, 10);
-    }, 10);
+    // setTimeout(() => {
+    //     startSSR();
+    //     setTimeout(() => {
+    //         startHydrate();
+    //     }, 10);
+    // }, 10);
 
     return div(
         div('First click "Start SSR Render" to render static html, Then Click "Start Hydrate" Button to hydrate.'),
@@ -347,6 +377,6 @@ function SSRContainer () {
         div.ref(refs.container),
     );
 }
-mount(SSRContainer, '#app');
+// mount(SSRContainer, '#app');
 
 // mount(CommonComponent([ { label: 'label1' }, { label: 'label2' } ]), '#app');

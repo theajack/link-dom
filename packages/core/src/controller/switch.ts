@@ -5,7 +5,7 @@
  */
 import type { IControlLink, IReactiveLike } from '../type.d';
 import { IfClass } from './if';
-import { getReactiveValue } from '../utils';
+import { read } from '../utils';
 import type { IChild } from '../element';
 import { LinkDomType } from '../utils';
 import { frag, type Frag } from '../text';
@@ -22,7 +22,7 @@ export class SwitchClass {
     constructor (private ref: IReactiveLike) {}
     case (cond: any|(any[])|(()=>any), gene: (()=>IChild)|IChild) {
         const fn = () => {
-            const refv = getReactiveValue(this.ref);
+            const refv = read(this.ref);
             const value = (typeof cond === 'function') ? cond() : cond;
             return (Array.isArray(value)) ? value.includes(refv) : value === refv;
         };

@@ -1,4 +1,5 @@
 
+
 /*
  * @Author: chenzhongsheng
  * @Date: 2024-04-08 11:50:47
@@ -14,7 +15,7 @@ export * from './controller';
 export { join } from './join';
 export * from 'link-dom-reactive';
 export { flow } from './flow';
-export { LinkDomType, getReactiveValue as read, toggle, isJoin, toLinkDomLink } from './utils';
+export { LinkDomType, read, toggle, isJoin, toLinkDomLink } from './utils';
 
 export { createStyles } from './style';
 

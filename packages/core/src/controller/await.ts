@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import { LinkDomType } from '../utils';
-import { createMarkerNode, removeBetween } from './_marker';
+import { createMarkerNode, removeBetween } from './marker';
 import { Frag } from '../text';
 import type { IChild } from '../element';
 import { SharedStatus } from 'link-dom-shared';

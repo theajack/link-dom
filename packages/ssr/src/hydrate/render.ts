@@ -17,9 +17,10 @@ function initSSRNodes () {
         ssrNodes = Array.from(document.querySelectorAll(`[${SSR_SIZE}]`));
     }
     if (!ssrNodes.length) {
-        throw new Error('[SSR] hydration error: Element not found1');
+        console.warn('[SSR] hydration error: Element not found');
+        return false;
     }
-    return ssrNodes;
+    return true;
 }
 
 // // 水合过程 此部分在客户端运行
@@ -44,8 +45,8 @@ function initSSRNodes () {
 export function hydrate <T extends any[]> (comp: (...args: T)=>IChild): ((...args: T) => void)  {
 
     return (...args: T) => {
+        if (!initSSRNodes()) return;
         setRender('hydrate');
-        initSSRNodes();
         const value = comp(...(args || []));
         const clientFrag = dom.div.append(value);
         const childNodes = Array.from(clientFrag.el.childNodes);

@@ -11,4 +11,4 @@ export { reactive, observe, isDeepReactive, setArrayListeners } from './reactive
 export * from './type.d';
 export { DepUtil, Dep } from './dep';
 export { isReactiveLike } from './utils';
-export { reader } from './reader';
+export { readonly } from './readonly';

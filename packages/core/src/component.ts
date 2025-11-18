@@ -1,15 +1,14 @@
 
-// defineComponent(fn).slots([ 'a', 'b' ]).props([ 'c', 'd' ]);
-
 import type { Ref } from 'link-dom-reactive';
-import { reader } from 'link-dom-reactive';
+import { readonly } from 'link-dom-reactive';
 import type { IController } from './controller';
 import type { Dom, IChild } from './element';
-import { getReactiveValue as read, LinkDomType, assignDefault } from './utils';
+import { read, LinkDomType, assignDefault } from './utils';
 import { mount, type IMountParent } from './mount';
 import { frag, type Comment, type Frag, type Text } from './text';
 import type { IReactiveLike } from './type';
 import { handleIfLinkChildren } from './controller/if';
+import { getAncestorProvide } from './lifes';
 // import { createLifeScope, LifeScopeType } from './lifes';
 
 type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController;
@@ -86,11 +85,15 @@ export type IComponentProxy<
     [Key in ILifeKeys]: (fn: ()=>void) => IComponentProxy<Props, Emits, Slots, Exposes>
 }
 
+type IProvide<T extends Record<string, any>, K extends keyof T = keyof T> = (key: K, value: T[K])=>void
+
+
 interface IComponentArgs<
     Props extends IProps = IProps,
     Emits extends IEmits = IEmits,
     Slots extends ISlots = ISlots,
     Exposes extends IExposes = IExposes,
+    Provides extends Record<string, any> = Record<string, any>,
 > extends Record<ILifeKeys, (fn: ()=>void) => void> {
     // 组件内部使用的
     slots: Slots;
@@ -101,6 +104,8 @@ interface IComponentArgs<
         [key in keyof Emits]: (...args: Parameters<Emits[key]>) => void
     }
     expose: Exposes,
+    provide: IProvide<Provides>,
+    inject: <T>(key: string)=>T,
 }
 
 export type IComponent<
@@ -216,11 +221,32 @@ function createScope (flow = true) {
 
     const expose: Record<string, any> = {};
 
+    const _store: any = {};
+
+    const store = (key: string, value?: any) => {
+        if (typeof key === 'undefined') return _store;
+        // console.log('useStore', key, value);
+        if (typeof value === 'undefined') return _store[key];
+        if (value === null) {
+            delete _store[key];
+            return;
+        }
+        return _store[key] = value;
+    };
+
+    const provide = (key: string, value: any) => {
+        store(key, value);
+    };
+
+    const inject = (key: string) => {
+        return getAncestorProvide(getp(), key);
+    };
+
     // ! 给组件外部调用的
     const utils = {
         getProp: (key: string) => read(props[key]),
         prop: flow ? (key: keyof IProps, value?: any) => {
-            props[key] = reader(value ?? true);
+            props[key] = readonly(value ?? true);
             return p;
         } : (key: keyof IProps, value?: any) => {
             props[key] = value ?? true;
@@ -247,8 +273,9 @@ function createScope (flow = true) {
 
     return {
         // scope是组件内部使用的
-        scope: { props, slots, emit, expose, ...lifes } as IComponentArgs,
+        scope: { props, slots, emit, expose, provide, inject, ...lifes } as IComponentArgs,
         utils,
+        store,
         setProxy (proxy: any) {return (p = proxy);},
         assignSlots: (slots: any[]) => {
             // 处理If Else
@@ -296,8 +323,11 @@ export function defineComponent<
     defaultProps?: Partial<Props>
 } = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
     const target = (...slots: ISlot[]) => {
+        // console.log('component createTarget', name);
         let result: any = null;
-        const { scope, utils, setProxy, assignSlots } = createScope(flow);
+        let ldScope: any = null;
+        const { scope, utils, setProxy, assignSlots, store } = createScope(flow);
+        // console.log('createTarget', store);
         // console.log('call target', name)
         assignSlots(slots); // ! 此处为首次调用组件
         const p = new Proxy((...slots: any[]) => {
@@ -306,6 +336,8 @@ export function defineComponent<
         }, {
             get (_, key) {
                 if (key === '__ld_type') return LinkDomType.Component;
+                if (key === '__ld_scope') return ldScope;
+                if (key === '__use_store') return store;
                 if (key === 'name') return name;
                 if (key === 'el') {
                     // ! 需要缓存组件元素
@@ -318,6 +350,12 @@ export function defineComponent<
                 }
                 if (key in utils) return utils[key];
                 return (value: any) => utils.prop(key, value);
+            },
+            set (_, key, value) {
+                if (key === '__ld_scope') {
+                    ldScope = value;
+                }
+                return true;
             }
         });
         setProxy(p);
@@ -327,7 +365,8 @@ export function defineComponent<
     return new Proxy(target, {
         get (_, key) {
             if (key === '__ld_type') return LinkDomType.Component;
-            if (key === 'name') return name;
+            if (key === 'name') return name + '11';
+            if (key === '__is_name_use') return true;
             if (key === 'el') {
                 // ! 组合返回值
                 // @ts-ignore

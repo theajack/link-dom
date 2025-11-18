@@ -8,8 +8,8 @@ import { Frag } from '../text';
 import type { IOptionStyle, IReactiveLike } from '../type.d';
 import { LinkDomType, parseFuncWrap } from '../utils';
 import { watch } from 'link-dom-reactive';
-import { getReactiveValue } from '../utils';
-import { createMarkerNode } from './_marker';
+import { read } from '../utils';
+import { createMarkerNode } from './marker';
 import { SharedStatus } from 'link-dom-shared';
 import { traverseChildren } from '../mount';
 
@@ -78,9 +78,9 @@ export class ShowClass {
         };
         if (!SharedStatus.isSSR) {
             // todo static 像if一样如果是静态元素就去掉comment
-            this._clearWatch = watch(() => getReactiveValue(ref), change);
+            this._clearWatch = watch(() => read(ref), change);
         }
-        if (!getReactiveValue(ref)) {
+        if (!read(ref)) {
             change(false);
         }
     }

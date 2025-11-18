@@ -9,6 +9,7 @@ import { listener, reactive } from './reactive';
 import { DepUtil } from './dep';
 import { isReactive } from './computed';
 export class Ref<T = any> {
+    __isRef = true;
     __isReactive = true;
     private _value: T;
     get value () {
@@ -50,7 +51,7 @@ export class Ref<T = any> {
         DepUtil.clear(this);
     }
 }
-export function ref<T> (v?: T, deep = true): Ref<T> {
+export function ref<T extends any = any> (v?: T, deep = true): Ref<T> {
     if (arguments.length === 0) {
         return {
             __ld_type: 1000,
@@ -63,5 +64,5 @@ export function ref<T> (v?: T, deep = true): Ref<T> {
     return new Ref<T>(v as T, deep);
 }
 export function isRef (v: any): v is Ref {
-    return !!v?.__isReactive;
+    return !!v?.__isRef;
 }

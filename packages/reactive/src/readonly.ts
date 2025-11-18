@@ -6,13 +6,13 @@
 import { isArrayOrJson, getTarget } from 'link-dom-shared';
 import { DepUtil } from './dep';
 
-export function reader <T> (v: T): T {
+export function readonly <T> (v: T): T {
     if (!isArrayOrJson(v)) return v;
     return new Proxy(getTarget(v) as any, {
         get (target, key) {
             const value = Reflect.get(target, key, target);
             DepUtil.add(target, key);
-            return reader(value);
+            return readonly(value);
         },
         set (_, key) {
             console.warn('Set is not supported:', `key=${key.toString()}`);

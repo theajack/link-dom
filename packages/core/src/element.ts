@@ -226,6 +226,7 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     private _on <T extends IEventKey>(name: T, value?: IEventObject<DocumentEventMap[T], this>): this;
     // eslint-disable-next-line no-undef
     private _on <T extends IEventKey> (name: T|IEventAttributes, value?: IEventObject<DocumentEventMap[T], this>) {
+        if (!value) return;
         if (typeof name === 'object') {
             for (const k in name) {
                 // @ts-ignore

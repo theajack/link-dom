@@ -3,7 +3,7 @@
  * @Date: 2025-09-06 15:57:40
  * @Description: Coding something
  */
-import { reader } from 'link-dom-reactive';
+import { readonly } from 'link-dom-reactive';
 
 export function flow<T = any> (value: T): T {
 
@@ -11,9 +11,9 @@ export function flow<T = any> (value: T): T {
     if (typeof value === 'function') {
         // 对组件进行单项数据流wrap
         return ((...args: any[]) => {
-            return value(...args.map(item => reader(item)));
+            return value(...args.map(item => readonly(item)));
         }) as T;
     } else {
-        return reader(value);
+        return readonly(value);
     }
 }

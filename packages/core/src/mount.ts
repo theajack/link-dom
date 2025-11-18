@@ -88,6 +88,10 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         const ldType = dom.__ld_type;
         const isScopeType = ScopeTypes.has(ldType);
         if (isScopeType && !isSSR) {
+            if (ldType === LinkDomType.Component && dom.__is_name_use) {
+                // ! 如果是直接使用组件名，需要先获取el，否则scope获取不到
+                dom = dom();
+            }
             onEnterScope(ldType, dom);
         }
         let el: any = dom;

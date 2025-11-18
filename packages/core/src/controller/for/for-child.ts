@@ -4,11 +4,11 @@
  * @Date: 2025-09-11 20:56:49
  * @Description: Coding something
  */
-import { CurrentScope, LifeScopeType, onEnterScope, onExitScope, setCurrentScope } from '../../lifes';
+import { LifeScopeType, onEnterScope, onExitScope, setCurrentScope } from '../../lifes';
 import type { Dom } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
-import { Marker, createMarkerNode } from '../_marker';
+import { Marker, createMarkerNode } from '../marker';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';
 import { SharedStatus } from 'link-dom-shared';
 import type { ForClass } from './for';

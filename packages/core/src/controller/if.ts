@@ -8,8 +8,8 @@ import type { IChild } from '../element';
 import { frag, Frag } from '../text';
 import { LinkDomType, parseFuncWrap } from '../utils';
 import { watch } from 'link-dom-reactive';
-import { getReactiveValue } from '../utils';
-import { Marker } from './_marker';
+import { read } from '../utils';
+import { Marker } from './marker';
 import type { IControlLink, IReactiveLike } from '../type.d';
 import { SharedStatus } from 'link-dom-shared';
 import { updateIfScopeBranch, type LifeScope, IsFcApiKeys } from '../lifes';
@@ -167,7 +167,7 @@ export class IfClass {
     }
     private _initChildren () {
         if (this._el) return;
-        this._clearWatch = watch(() => this.scopes.map(item => getReactiveValue(item.ref)), () => {
+        this._clearWatch = watch(() => this.scopes.map(item => read(item.ref)), () => {
             const index = this.switchCase();
             // console.log('test:if switch', index, this.activeIndex);
             // console.log('if switch', index);
@@ -196,7 +196,7 @@ export class IfClass {
         const n = this.scopes.length;
         for (let i = 0; i < n; i ++) {
             const item = this.scopes[i];
-            const bool = !!(getReactiveValue(item.ref));
+            const bool = !!(read(item.ref));
             if (bool) {
                 return i;
             }
@@ -229,7 +229,7 @@ export function IfInner (ref: IReactiveLike): IfShortUseFn {
     return fn;
 };
 
-export function Elif (ref: IReactiveLike<any>) {
+export function Elif (ref: IReactiveLike<any>): IfShortUseFn {
     const fn: any = (...args: IChild[]) => {
         return {
             __fc_api_link: 'elif',
