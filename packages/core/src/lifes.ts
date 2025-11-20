@@ -118,7 +118,6 @@ export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: numbe
     LifeScopeLink.push(scope);
     if (dom?.__ld_type === LinkDomType.Component) {
         dom.__ld_scope = scope;
-
         scope.component = dom;
         if (SharedStatus.isHydrating) {
             dom.el.__componentScope = scope;

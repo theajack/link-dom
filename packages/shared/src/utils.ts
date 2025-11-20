@@ -43,6 +43,10 @@ export function isArrayOrJson (o: any) {
     return false;
 }
 
+export function isObject (o: any) {
+    return o?.constructor.name === 'Object';
+}
+
 export function deepAssign (origin: any, value: any) {
     origin = getProxy(origin);
     value = getTarget(value);

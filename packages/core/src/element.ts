@@ -1,13 +1,13 @@
 import { type IReactive } from 'link-dom-reactive';
 import type { IAttrKey, IEventAttributes, IEventDecorator, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
-import { LinkDomType, bind, isJoin } from './utils';
+import { LinkDomType, bind, isJoin, read } from './utils';
 import type { IMountParent } from './mount';
 import { mount, queryBase, traverseChildren } from './mount';
 import type { Comment, Frag, Text } from './text';
 import type { IReactiveLike } from './type.d';
 import type { Join } from './join';
 import type { IController } from './controller';
-import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
+import { SharedStatus, checkHydrateEl, isObject } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
 import { BaseNode } from './node';
@@ -87,10 +87,28 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
         return this;
     }
     class (): string;
-    class (val: IReactiveLike<string>, pure?: boolean): this;
-    class (val?: IReactiveLike<string>, pure = false): string | this {
+    class (val: IReactiveLike<string>|Array<IReactiveLike<string>>|Record<string, IReactiveLike<boolean>>, pure?: boolean): this;
+    class (val?: IReactiveLike<string>|Array<IReactiveLike<string>>|Record<string, IReactiveLike<boolean>>, pure = false): string | this {
         if (typeof val === 'undefined') {
             return this.el.className;
+        }
+        if (Array.isArray(val)) {
+            const origin = val as any[];
+            val = () => {
+                let str = '';
+                for (const s of origin) str += this._cp(read(s)) + ' ';
+                return str.trimEnd();
+            };
+        } else if (isObject(val)) {
+            const origin = val as any;
+            val = () => {
+                let str = '';
+                const v = origin;
+                for (const k in (v)) {
+                    if (!!read(v[k])) str += this._cp(read(k)) + ' ';
+                }
+                return str.trimEnd();
+            };
         }
         this._useR(val, (v) => {
             this.el.className = this._cp(v, pure);
