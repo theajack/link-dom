@@ -2,6 +2,7 @@ import type { Ref } from 'link-dom-reactive';
 import { Dom } from './element';
 import type { IReactiveLike } from './type';
 import { LinkDomType, useReactive } from './utils';
+import { KEY_LD_TYPE } from 'link-dom-shared';
 
 export class BaseNode<T extends Text|Comment|HTMLElement> {
     el: T;
@@ -54,7 +55,7 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
     }
     // (dom: Dom) => void
     ref (v: Dom|Ref) {
-        if ((v as any).__ld_type === LinkDomType.Ref) {
+        if ((v as any)[KEY_LD_TYPE] === LinkDomType.Ref) {
             (v as any).el = this;
         } else {
         // @ts-ignore
@@ -79,17 +80,17 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
             return this.el.textContent;
         }
         const clear = this._useR(val, (v) => {
-            if (typeof v?.__ld_type === 'number') {
+            if (typeof v?.[KEY_LD_TYPE] === 'number') {
                 // @ts-ignore ! 如果函数里为Dom 则移接到Dom上
-                this.__ld_type = v.__ld_type;
+                this[KEY_LD_TYPE] = v[KEY_LD_TYPE];
                 Object.defineProperty(this, 'el', {
                     get () {
                         // ! 组件结合short
                         const el = v.el;
-                        return el?.__ld_type ? el.el : el;
+                        return el?.[KEY_LD_TYPE] ? el.el : el;
                     },
                     set (el) {
-                        if (v.el?.__ld_type) {
+                        if (v.el?.[KEY_LD_TYPE]) {
                             v.el.el = el;
                         } else {
                             v.el = el;

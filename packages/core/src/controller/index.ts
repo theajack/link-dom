@@ -14,7 +14,7 @@ import { SwitchClass } from './switch';
 import type { IOptionStyle } from '../type.d';
 import { ShowClass } from './show';
 import { AwaitClass } from './await';
-import { SharedStatus } from 'link-dom-shared';
+import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
 
 export { Elif, Else, type IfClass } from './if';
@@ -65,7 +65,7 @@ export const ctrl = {
         const fn = (...args: Dom[]) => {
             let hasDefault = false;
             for (const item of args) {
-                const type = (item as any).__fc_api_link;
+                const type = (item as any)[KEY_FC_API_LINK];
                 if (!type) {
                     throw new Error('Switch can only has case or default children');
                 }
@@ -76,7 +76,7 @@ export const ctrl = {
                     hasDefault = true;
                     target.default(item);
                 } else if (type === 'case') {
-                    const value = (item as any).__fc_api_value;
+                    const value = (item as any)[KEY_FC_API_VALUE];
                     target.case(value, item);
                 }
             }
@@ -84,7 +84,7 @@ export const ctrl = {
         };
         p = new Proxy(fn, {
             get (_, key) {
-                if (key === '__ld_type') return LinkDomType.Switch;
+                if (key === KEY_LD_TYPE) return LinkDomType.Switch;
                 if (key === 'el') return target.el;
                 if (typeof target[key] === 'function') {
                     return (...args: any[]) => {

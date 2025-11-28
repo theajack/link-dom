@@ -7,10 +7,11 @@
 import type { IReactive } from 'link-dom-reactive';
 import { Frag, Text } from './text';
 import { LinkDomType, read } from './utils';
+import { KEY_LD_TYPE } from 'link-dom-shared';
 
 export class Join {
     __is_join = true;
-    __ld_type = LinkDomType.Join;
+    [KEY_LD_TYPE] = LinkDomType.Join;
 
     get el () {
         return this.toFrag().el;

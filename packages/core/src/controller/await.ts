@@ -7,13 +7,13 @@ import { LinkDomType } from '../utils';
 import { createMarkerNode, removeBetween } from './marker';
 import { Frag } from '../text';
 import type { IChild } from '../element';
-import { SharedStatus } from 'link-dom-shared';
+import { KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
 import type { LifeScope } from '../lifes';
 import { setCurrentScope } from '../lifes';
 
 export class AwaitClass {
-    __ld_type = LinkDomType.Await;
-    __ld_scope: LifeScope;
+    [KEY_LD_TYPE] = LinkDomType.Await;
+    [KEY_SCOPE]: LifeScope;
     _frag: Frag;
     _default: IChild[] = [];
     get el () {
@@ -36,7 +36,7 @@ export class AwaitClass {
         this.start = createMarkerNode();
         if (!SharedStatus.isSSR) {
             _promise.then(data => {
-                const scope = this.__ld_scope;
+                const scope = this[KEY_SCOPE];
                 if (this.end) {
                     scope.beforeUnmount();
                     removeBetween(this.start, this.end, false);

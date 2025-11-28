@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import type { IComment, IElement, IFragment, IRenderer, ITextNode } from 'link-dom-shared';
-import { SharedStatus, RendererType, defineRenderer, resetRenderer } from 'link-dom-shared';
+import { SharedStatus, RendererType, defineRenderer, resetRenderer, KEY_LD_TYPE } from 'link-dom-shared';
 import { SSRComment, SSRFragment, SSRText } from './base';
 import { SSRElement } from './element';
 import { dom, LinkDomType, type Frag, type IChild } from 'link-dom';
@@ -84,7 +84,7 @@ export function ssr <T extends any[]> (comp: (...args: T)=>IChild): (...args: T)
         const frag = dom.frag;
         let count = 1;
         if (Array.isArray(value)) count = value.length;
-        else if (value?.__ld_type === LinkDomType.Frag) count = (value as Frag).children.length;
+        else if (value?.[KEY_LD_TYPE] === LinkDomType.Frag) count = (value as Frag).children.length;
         frag.append(dom.div.style('display', 'none').attr(SSR_SIZE, count), value);
         // @ts-ignore
         const result = frag.el.toHtml();
@@ -97,7 +97,7 @@ export function ssr <T extends any[]> (comp: (...args: T)=>IChild): (...args: T)
 //     const frag = dom.frag;
 //     let count = 1;
 //     if (Array.isArray(comp)) count = comp.length;
-//     else if (comp?.__ld_type === LinkDomType.Frag) count = (comp as Frag).children.length;
+//     else if (comp?.[KEY_LD_TYPE] === LinkDomType.Frag) count = (comp as Frag).children.length;
 //     frag.append(dom.div.style('display', 'none').attr(SSR_SIZE, count), comp);
 //     // @ts-ignore
 //     return frag.el.toHtml();

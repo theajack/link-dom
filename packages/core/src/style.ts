@@ -7,6 +7,7 @@ import type { IStyleKey } from './type.d';
 import type { IStyle } from './type.d';
 import type { ITagCreator } from './short';
 import { mount } from './mount';
+import { KEY_LD_TYPE } from 'link-dom-shared';
 
 
 type IGlobalStyle = {
@@ -171,7 +172,7 @@ export type IStyleLink<T extends Dom> = {
 }
 
 export interface IStyleBuilder<T extends Dom, S = (ITagCreator<HTMLStyleElement>)> extends IStyleLink<T> {
-    (this: T, name: IStyle|Record<string, any>): T & S
+    (this: T, name: IStyle|Record<string, any>|null): T & S
     <T extends IStyleKey>(this: T, name: T, value: IStyle[T], important?: boolean): T & S
     (this: T, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): T & S
 }
@@ -193,15 +194,20 @@ function handlePseudoStyle (dom: Dom, name: IStyleKey|IStyle|string, value?: any
 
 function originStyle (this: Dom, name: IStyleKey|IStyle|string, value?: any, imp?: boolean): Dom {
     if (typeof value !== 'undefined') {
+        if (!name) return this;
         if (name[0] === ':') {
             // 伪属性
             handlePseudoStyle(this, name, value);
         } else {
-        // @ts-ignore
-            this._useR(value, (v) => {
             // @ts-ignore
-                const { important, cssValue, cssKey } = formatCssKV(name, v, imp);
-                this.el.style.setProperty(cssKey, cssValue, important);
+            this._useR(value, (v) => {
+                if (typeof v === 'object') {
+                    originStyle.call(this, v);
+                } else {
+                    // @ts-ignore
+                    const { important, cssValue, cssKey } = formatCssKV(name, v, imp);
+                    this.el.style.setProperty(cssKey, cssValue, important);
+                }
             });
         }
 
@@ -236,7 +242,7 @@ function initStyleBuilder (dom: Dom) {
     const fn = originStyle.bind(dom);
     const proxy = new Proxy(fn, {
         get (_, name) {
-            if (name === '__ld_type') return LinkDomType.StyleBuilder;
+            if (name === KEY_LD_TYPE) return LinkDomType.StyleBuilder;
             if (name === 'dom') return dom;
             if (name in dom) {
                 const value = dom[name];

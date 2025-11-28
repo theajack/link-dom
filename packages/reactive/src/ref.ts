@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import { isArrayOrJson, deepAssign, SharedStatus } from 'link-dom-shared';
+import { isArrayOrJson, deepAssign, SharedStatus, KEY_LD_TYPE } from 'link-dom-shared';
 import { listener, reactive } from './reactive';
 import { DepUtil } from './dep';
 import { isReactive } from './computed';
@@ -54,7 +54,7 @@ export class Ref<T = any> {
 export function ref<T extends any = any> (v?: T, deep = true): Ref<T> {
     if (arguments.length === 0) {
         return {
-            __ld_type: 1000,
+            [KEY_LD_TYPE]: 1000,
             el: null,
             get value () {
                 return this.el;

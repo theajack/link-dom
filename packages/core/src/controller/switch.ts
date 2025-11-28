@@ -9,8 +9,9 @@ import { read } from '../utils';
 import type { IChild } from '../element';
 import { LinkDomType } from '../utils';
 import { frag, type Frag } from '../text';
+import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE } from 'link-dom-shared';
 export class SwitchClass {
-    __ld_type = LinkDomType.Switch;
+    [KEY_LD_TYPE] = LinkDomType.Switch;
     private if: IfClass;
     get el () {
         if (!this.if) throw new Error('switch must have case or default');
@@ -59,9 +60,9 @@ export class SwitchClass {
 export function Case (cond: any|(any[])|(()=>any)) {
     return (...args: IChild[]) => {
         return {
-            __fc_api_link: 'case',
-            __fc_api_value: cond,
-            __ld_type: LinkDomType.Dom,
+            [KEY_FC_API_LINK]: 'case',
+            [KEY_FC_API_VALUE]: cond,
+            [KEY_LD_TYPE]: LinkDomType.Dom,
             get el () {return frag(...args).el;}
         } as IControlLink;
     };
@@ -69,8 +70,8 @@ export function Case (cond: any|(any[])|(()=>any)) {
 
 export function Default (...args: IChild[]) {
     return {
-        __fc_api_link: 'default',
-        __ld_type: LinkDomType.Dom,
+        [KEY_FC_API_LINK]: 'default',
+        [KEY_LD_TYPE]: LinkDomType.Dom,
         get el () {return frag(...args).el;}
     } as IControlLink;
 }

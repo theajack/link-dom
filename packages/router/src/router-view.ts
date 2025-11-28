@@ -8,6 +8,7 @@ import type { Ref, IfClass } from 'link-dom';
 import { ctrl, ref, LinkDomType } from 'link-dom';
 import type { IRouterInnerItem } from './type.d';
 import { Router, useRouter } from './router';
+import { KEY_LD_TYPE } from 'link-dom-shared';
 
 // 按照执行顺序来确立
 
@@ -19,7 +20,7 @@ const RouterMap = new WeakMap<Function, RouterView>();
 
 export class RouterView {
 
-    __ld_type = LinkDomType.RouterView;
+    [KEY_LD_TYPE] = LinkDomType.RouterView;
 
     // nextView: RouterView | null = null;
     static Root: RouterView | null = null;

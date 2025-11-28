@@ -11,7 +11,7 @@ import { watch } from 'link-dom-reactive';
 import { read } from '../utils';
 import { Marker } from './marker';
 import type { IControlLink, IReactiveLike } from '../type.d';
-import { SharedStatus } from 'link-dom-shared';
+import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
 import { updateIfScopeBranch, type LifeScope, IsFcApiKeys } from '../lifes';
 // import { CurrentScope, LifeScope, LifeScopeType } from '../lifes';
 
@@ -69,8 +69,8 @@ class IfScope {
 let id = 0;
 export class IfClass {
 
-    __ld_type = LinkDomType.If;
-    __ld_scope: LifeScope;
+    [KEY_LD_TYPE] = LinkDomType.If;
+    [KEY_SCOPE]: LifeScope;
     id = id++;
 
     __ifProxy?: any; // 是否是代理Switch
@@ -139,7 +139,7 @@ export class IfClass {
     }
 
     get _lifeScope () {
-        return this.__ld_scope || this.__ifProxy?.__ld_scope;
+        return this[KEY_SCOPE] || this.__ifProxy?.[KEY_SCOPE];
     }
 
     private _initElements () {
@@ -219,9 +219,9 @@ export type IfShortUseFn = {
 export function IfInner (ref: IReactiveLike): IfShortUseFn {
     const fn: any = ((...args: IChild[]) => {
         return {
-            __fc_api_link: 'if',
-            __fc_api_value: ref,
-            __ld_type: LinkDomType.Dom,
+            [KEY_FC_API_LINK]: 'if',
+            [KEY_FC_API_VALUE]: ref,
+            [KEY_LD_TYPE]: LinkDomType.Dom,
             get el () {return frag(...args).el;}
         } as IControlLink;
     });
@@ -232,9 +232,9 @@ export function IfInner (ref: IReactiveLike): IfShortUseFn {
 export function Elif (ref: IReactiveLike<any>): IfShortUseFn {
     const fn: any = (...args: IChild[]) => {
         return {
-            __fc_api_link: 'elif',
-            __fc_api_value: ref,
-            __ld_type: LinkDomType.Dom,
+            [KEY_FC_API_LINK]: 'elif',
+            [KEY_FC_API_VALUE]: ref,
+            [KEY_LD_TYPE]: LinkDomType.Dom,
             get el () {return frag(...args).el;}
         } as IControlLink;
     };
@@ -244,8 +244,8 @@ export function Elif (ref: IReactiveLike<any>): IfShortUseFn {
 
 export function Else (...args: IChild[]) {
     return {
-        __fc_api_link: 'else',
-        __ld_type: LinkDomType.Dom,
+        [KEY_FC_API_LINK]: 'else',
+        [KEY_LD_TYPE]: LinkDomType.Dom,
         get el () {return frag(...args).el;}
     } as IControlLink;
 }
@@ -253,21 +253,21 @@ export function Else (...args: IChild[]) {
 
 // ! 处理if链式调用逻辑
 export function handleIfLinkChildren (el: any, list: any[], start: number = 0) {
-    if (el?.__fc_api_link && IsFcApiKeys.has(el.__fc_api_link)) {
-        if (!el.__if_link_done) {
-            const type = el.__fc_api_link as 'if'|'elif'|'else';
+    if (el?.[KEY_FC_API_LINK] && IsFcApiKeys.has(el[KEY_FC_API_LINK])) {
+        if (!el[KEY_IF_LINK_DONE]) {
+            const type = el[KEY_FC_API_LINK] as 'if'|'elif'|'else';
             if (type === 'if') {
-                const ifEl = new IfClass(el.__fc_api_value, el);
+                const ifEl = new IfClass(el[KEY_FC_API_VALUE], el);
                 let count = 0;
                 for (let i = start + 1; i < list.length; i++) {
                     const cur = list[i];
-                    if (!cur.__fc_api_link) break;
-                    if (cur.__fc_api_link === 'elif') {
-                        cur.__if_link_done = true;
-                        ifEl.elif(cur.__fc_api_value, cur);
+                    if (!cur[KEY_FC_API_LINK]) break;
+                    if (cur[KEY_FC_API_LINK] === 'elif') {
+                        cur[KEY_IF_LINK_DONE] = true;
+                        ifEl.elif(cur[KEY_FC_API_VALUE], cur);
                         count ++;
-                    } else if (cur.__fc_api_link === 'else') {
-                        cur.__if_link_done = true;
+                    } else if (cur[KEY_FC_API_LINK] === 'else') {
+                        cur[KEY_IF_LINK_DONE] = true;
                         ifEl.else(cur);
                         count ++;
                         break; // ! else 之后就结束了 不然会印象影响后面的
@@ -277,7 +277,7 @@ export function handleIfLinkChildren (el: any, list: any[], start: number = 0) {
                 }
                 if (count) list.splice(start + 1, count);
                 // list[start] = ifEl;
-                el.__if_link_done = true;
+                el[KEY_IF_LINK_DONE] = true;
                 // ! 此处要把dom一起改掉
                 return ifEl;
             } else {

@@ -6,13 +6,13 @@
 
 import type { IChild } from './element';
 import { LinkDomType } from './utils';
-import { SharedStatus, checkHydrateEl } from 'link-dom-shared';
+import { KEY_LD_TYPE, SharedStatus, checkHydrateEl } from 'link-dom-shared';
 import { BaseNode } from './node';
 import type { IReactiveLike } from './type';
 import { traverseChildren } from './mount';
 
 export class Text extends BaseNode<globalThis.Text> {
-    __ld_type = LinkDomType.Text;
+    [KEY_LD_TYPE] = LinkDomType.Text;
     constructor (val?: IReactiveLike<string|number|boolean>) {
         super();
         this.el = SharedStatus.Renderer.createTextNode('') as globalThis.Text;
@@ -23,7 +23,7 @@ export class Text extends BaseNode<globalThis.Text> {
     }
 }
 export class Comment extends BaseNode<globalThis.Comment> {
-    __ld_type = LinkDomType.Comment;
+    [KEY_LD_TYPE] = LinkDomType.Comment;
     constructor (val?: IReactiveLike<string|number|boolean>) {
         super();
         this.el = SharedStatus.Renderer.createComment('') as globalThis.Comment;
@@ -35,7 +35,7 @@ export class Comment extends BaseNode<globalThis.Comment> {
 }
 
 export class Frag {
-    __ld_type = LinkDomType.Frag;
+    [KEY_LD_TYPE] = LinkDomType.Frag;
     el: DocumentFragment;
     constructor () {
         this.el = SharedStatus.Renderer.createFragment() as any;

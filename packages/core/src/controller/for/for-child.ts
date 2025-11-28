@@ -10,7 +10,7 @@ import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { Marker, createMarkerNode } from '../marker';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';
-import { SharedStatus } from 'link-dom-shared';
+import { KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
 import type { ForClass } from './for';
 
 // window.list = [];
@@ -25,10 +25,10 @@ export class ForChild<T=any> {
 
     get frag () {
         if (!this._frag) {
-            setCurrentScope(this.parent.__ld_scope);
+            setCurrentScope(this.parent[KEY_SCOPE]);
             onEnterScope(LifeScopeType.ForChild, this, this.index.value);
             const el = this.parent._generator(this.data as any, this.index);
-            if (typeof el.__ld_type !== 'number' || el.__ld_type === LinkDomType.Component) {
+            if (typeof el[KEY_LD_TYPE] !== 'number' || el[KEY_LD_TYPE] === LinkDomType.Component) {
                 this._frag = new Frag().append(el);
             } else {
                 this._frag = el;
@@ -50,7 +50,7 @@ export class ForChild<T=any> {
     private ensureStart () {
         if (this._start) return this._start;
 
-        if (this._frag.__ld_type === LinkDomType.Frag) {
+        if (this._frag[KEY_LD_TYPE] === LinkDomType.Frag) {
             this._start = this._frag.children[0]?.el;
             if (!this._start) {
                 this._start = createMarkerNode();
@@ -77,7 +77,7 @@ export class ForChild<T=any> {
         }
         // if (!this._marker) {
         //     const f = this.frag;
-        //     const lg = f.__ld_type;
+        //     const lg = f[KEY_LD_TYPE];
         //     let start: any;
         //     // debugger;
         //     if (lg === LinkDomType.Frag) {

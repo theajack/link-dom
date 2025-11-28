@@ -1,5 +1,5 @@
 import type { IElement } from 'link-dom-shared';
-import { SharedStatus } from 'link-dom-shared';
+import { KEY_IS_NAME_USE, KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import type { IController } from './controller';
 import type { IChild } from './element';
 import { Dom } from './element';
@@ -65,7 +65,7 @@ export function mount (node: IMountDom|IMountDom[]|IChild, parent: IMountParent)
 function parseNode (node: IMountDom|IMountDom[]|IChild) {
     if (Array.isArray(node)) {
         return node.map(item => parseNode(item));
-    } else if (node.__ld_type === LinkDomType.StyleBuilder) {
+    } else if (node[KEY_LD_TYPE] === LinkDomType.StyleBuilder) {
         return node.dom;
     } else if (isPureFunc(node)) {
         return node();
@@ -85,10 +85,10 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             traverseChildren(dom, onChild);
             return;
         }
-        const ldType = dom.__ld_type;
+        const ldType = dom[KEY_LD_TYPE];
         const isScopeType = ScopeTypes.has(ldType);
         if (isScopeType && !isSSR) {
-            if (ldType === LinkDomType.Component && dom.__is_name_use) {
+            if (ldType === LinkDomType.Component && dom[KEY_IS_NAME_USE]) {
                 // ! 如果是直接使用组件名，需要先获取el，否则scope获取不到
                 dom = dom();
             }

@@ -13,6 +13,7 @@ import { ctrl } from './controller';
 import type { IReactiveLike } from './type';
 import { BaseNode } from './node';
 import type { TDomName } from './mount';
+import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE } from 'link-dom-shared';
 
 export { frag } from './text';
 
@@ -73,7 +74,7 @@ function createTagProxy <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom):
     };
     return new Proxy(fn, {
         get (_, key) {
-            if (key === '__ld_type') return LinkDomType.Short;
+            if (key === KEY_LD_TYPE) return LinkDomType.Short;
             if (key === 'el') return initEl().el;
             if (typeof key !== 'string') return undefined;
             // if (typeof key !== 'string') return initEl().el[key];
@@ -111,7 +112,7 @@ function createProxyEl (isTextNode: boolean, tag: any) {
     if (!isTextNode) return el;
     const p = new Proxy(el, {
         get (_, key) {
-            if (key === '__ld_type') return LinkDomType.Short;
+            if (key === KEY_LD_TYPE) return LinkDomType.Short;
             if (key === 'el') return el.el;
             if (typeof key !== 'string') return el[key];
             if (key in el) {
@@ -143,8 +144,8 @@ function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode:
 
     const callAttr = (k: string, args: any[]) => {
         if (FirstCallApiSet.has(k as any)) {
-            el.__fc_api_link = k;
-            el.__fc_api_value = args[0];
+            el[KEY_FC_API_LINK] = k;
+            el[KEY_FC_API_VALUE] = args[0];
             if (k === 'default' || k === 'else') {
                 if (args.length) fn(...args);
             }
@@ -183,7 +184,7 @@ function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode:
     };
     p = new Proxy(fn, {
         get (_, key) {
-            if (key === '__ld_type') return LinkDomType.Short;
+            if (key === KEY_LD_TYPE) return LinkDomType.Short;
             if (key === 'el') {
                 if (isTextNode) {
                     callMap.forEach(({ k, args }) => {

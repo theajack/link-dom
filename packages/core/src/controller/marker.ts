@@ -3,13 +3,13 @@
  * @Date: 2025-09-01 20:06:25
  * @Description: Coding something
  */
-import { checkHydrateMarker, SharedStatus } from 'link-dom-shared';
+import { checkHydrateMarker, KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
 
 export class Marker {
 
     // static GlobalMarkerMap = new WeakMap<any, Set<Marker>>();
-    __ld_type = LinkDomType.Marker;
+    [KEY_LD_TYPE] = LinkDomType.Marker;
 
     start: Node;
 

@@ -7,7 +7,7 @@ import type { Comment, Frag, Text } from './text';
 import type { IReactiveLike } from './type.d';
 import type { Join } from './join';
 import type { IController } from './controller';
-import { SharedStatus, checkHydrateEl, isObject } from 'link-dom-shared';
+import { KEY_LD_TYPE, SharedStatus, checkHydrateEl, isObject } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';
 import { BaseNode } from './node';
@@ -38,7 +38,7 @@ export function classPrefix (...prefixs: string[]) {
 
 // @ts-ignore
 export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
-    __ld_type = LinkDomType.Dom;
+    [KEY_LD_TYPE] = LinkDomType.Dom;
 
     click: IClick<T> & {
         [K in IEventDecorator]: IClick<T>;
@@ -53,7 +53,7 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     // eslint-disable-next-line no-undef
     constructor (key: (keyof HTMLElementTagNameMap)|T|Dom<T>) {
         // @ts-ignore
-        if (key?.__ld_type === LinkDomType.Dom) {
+        if (key?.[KEY_LD_TYPE] === LinkDomType.Dom) {
             return key as any;
         }
         super();

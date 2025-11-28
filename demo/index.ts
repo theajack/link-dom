@@ -30,7 +30,8 @@ import { useRenderer, type CustomElement } from 'link-dom-render';
 
 // const value = reactive({ value: 1 });
 
-import './dev-test';
+// import './dev-test';
+import './slot-default-manay';
 
 // const list = reactive([
 //     { a: 1 },

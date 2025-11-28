@@ -1,6 +1,6 @@
 // mounted 和 unmounted
 
-import { SharedStatus } from 'link-dom-shared';
+import { KEY_LD_TYPE, KEY_SCOPE, KEY_USE_STORE, SharedStatus } from 'link-dom-shared';
 import { type IComponentProxy } from './component';
 import type { AwaitClass } from './controller/await';
 import type { ForClass } from './controller/for/for';
@@ -76,7 +76,7 @@ export class LifeScope {
             this.root = this;
         }
         if (dom) {
-            dom.__ld_scope = this;
+            dom[KEY_SCOPE] = this;
         }
     }
     beforeUnmount () {
@@ -116,8 +116,8 @@ export function onEnterScope (type: LifeScopeType, dom: IScopeDom, index?: numbe
     if (SharedStatus.isSSR) return;
     const scope = new LifeScope(type, dom);
     LifeScopeLink.push(scope);
-    if (dom?.__ld_type === LinkDomType.Component) {
-        dom.__ld_scope = scope;
+    if (dom?.[KEY_LD_TYPE] === LinkDomType.Component) {
+        dom[KEY_SCOPE] = scope;
         scope.component = dom;
         if (SharedStatus.isHydrating) {
             dom.el.__componentScope = scope;
@@ -144,7 +144,7 @@ export function onExitScope () {
 }
 
 export function getAncestorProvide (comp: IComponentProxy, key: string) {
-    const scope = comp.__ld_scope as any;
+    const scope = comp[KEY_SCOPE] as any;
     let parent = scope.parent;
     // console.log('findAllParentComp', comp.name, comp.__aaa, scope, parent);
 
@@ -157,7 +157,7 @@ export function getAncestorProvide (comp: IComponentProxy, key: string) {
         //     break;
         // }
         if (!!parent.component) {
-            const provides = parent.component.__use_store();
+            const provides = parent.component[KEY_USE_STORE]();
             if (key in provides) {
                 return provides[key];
             }
@@ -168,7 +168,7 @@ export function getAncestorProvide (comp: IComponentProxy, key: string) {
 }
 
 // export function findAllParentComp (comp: IComponentProxy) {
-//     const scope = comp.__ld_scope as any;
+//     const scope = comp[KEY_SCOPE] as any;
 //     console.log('findAllParentComp', comp.name, comp.__aaa, scope);
 
 //     const parent = scope.parent;

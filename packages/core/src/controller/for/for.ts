@@ -8,7 +8,7 @@ import type  { IChild } from '../../element';
 import { Frag } from '../../text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../marker';
-import { checkHydrateMarker, getTarget, SharedStatus } from 'link-dom-shared';
+import { checkHydrateMarker, getTarget, KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
 import type { Ref } from 'link-dom-reactive';
 import { isReactive, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
@@ -18,8 +18,8 @@ import { type LifeScope } from '../../lifes';
 // window._fl = [];
 export class ForClass <T=any> {
 
-    __ld_type = LinkDomType.For;
-    __ld_scope: LifeScope;
+    [KEY_LD_TYPE] = LinkDomType.For;
+    [KEY_SCOPE]: LifeScope;
 
     private _el: DocumentFragment;
 
@@ -166,7 +166,7 @@ export class ForClass <T=any> {
         const child = this.children[i];
         if (child) {
             this._removeChildScope(child, i);
-            this.__ld_scope?.children.splice(i, 1);
+            this[KEY_SCOPE]?.children.splice(i, 1);
         }
     }
 
@@ -178,7 +178,7 @@ export class ForClass <T=any> {
             }
         }
         this.children.splice(start, count);
-        this.__ld_scope?.children.splice(start, count);
+        this[KEY_SCOPE]?.children.splice(start, count);
         this._updateIndex(start + count - 1);
     }
     _addDoms (start: number, count: number) {
@@ -227,11 +227,11 @@ export class ForClass <T=any> {
         this.children.splice(length).forEach((child, i) => {
             this._removeChildScope(child, start + i);
         });
-        this.__ld_scope?.children.splice(length);
+        this[KEY_SCOPE]?.children.splice(length);
     }
 
     private _removeChildScope (child: ForChild, i: number) {
-        const scope = this.__ld_scope?.children[i];
+        const scope = this[KEY_SCOPE]?.children[i];
         scope?.beforeUnmount();
         if (child.destroy()) {
             scope?.unmounted();
@@ -247,7 +247,7 @@ export class ForClass <T=any> {
                 this._removeChildScope(child, i);
             });
             this.children = [];
-            this.__ld_scope.children = [];
+            this[KEY_SCOPE].children = [];
         }
         // @ts-ignore
         this.end.remove();

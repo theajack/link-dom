@@ -10,7 +10,7 @@ import { LinkDomType, parseFuncWrap } from '../utils';
 import { watch } from 'link-dom-reactive';
 import { read } from '../utils';
 import { createMarkerNode } from './marker';
-import { SharedStatus } from 'link-dom-shared';
+import { KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import { traverseChildren } from '../mount';
 
 function getDefaultStyle (el: HTMLElement, def?: any) {
@@ -27,7 +27,7 @@ function getDefaultStyle (el: HTMLElement, def?: any) {
 }
 
 export class ShowClass {
-    __ld_type = LinkDomType.Show;
+    [KEY_LD_TYPE] = LinkDomType.Show;
     private frag: Frag;
     get el () {
         return this.frag.el;

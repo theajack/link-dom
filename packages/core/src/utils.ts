@@ -12,6 +12,7 @@ import {
 } from 'link-dom-reactive';
 import type { Dom } from './element';
 import { type Join } from './join';
+import { KEY_LD_TYPE } from 'link-dom-shared';
 export enum LinkDomType {
     Dom,
     Text,
@@ -151,7 +152,7 @@ export function isJoin (v: any): v is Join {
 }
 
 export function isPureFunc (v: any) {
-    return typeof v === 'function' && typeof v.__ld_type !== 'number';
+    return typeof v === 'function' && typeof v[KEY_LD_TYPE] !== 'number';
 }
 
 export function parseFuncWrap (v: any) {
@@ -163,7 +164,7 @@ export function toLinkDomLink<T extends any> (v: T, el?: ()=>any): T & {
     el: Dom,
 } {
     // @ts-ignore
-    v.__ld_type = LinkDomType.Dom;
+    v[KEY_LD_TYPE] = LinkDomType.Dom;
     Object.defineProperty(v, 'el', {
         get () {
             return el ? el() : (v as any)().el;
