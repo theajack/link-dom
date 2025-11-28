@@ -9,13 +9,16 @@ import { frag, type Comment, type Frag, type Text } from './text';
 import type { IReactiveLike } from './type';
 import { handleIfLinkChildren } from './controller/if';
 import { getAncestorProvide } from './lifes';
+import { KEY_IS_NAME_USE, KEY_LD_TYPE, KEY_SCOPE, KEY_SLOT_NAME, KEY_USE_STORE } from 'link-dom-shared';
 // import { createLifeScope, LifeScopeType } from './lifes';
 
-type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController;
+type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController| (()=>ISlot);
 export type ISlot = ISlotBase | (()=>ISlotBase);
 
 export type ISlots<T extends string = string> = {
     [key in T]: ISlot;
+} & {
+    default: ISlot[];
 }
 
 export type IProp = any;
@@ -183,7 +186,15 @@ function createSlot (getp: () => any) {
             value = key;
             key = 'default';
         }
-        slots[key || 'default'] = value;
+        key = key || 'default';
+
+        if (key === 'default') {
+            if (!slots[key]) slots[key] = [];
+            slots[key].push(value);
+        } else {
+            slots[key] = value;
+        }
+
         // console.log('slot', slots, key, value);
         return getp();
     };
@@ -253,7 +264,7 @@ function createScope (flow = true) {
             return p;
         },
         ref: (v: any) => {
-            if (v.__ld_type === LinkDomType.Ref) {
+            if (v[KEY_LD_TYPE] === LinkDomType.Ref) {
                 v.el = p;
             } else {
                 v(p);
@@ -291,7 +302,7 @@ function createScope (flow = true) {
                 if (Array.isArray(item)) {
                     item = frag(...item);
                 }
-                utils.slot((item as any).__slot_name, item);
+                utils.slot((item as any)[KEY_SLOT_NAME], item);
             }
         }
     };
@@ -304,7 +315,7 @@ export function slot (key: string|ISlot, slot?: ISlot): ISlot {
         return key as ISlot;
     }
     // @ts-ignore
-    slot.__slot_name = key;
+    slot[KEY_SLOT_NAME] = key;
     return slot as ISlot;
 }
 
@@ -325,7 +336,10 @@ export function defineComponent<
     const target = (...slots: ISlot[]) => {
         // console.log('component createTarget', name);
         let result: any = null;
-        let ldScope: any = null;
+        const tempStore = {
+            [KEY_SCOPE]: null,
+            [KEY_SLOT_NAME]: null,
+        } as any;
         const { scope, utils, setProxy, assignSlots, store } = createScope(flow);
         // console.log('createTarget', store);
         // console.log('call target', name)
@@ -335,9 +349,9 @@ export function defineComponent<
             return p;
         }, {
             get (_, key) {
-                if (key === '__ld_type') return LinkDomType.Component;
-                if (key === '__ld_scope') return ldScope;
-                if (key === '__use_store') return store;
+                if (key === KEY_LD_TYPE) return LinkDomType.Component;
+                if (key in tempStore) return tempStore[key];
+                if (key === KEY_USE_STORE) return store;
                 if (key === 'name') return name;
                 if (key === 'el') {
                     // ! 需要缓存组件元素
@@ -352,9 +366,7 @@ export function defineComponent<
                 return (value: any) => utils.prop(key, value);
             },
             set (_, key, value) {
-                if (key === '__ld_scope') {
-                    ldScope = value;
-                }
+                if (key in tempStore) tempStore[key] = value;
                 return true;
             }
         });
@@ -364,9 +376,9 @@ export function defineComponent<
 
     return new Proxy(target, {
         get (_, key) {
-            if (key === '__ld_type') return LinkDomType.Component;
+            if (key === KEY_LD_TYPE) return LinkDomType.Component;
             if (key === 'name') return name + '11';
-            if (key === '__is_name_use') return true;
+            if (key === KEY_IS_NAME_USE) return true;
             if (key === 'el') {
                 // ! 组合返回值
                 // @ts-ignore
