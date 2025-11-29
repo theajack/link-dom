@@ -8,10 +8,9 @@ import type { ISlots } from '../element/component';
 import { defineComponent } from '../element/component';
 import { createMarkerNode, Marker } from '../controller/marker';
 import { Frag } from '../element/text';
-import { KEY_LD_TYPE } from 'link-dom-shared';
+import { KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import type { IReactiveLike } from 'link-dom-reactive';
-import { watch, read, readFn, isStatic, isReactive } from 'link-dom-reactive';
-import { watchReactive } from 'link-dom-reactive/src/computed';
+import { watch, read, readFn, isStatic, isReactiveLike } from 'link-dom-reactive';
 
 interface ITeleportProps {
     to: IReactiveLike<string | Dom | HTMLElement>;
@@ -40,7 +39,10 @@ export const Teleport = defineComponent<ITeleportProps, ISlots>(({
 
     const marker = new Marker({ clearSelf: true });
     const origin = createMarkerNode('origin');
-    frag.append(marker.start, ...slots.default, marker.end, origin);
+    frag.append(...marker.wrapContent(slots.default), origin);
+    if (SharedStatus.isSSR) {
+        return frag;
+    }
 
     const moveToTarget = async () => {
         if (read(props.disabled)) return;
@@ -51,8 +53,8 @@ export const Teleport = defineComponent<ITeleportProps, ISlots>(({
             target?.appendChild(item);
         });
     };
-    if (isReactive(props.to)) {
-        watchReactive(props.to, moveToTarget);
+    if (isReactiveLike(props.to)) {
+        watch(props.to, moveToTarget);
     }
     if (!_isStatic) {
         const moveBack = () => {

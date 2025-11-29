@@ -8,6 +8,7 @@ import { LinkDomType } from '../utils';
 import { LifeScopeType, onEnterScope, onExitScope, ScopeTypes } from './lifes';
 import { handleIfLinkChildren } from '../controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
+import { addDomsToComponent } from './component';
 
 export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: Dom<E>
@@ -85,23 +86,37 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             traverseChildren(dom, onChild);
             return;
         }
-        const ldType = dom[KEY_LD_TYPE];
-        const isScopeType = ScopeTypes.has(ldType);
-        if (isScopeType && !isSSR) {
-            if (ldType === LinkDomType.Component && dom[KEY_IS_NAME_USE]) {
-                // ! 如果是直接使用组件名，需要先获取el，否则scope获取不到
-                dom = dom();
-            }
-            onEnterScope(ldType, dom);
+        let ldType = dom[KEY_LD_TYPE];
+        let isScopeType = ScopeTypes.has(ldType);
+        if (ldType === LinkDomType.Component && dom[KEY_IS_NAME_USE]) {
+            // ! 如果是直接使用组件名，需要先获取el，否则scope获取不到
+            dom = dom();
         }
         let el: any = dom;
+
+        if (typeof ldType === 'number') {
+            const result = handleIfLinkChildren(el, doms, index);
+            if (result) {
+                dom = el = result; // ! 需要把dom也一起修改
+                ldType = dom[KEY_LD_TYPE];
+                isScopeType = ScopeTypes.has(ldType);
+            }
+        };
+
+        if (isScopeType && !isSSR) {
+            onEnterScope(ldType, dom);
+        }
+
         if (ldType === LinkDomType.Component) {
             const v = el.el;
             // ! 必须要在el之后 组件才会初始化，才会挂载生命周期函数
             if (!isSSR) {
                 dom.__beforeMount();
             }
-            traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
+            traverseChildren(Array.isArray(v) ? v : [ v ], (c, o) => {
+                addDomsToComponent(dom, c);
+                onChild(c, o);
+            });
             // console.warn('debug end', 'component');
             if (!isSSR) {
                 onExitScope();
@@ -112,8 +127,6 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             }
             return;
         } else if (typeof ldType === 'number') {
-            const result = handleIfLinkChildren(el, doms, index);
-            if (result) dom = el = result; // ! 需要把dom也一起修改
             el = el.el;
         } else if (isReactiveLike(el)) {
             el = new Text(el as any);

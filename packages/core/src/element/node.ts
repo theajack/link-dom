@@ -2,10 +2,15 @@ import { useReactive, type Ref, type IReactiveLike } from 'link-dom-reactive';
 import { Dom } from './element';
 import { LinkDomType } from '../utils';
 import { KEY_LD_TYPE } from 'link-dom-shared';
+import { useDirectives, type IDirective } from '../controller/directive';
 
 export class BaseNode<T extends Text|Comment|HTMLElement> {
     el: T;
     __isFnProxy = false;
+    ___created = false;
+    constructor () {
+        this.___created = true;
+    }
     remove () {
         this.el?.remove();
         return this;
@@ -14,11 +19,26 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
         // useReactive(v, apply, this.el);
         return useReactive(v, apply);
     }
-    // @ts-ignore
-    private __mounted?: (el: T)=>void;
+    private _mounted: ((el: T)=>void)[] = [];
     mounted (v: (el: T)=>void): this {
-        this.__mounted = v;
+        this._mounted.push(v);
         return this;
+    }
+    __mounted () {
+        this._mounted.forEach(v => v(this.el));
+    }
+    private _created: ((el: T)=>void)[] = [];
+    created (v: (el: T)=>void): this {
+        if (this.___created) {
+            v(this.el);
+        } else {
+            this._created.push(v);
+        }
+        return this;
+    }
+    __created () {
+        this._created.forEach(v => v(this.el));
+        this._created = [];
     }
     data (name: Record<string, any>): this;
     data (name: string): any|null;
@@ -102,6 +122,11 @@ export class BaseNode<T extends Text|Comment|HTMLElement> {
             }
         });
         if (this.__isFnProxy) {clear?.(); }
+        return this;
+    }
+
+    directive (...directives: IDirective[]) {
+        useDirectives(() => this.el, this, directives);
         return this;
     }
 }

@@ -90,6 +90,19 @@ export class Marker {
             parent.insertBefore(frag, next);
         }
     }
+
+    wrapContent (args: any) {
+        const list: any[] = [ this.start ];
+        if (Array.isArray(args)) {
+            list.push(...args);
+        } else {
+            list.push(args);
+        }
+        if (this.end) {
+            list.push(this.end);
+        }
+        return list;
+    }
 }
 
 export function createMarkerNode (text = ''): Comment {

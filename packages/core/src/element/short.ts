@@ -7,13 +7,13 @@
 import type { IChild } from './element';
 import { DKeys, Dom, TextTagKeys } from './element';
 import { Comment, frag, Frag, Text } from './text';
-import { LinkDomType } from '../utils';
+import { CtrlLinkApiSet, LinkDomType } from '../utils';
 import { createStyles } from './style';
 import { ctrl } from '../controller';
-import type { IReactiveLike } from '../type';
 import { BaseNode } from './node';
 import type { TDomName } from './mount';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE } from 'link-dom-shared';
+import type { IReactiveLike } from 'link-dom-reactive';
 
 export { frag } from './text';
 
@@ -31,10 +31,6 @@ const attrs = new Set([
     ...EventAttrs, // ! 需要单独处理
 ]);
 const Map: any = {};
-
-// // const FirstCallApi = [ 'classPrefix', 'if', 'elif', 'else', 'case', 'default' ] as const;
-const FirstCallApi = [ 'if', 'elif', 'else', 'case', 'default' ] as const;
-const FirstCallApiSet = new Set(FirstCallApi);
 
 const Short: {
     [prop in TDomName]: ITagCreatorProxy<prop> & {
@@ -78,7 +74,7 @@ function createTagProxy <T extends HTMLElement> (tag: TDomName|HTMLElement|Dom):
             if (key === 'el') return initEl().el;
             if (typeof key !== 'string') return undefined;
             // if (typeof key !== 'string') return initEl().el[key];
-            if (attrs.has(key as string) || FirstCallApiSet.has(key as any)) {
+            if (attrs.has(key as string) || CtrlLinkApiSet.has(key as any)) {
                 return createFnObject(tag, key as string, isTextNode);
             }
             if (key in fn) return fn[key]; // 对于apply、call方法 使用fn自带的
@@ -139,13 +135,22 @@ function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode:
     let el: any = null;
 
     let callMap: any[] = [];
+    const triggerCallMap = () => {
+        callMap.forEach(({ k, args }) => {
+            for (const child of Array.from((el as Frag).children)) {
+                child[k](...args);
+            }
+        });
+        callMap = [];
+    };
 
     const initEl = () => createProxyEl(isTextNode, tag);
 
     const callAttr = (k: string, args: any[]) => {
-        if (FirstCallApiSet.has(k as any)) {
+        if (CtrlLinkApiSet.has(k as any)) {
             el[KEY_FC_API_LINK] = k;
             el[KEY_FC_API_VALUE] = args[0];
+            // ! 避免类似 .default()()的情况
             if (k === 'default' || k === 'else') {
                 if (args.length) fn(...args);
             }
@@ -186,14 +191,7 @@ function createFnObject (tag: TDomName|HTMLElement|Dom, key: string, isTextNode:
         get (_, key) {
             if (key === KEY_LD_TYPE) return LinkDomType.Short;
             if (key === 'el') {
-                if (isTextNode) {
-                    callMap.forEach(({ k, args }) => {
-                        for (const child of Array.from((el as Frag).children)) {
-                            child[k](...args);
-                        }
-                    });
-                    callMap = [];
-                }
+                if (isTextNode) triggerCallMap();
                 return el.el;
             }
             if (typeof key !== 'string') return fn[key];

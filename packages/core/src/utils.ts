@@ -133,3 +133,13 @@ export function assignDefault<T> (target: T, def: T) {
     return target;
 }
 
+export function parseNodeList (v: any) {
+    if (!Array.isArray(v)) v = [ v ];
+    return {
+        dom: v[0] || null,
+        domList: v,
+    };
+}
+
+const CtrlLinkApi = [ 'if', 'elif', 'else', 'case', 'default' ] as const;
+export const CtrlLinkApiSet = new Set(CtrlLinkApi);

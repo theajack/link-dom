@@ -30,6 +30,8 @@ function parseForList <T> (list: Ref<T[]>|T[]) {
     return { arr, isStatic };
 }
 
+export { type IDriectoryHooks, type IDirective, defineDirective } from './directive';
+
 export interface IfCtrl {
     (ref: IReactiveLike): IfShortUseFn;
     (ref: IReactiveLike, gene?: (()=>IChild)|IChild, elseGen?: (()=>IChild)|IChild): IfClass;

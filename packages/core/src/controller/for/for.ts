@@ -133,7 +133,7 @@ export class ForClass <T=any> {
     }
 
     get __mounted () {
-        return this.frag.__mounted;
+        return this.frag.__mounted.bind(this.frag);
     }
 
     mounted (v: (el: Frag)=>void) {

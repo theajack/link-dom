@@ -9,9 +9,10 @@ import { type Ref } from './ref';
 import { DepUtil } from './dep';
 import { observe } from './reactive';
 import type { IComputed } from './computed';
+import { isPureFunc } from 'link-dom-shared';
 
 export function isReactiveLike (v: any): v is Ref<any>|IComputedLike {
-    return isReactive(v) || (typeof v === 'function');
+    return isReactive(v) || isPureFunc(v);
 }
 
 export function generateReactiveByValue (v: any) {
