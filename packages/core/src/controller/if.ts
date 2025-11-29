@@ -132,7 +132,7 @@ export class IfClass {
             // life
             this.frag.mounted(this.__mountedFn);
         }
-        this.frag?.__mounted?.(this.frag);
+        this.frag?.__mounted(this.frag);
         this._renderered = true;
         //
         // @ts-ignore

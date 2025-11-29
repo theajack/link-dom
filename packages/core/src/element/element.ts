@@ -65,6 +65,7 @@ export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
         this._isTextNode = TextTagKeys.has(this._tag as any);
         this._initEvents();
         checkHydrateEl(this);
+        this.__created();
     }
     private _cp (v: string, pure = false) {
         return pure ? v : this._classPrefix + v;

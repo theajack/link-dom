@@ -105,3 +105,8 @@ export enum RendererType {
     SSR,
     Custom,
 }
+
+
+export function isDomNode (v: any) {
+    return typeof v?.nodeName === 'string' && typeof v?.nodeType === 'number';
+}

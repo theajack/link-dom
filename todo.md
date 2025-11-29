@@ -143,4 +143,7 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] 支持IChild传入 Dom函数
 - [x] 修复ssr的bug和其他bug
 - [x] hydrate生命周期
+- [x] 内置组件 Suspense、Dynamic、Teleport
+- [x] 自定义指令
+- [ ] 内置组件 Transition
 - [ ] Compontent 支持 .if 等

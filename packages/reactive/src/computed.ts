@@ -9,6 +9,7 @@ import { DepUtil } from './dep';
 import { type Ref } from './ref';
 import { generateReactiveByValue, isReactive } from './utils';
 import type { IComputeFn, IComputedLike, IReactive } from './type.d';
+import { isPureFunc } from 'link-dom-shared';
 
 export type IComputed<T> = Computed<T> | Ref<T>;
 
@@ -56,7 +57,7 @@ export function watch<T> (v: IReactive<T>, fn: (v: T, old: T)=>void): ()=>void {
         const origin = v;
         v = () => origin.value;
     }
-    if (typeof v === 'function') {
+    if (isPureFunc(v)) {
         return observe(v as any, fn);
     }
     return staticFn;

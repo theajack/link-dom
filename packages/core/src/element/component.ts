@@ -1,7 +1,7 @@
 
 import type { IReactiveLike, Ref } from 'link-dom-reactive';
 import { readonly, read } from 'link-dom-reactive';
-import type { IController } from '../controller';
+import type { IController, IDirective } from '../controller';
 import type { Dom, IChild } from './element';
 import { LinkDomType, assignDefault } from '../utils';
 import { mount, type IMountParent } from './mount';
@@ -9,6 +9,7 @@ import { frag, type Comment, type Frag, type Text } from './text';
 import { handleIfLinkChildren } from '../controller/if';
 import { getAncestorProvide } from './lifes';
 import { KEY_IS_NAME_USE, KEY_LD_TYPE, KEY_SCOPE, KEY_SLOT_NAME, KEY_USE_STORE } from 'link-dom-shared';
+import { useDirectives } from '../controller/directive';
 // import { createLifeScope, LifeScopeType } from './lifes';
 
 type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController| (()=>ISlot);
@@ -35,7 +36,7 @@ export type IExposes<T extends string = string> = {
     [key in T]: IExpose;
 }
 
-const LifeKeys = [ 'beforeMount', 'mounted', 'beforeUnmount', 'unmounted', 'beforeHydrate', 'hydrated' ] as const;
+const LifeKeys = [ 'created', 'beforeMount', 'mounted', 'beforeUnmount', 'unmounted', 'beforeHydrate', 'hydrated' ] as const;
 
 export type ILifeKeys = (typeof LifeKeys)[number];
 
@@ -49,6 +50,8 @@ export function componentRefs <E extends IComponentProxy = IComponentProxy, T ex
     return refs;
 }
 
+type ILifeFn = (v: Node, list: Node[])=>(void|Promise<void>);
+
 export type IComponentProxy<
     Props extends IProps = IProps,
     Slots extends ISlots = ISlots,
@@ -57,6 +60,7 @@ export type IComponentProxy<
     SlotKey extends keyof Slots = keyof Slots,
     PropKey extends keyof Props = keyof Props,
 > = {
+    // ! 组件外部调用的
     (...slots: ISlot[]): IComponentProxy<Props, Slots, Emits, Exposes>;
     prop<K extends PropKey>(key: K, prop: Props[K]): IComponentProxy<Props, Slots, Emits, Exposes>;
     props(props: Props): IComponentProxy<Props, Slots, Emits, Exposes>;
@@ -77,6 +81,7 @@ export type IComponentProxy<
     expose: Exposes,
     ref: (v: IComponentProxy|Ref) => IComponentProxy<Props, Slots, Emits, Exposes>;
     mount: (parent: IMountParent) => IComponentProxy<Props, Slots, Emits, Exposes>;
+    directive: (...directives: IDirective[]) => IComponentProxy<Props, Slots, Emits, Exposes>;
 } & {
     [Key in PropKey]: (
         Props[Key] extends (boolean|IReactiveLike<boolean>|(()=>boolean)) ?
@@ -84,7 +89,7 @@ export type IComponentProxy<
             ((prop: Props[Key]) => IComponentProxy<Props, Slots, Emits, Exposes>)
     )
 } & {
-    [Key in ILifeKeys]: (fn: ()=>(void|Promise<void>)) => IComponentProxy<Props, Slots, Emits, Exposes>
+    [Key in ILifeKeys]: (fn: ILifeFn) => IComponentProxy<Props, Slots, Emits, Exposes>
 }
 
 type IProvide<T extends Record<string, any>, K extends keyof T = keyof T> = (key: K, value: T[K])=>void
@@ -96,8 +101,8 @@ interface IComponentArgs<
     Emits extends IEmits = IEmits,
     Exposes extends IExposes = IExposes,
     Provides extends Record<string|symbol, any> = Record<string|symbol, any>,
-> extends Record<ILifeKeys, (fn: ()=>(void|Promise<void>)) => void> {
-    // 组件内部使用的
+> extends Record<ILifeKeys, (fn: ILifeFn) => void> {
+    // ! 组件内部使用的
     slots: Slots;
     props: Props;
     emit: {
@@ -121,20 +126,30 @@ export type IComponent<
 const FnKeys = new Set([ 'apply' ]); // 是否需要不代理这些key，代理会导致打包后可能导致错误
 // ! 如 a.slot(...args) => a.slot.apply(a, args)
 
-function createLifes () {
+function createLifes (getp: () => any, getds: ()=>any[]) {
     const result = {
         lifes: {} as Record<ILifeKeys, any>,
         triggers: {} as any,
     };
 
+    let isCreated = false;
+
     for (const key of LifeKeys) {
         const list: any[] = [];
         result.lifes[key] = (fn: any) => {
-            // console.log(`add life ${key} ${a}`);
-            list.push(fn);
+            // console.log(`add life ${key} ${fn.toString()} ${list.length}`);
+            if (key === 'created' && isCreated) {
+                fn(...getds());
+            } else {
+                list.push(fn);
+            }
+            return getp();
         };
         result.triggers[`__${key}`] = () => {
-            list.forEach(fn => fn());
+            list.forEach(fn => fn(...getds()));
+            if (key === 'created' && !isCreated) {
+                isCreated = true;
+            }
             // console.log(`trigger life ${key} ${a}`);
         };
     }
@@ -224,12 +239,19 @@ function createScope (flow = true) {
 
     const props: IProps = {} as any;
 
+    const tempStore = {
+        [KEY_SCOPE]: null,
+        [KEY_SLOT_NAME]: null,
+        __doms: [],
+    } as any;
+
     const { emit, emitUtils } = createEmit(getp);
 
-    const { lifes, triggers } = createLifes();
+    const { lifes, triggers } = createLifes(getp, () => tempStore.__doms);
     const { slotUtils, slots } = createSlot(getp);
 
     const expose: Record<string, any> = {};
+
 
     const _store: any = {};
 
@@ -274,6 +296,10 @@ function createScope (flow = true) {
             mount(p, parent);
             return p;
         },
+        directive (...directives: IDirective[]) {
+            useDirectives(() => tempStore.__doms, getp(), directives);
+            return p;
+        },
         expose,
         ...emitUtils,
         ...slotUtils,
@@ -285,6 +311,7 @@ function createScope (flow = true) {
         // scope是组件内部使用的
         scope: { props, slots, emit, expose, provide, inject, ...lifes } as IComponentArgs,
         utils,
+        tempStore,
         store,
         setProxy (proxy: any) {return (p = proxy);},
         assignSlots: (slots: any[]) => {
@@ -333,13 +360,10 @@ export function defineComponent<
     defaultProps?: Partial<Props>
 } = {}): IComponentProxy<Props, Slots, Emits, Exposes> {
     const target = (...slots: ISlot[]) => {
+        // console.trace();
         // console.log('component createTarget', name);
         let result: any = null;
-        const tempStore = {
-            [KEY_SCOPE]: null,
-            [KEY_SLOT_NAME]: null,
-        } as any;
-        const { scope, utils, setProxy, assignSlots, store } = createScope(flow);
+        const { scope, utils, tempStore, setProxy, assignSlots, store } = createScope(flow);
         // console.log('createTarget', store);
         // console.log('call target', name)
         assignSlots(slots); // ! 此处为首次调用组件
@@ -356,7 +380,9 @@ export function defineComponent<
                     // ! 需要缓存组件元素
                     if (result) return result;
                     assignDefault(scope.props, defaultProps);
-                    return result = fn(scope as any); // ! 最终组合返回值
+                    result = fn(scope as any); // ! 最终组合返回值
+                    utils.__created();
+                    return result;
                 }
                 if (typeof key === 'symbol' || FnKeys.has(key as string)) {
                     return fn[key];
@@ -377,6 +403,7 @@ export function defineComponent<
         get (_, key) {
             if (key === KEY_LD_TYPE) return LinkDomType.Component;
             if (key === 'name') return name + '11';
+            // ! 用来判断是否为直接使用组件，没有调用组件函数
             if (key === KEY_IS_NAME_USE) return true;
             if (key === 'el') {
                 // ! 组合返回值
@@ -396,4 +423,13 @@ export function defineComponent<
 
 export function isComponent (v: any): v is IComponentProxy {
     return v?.[KEY_LD_TYPE] === LinkDomType.Component;
+}
+
+export function addDomsToComponent (dom: any, node: any) {
+    if (!node) return;
+    if (node.nodeType === 11) {
+        dom.__doms.push(...node.childNodes);
+    } else {
+        dom.__doms.push(node);
+    }
 }

@@ -133,3 +133,10 @@ export function assignDefault<T> (target: T, def: T) {
     return target;
 }
 
+export function parseNodeList (v: any) {
+    if (!Array.isArray(v)) v = [ v ];
+    return {
+        dom: v[0] || null,
+        domList: v,
+    };
+}

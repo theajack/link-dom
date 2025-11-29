@@ -8,6 +8,7 @@ import { LinkDomType } from '../utils';
 import { LifeScopeType, onEnterScope, onExitScope, ScopeTypes } from './lifes';
 import { handleIfLinkChildren } from '../controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
+import { addDomsToComponent } from './component';
 
 export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: Dom<E>
@@ -101,7 +102,10 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
             if (!isSSR) {
                 dom.__beforeMount();
             }
-            traverseChildren(Array.isArray(v) ? v : [ v ], onChild);
+            traverseChildren(Array.isArray(v) ? v : [ v ], (c, o) => {
+                addDomsToComponent(dom, c);
+                onChild(c, o);
+            });
             // console.warn('debug end', 'component');
             if (!isSSR) {
                 onExitScope();
