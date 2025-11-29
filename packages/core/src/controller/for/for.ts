@@ -4,8 +4,8 @@
  * @Date: 2025-09-01 17:55:18
  * @Description: Coding something
  */
-import type  { IChild } from '../../element';
-import { Frag } from '../../text';
+import type  { IChild } from '../../element/element';
+import { Frag } from '../../element/text';
 import { LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../marker';
 import { checkHydrateMarker, getTarget, KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
@@ -13,7 +13,7 @@ import type { Ref } from 'link-dom-reactive';
 import { isReactive, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
-import { type LifeScope } from '../../lifes';
+import { type LifeScope } from '../../element/lifes';
 
 // window._fl = [];
 export class ForClass <T=any> {

@@ -1,12 +1,12 @@
-import { type IReactive } from 'link-dom-reactive';
-import type { IAttrKey, IEventAttributes, IEventDecorator, IEventKey, IEventObject, IStyle, IStyleKey } from './type.d';
-import { LinkDomType, bind, isJoin, read } from './utils';
+import type { IReactiveLike } from 'link-dom-reactive';
+import { isJoin, read, type IReactive } from 'link-dom-reactive';
+import type { IAttrKey, IEventAttributes, IEventDecorator, IEventKey, IEventObject, IStyle, IStyleKey } from '../type';
+import { LinkDomType, bind } from '../utils';
 import type { IMountParent } from './mount';
 import { mount, queryBase, traverseChildren } from './mount';
 import type { Comment, Frag, Text } from './text';
-import type { IReactiveLike } from './type.d';
-import type { Join } from './join';
-import type { IController } from './controller';
+import type { Join } from '../join';
+import type { IController } from '../controller';
 import { KEY_LD_TYPE, SharedStatus, checkHydrateEl, isObject } from 'link-dom-shared';
 import type { IStyleBuilder } from './style';
 import { getStyleBuilder } from './style';

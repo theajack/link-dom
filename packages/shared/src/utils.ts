@@ -4,6 +4,7 @@
  * @Description: Coding something
  */
 
+import { KEY_LD_TYPE } from './const';
 import type { IRenderer } from './type';
 
 function createSharedStatus () {
@@ -47,6 +48,10 @@ export function isObject (o: any) {
     return o?.constructor.name === 'Object';
 }
 
+export function isNumber (o: any): o is number {
+    return typeof o === 'number';
+}
+
 export function deepAssign (origin: any, value: any) {
     origin = getProxy(origin);
     value = getTarget(value);
@@ -83,6 +88,14 @@ export function raw (data: any) {
         return (data?.__isReactive) ? { value: data.value } : data;
     };
     return deepClone(data);
+}
+
+export function isPureFunc (v: any) {
+    return typeof v === 'function' && typeof v[KEY_LD_TYPE] !== 'number';
+}
+
+export function parseFuncWrap (v: any) {
+    return (isPureFunc(v)) ? v() : v;
 }
 
 export const isWeb = typeof document !== 'undefined' && document.head?.constructor.name === 'HTMLHeadElement';

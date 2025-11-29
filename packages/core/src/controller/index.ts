@@ -4,9 +4,10 @@
  * @Description: Coding something
  */
 
-import type { Dom, IChild } from '../element';
+import type { Dom, IChild } from '../element/element';
+import type { IReactiveLike } from 'link-dom-reactive';
 import { isReactive, type Ref } from 'link-dom-reactive';
-import type { IControlLink, IReactiveLike } from '../type.d';
+import type { IControlLink } from '../type.d';
 import { ForClass } from './for/for';
 import type { IfShortUseFn } from './if';
 import { IfClass, IfInner } from './if';
@@ -16,6 +17,7 @@ import { ShowClass } from './show';
 import { AwaitClass } from './await';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
+import type { IComponentProxy } from 'src/element/component';
 
 export { Elif, Else, type IfClass } from './if';
 export { Default, Case, type SwitchClass } from './switch';
@@ -108,7 +110,7 @@ export const ctrl = {
         return new ShowClass(ref, gene, showDisplay);
     },
     // 异步控制器
-    await<T> (data: Promise<T>, fn: (v: T)=>IChild) {
+    await<T> (data: Promise<T>|IComponentProxy, fn: (v: T)=>IChild) {
         return new AwaitClass(data, fn);
     },
 };

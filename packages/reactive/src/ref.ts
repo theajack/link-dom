@@ -4,10 +4,10 @@
  * @Description: Coding something
  */
 
-import { isArrayOrJson, deepAssign, SharedStatus, KEY_LD_TYPE } from 'link-dom-shared';
+import { isArrayOrJson, deepAssign, SharedStatus, KEY_LD_TYPE, LD_TYPE_REF } from 'link-dom-shared';
 import { listener, reactive } from './reactive';
 import { DepUtil } from './dep';
-import { isReactive } from './computed';
+import { isReactive } from './utils';
 export class Ref<T = any> {
     __isRef = true;
     __isReactive = true;
@@ -53,10 +53,14 @@ export class Ref<T = any> {
 }
 export function ref<T extends any = any> (v?: T, deep = true): Ref<T> {
     if (arguments.length === 0) {
+        let el: any = null;
         return {
-            [KEY_LD_TYPE]: 1000,
-            el: null,
+            [KEY_LD_TYPE]: LD_TYPE_REF,
+            __isReactive: true,
+            get el () { return el; },
+            set el (v) { el = v; },
             get value () {
+                DepUtil.add(this, 'value');
                 return this.el;
             }
         } as any as Ref<T>;

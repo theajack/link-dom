@@ -4,15 +4,15 @@
  * @Date: 2025-09-01 17:55:18
  * @Description: Coding something
  */
-import type { IChild } from '../element';
-import { frag, Frag } from '../text';
-import { LinkDomType, parseFuncWrap } from '../utils';
-import { watch } from 'link-dom-reactive';
-import { read } from '../utils';
+import type { IChild } from '../element/element';
+import { frag, Frag } from '../element/text';
+import { LinkDomType } from '../utils';
+import type { IReactiveLike } from 'link-dom-reactive';
+import { watch, read } from 'link-dom-reactive';
 import { Marker } from './marker';
-import type { IControlLink, IReactiveLike } from '../type.d';
-import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
-import { updateIfScopeBranch, type LifeScope, IsFcApiKeys } from '../lifes';
+import type { IControlLink } from '../type.d';
+import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE, parseFuncWrap, SharedStatus } from 'link-dom-shared';
+import { updateIfScopeBranch, type LifeScope, IsFcApiKeys } from '../element/lifes';
 // import { CurrentScope, LifeScope, LifeScopeType } from '../lifes';
 
 // let id = 0;
@@ -55,6 +55,7 @@ class IfScope {
         return this.frag;
     }
 
+    // ! 默认会全部缓存 也就是keepAlive默认已经实现了
     store (list: Node[]): void {
         this.frag.append(list);
     }

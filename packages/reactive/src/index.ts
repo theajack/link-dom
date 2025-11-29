@@ -4,11 +4,11 @@
  * @Description: Coding something
  */
 
-export { computed, watch, link, isReactive, Computed, type IComputed } from './computed';
+export { computed, watch, link, Computed, type IComputed } from './computed';
 export { ref, isRef, Ref } from './ref';
 export { deepAssign, deepClone, raw, version, isArrayOrJson } from 'link-dom-shared';
 export { reactive, observe, isDeepReactive, setArrayListeners } from './reactive';
 export * from './type.d';
 export { DepUtil, Dep } from './dep';
-export { isReactiveLike } from './utils';
+export * from './utils';
 export { readonly } from './readonly';

@@ -1,12 +1,12 @@
 import type { IElement } from 'link-dom-shared';
-import { KEY_IS_NAME_USE, KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
-import type { IController } from './controller';
+import { KEY_IS_NAME_USE, KEY_LD_TYPE, SharedStatus, isPureFunc } from 'link-dom-shared';
+import type { IController } from '../controller';
 import type { IChild } from './element';
 import { Dom } from './element';
 import { Text, type Frag } from './text';
-import { isPureFunc, LinkDomType } from './utils';
+import { LinkDomType } from '../utils';
 import { LifeScopeType, onEnterScope, onExitScope, ScopeTypes } from './lifes';
-import { handleIfLinkChildren } from './controller/if';
+import { handleIfLinkChildren } from '../controller/if';
 import { isReactiveLike } from 'link-dom-reactive';
 
 export function refs <E extends HTMLElement = HTMLElement, T extends string[] = string[]> (...list: T): {

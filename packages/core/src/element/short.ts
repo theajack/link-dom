@@ -7,10 +7,10 @@
 import type { IChild } from './element';
 import { DKeys, Dom, TextTagKeys } from './element';
 import { Comment, frag, Frag, Text } from './text';
-import { LinkDomType } from './utils';
+import { LinkDomType } from '../utils';
 import { createStyles } from './style';
-import { ctrl } from './controller';
-import type { IReactiveLike } from './type';
+import { ctrl } from '../controller';
+import type { IReactiveLike } from '../type';
 import { BaseNode } from './node';
 import type { TDomName } from './mount';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE } from 'link-dom-shared';

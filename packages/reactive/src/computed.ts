@@ -7,7 +7,7 @@
 import { observe, staticFn } from './reactive';
 import { DepUtil } from './dep';
 import { type Ref } from './ref';
-import { generateReactiveByValue } from './utils';
+import { generateReactiveByValue, isReactive } from './utils';
 import type { IComputeFn, IComputedLike, IReactive } from './type.d';
 
 export type IComputed<T> = Computed<T> | Ref<T>;
@@ -62,8 +62,11 @@ export function watch<T> (v: IReactive<T>, fn: (v: T, old: T)=>void): ()=>void {
     return staticFn;
 }
 
-export function isReactive (v: any): v is Ref<any> {
-    return !!v?.__isReactive;
+export function watchReactive<T> (v: IReactive<T>, fn: (v: T, old: T)=>void): ()=>void {
+    if (isReactive(v)) {
+        return observe(() => v.value, fn);
+    }
+    return staticFn;
 }
 
 export class Link<T = any> {

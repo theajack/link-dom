@@ -3,15 +3,15 @@
  * @Date: 2025-09-01 19:39:21
  * @Description: Coding something
  */
-import type { IChild } from '../element';
-import { Frag } from '../text';
-import type { IOptionStyle, IReactiveLike } from '../type.d';
-import { LinkDomType, parseFuncWrap } from '../utils';
-import { watch } from 'link-dom-reactive';
-import { read } from '../utils';
+import type { IChild } from '../element/element';
+import { Frag } from '../element/text';
+import type { IOptionStyle } from '../type.d';
+import { LinkDomType } from '../utils';
+import type { IReactiveLike } from 'link-dom-reactive';
+import { watch, read } from 'link-dom-reactive';
 import { createMarkerNode } from './marker';
-import { KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
-import { traverseChildren } from '../mount';
+import { KEY_LD_TYPE, SharedStatus, parseFuncWrap } from 'link-dom-shared';
+import { traverseChildren } from '../element/mount';
 
 function getDefaultStyle (el: HTMLElement, def?: any) {
     if (def) return def;

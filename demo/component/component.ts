@@ -1,3 +1,8 @@
+/*
+ * @Author: tackchen
+ * @Date: 2025-11-16 15:10:29
+ * @Description: Coding something
+ */
 
 import type { IProps } from 'link-dom';
 import { collectRef, componentRef, defineComponent, div, mount, reactive, ref, slot, span } from 'link-dom';

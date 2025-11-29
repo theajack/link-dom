@@ -1,10 +1,10 @@
 
 import { Dom } from './element';
-import { isReactiveLike, type IReactive } from 'link-dom-reactive';
-import { type Join } from './join';
-import { LinkDomType, useReactive, isJoin } from './utils';
-import type { IStyleKey } from './type.d';
-import type { IStyle } from './type.d';
+import { isReactiveLike, useReactive, isJoin, type IReactive } from 'link-dom-reactive';
+import { type Join } from '../join';
+import { LinkDomType } from '../utils';
+import type { IStyleKey } from '../type';
+import type { IStyle } from '../type';
 import type { ITagCreator } from './short';
 import { mount } from './mount';
 import { KEY_LD_TYPE } from 'link-dom-shared';

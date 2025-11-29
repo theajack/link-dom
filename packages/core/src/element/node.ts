@@ -1,7 +1,6 @@
-import type { Ref } from 'link-dom-reactive';
+import { useReactive, type Ref, type IReactiveLike } from 'link-dom-reactive';
 import { Dom } from './element';
-import type { IReactiveLike } from './type';
-import { LinkDomType, useReactive } from './utils';
+import { LinkDomType } from '../utils';
 import { KEY_LD_TYPE } from 'link-dom-shared';
 
 export class BaseNode<T extends Text|Comment|HTMLElement> {

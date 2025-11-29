@@ -9,18 +9,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        body {background-color: #666;}
+        .env-choose {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .env-item {
+            background-color: #222;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .env-item a {
+            color: #fff;
+        }
+    </style>
     <!-- <style>
         #_ld_id_7pp3jfm6l97:hover{color:blue;}
     </style> -->
 </head>
 <body>
     <!-- <div id="_ld_id_7pp3jfm6l97">111</div> -->
-    <div id="app"></div>
-    <div id="jx-app"></div>
     <!-- <script src="http://localhost:8090/ssr.iife.min.js"></script>
     <script src="http://localhost:8090/core.iife.min.js"></script> -->
+    <div class="env-choose"><span class="env-item"><a href="/?file=/comp-use/index.ts">/comp-use/index.ts</a></span>
+<span class="env-item"><a href="/?file=/component/component.ts">/component/component.ts</a></span>
+<span class="env-item"><a href="/?file=/component/suspense.ts">/component/suspense.ts</a></span>
+<span class="env-item"><a href="/?file=/component/teleport.ts">/component/teleport.ts</a></span>
+<span class="env-item"><a href="/?file=/dev-fix-new.ts">/dev-fix-new.ts</a></span>
+<span class="env-item"><a href="/?file=/dev-test.ts">/dev-test.ts</a></span>
+<span class="env-item"><a href="/?file=/for-if.ts">/for-if.ts</a></span>
+<span class="env-item"><a href="/?file=/for-move.ts">/for-move.ts</a></span>
+<span class="env-item"><a href="/?file=/full-test.ts">/full-test.ts</a></span>
+<span class="env-item"><a href="/?file=/if-mem.ts">/if-mem.ts</a></span>
+<span class="env-item"><a href="/?file=/index.ts">/index.ts</a></span>
+<span class="env-item"><a href="/?file=/lifes.ts">/lifes.ts</a></span>
+<span class="env-item"><a href="/?file=/new/basic.ts">/new/basic.ts</a></span>
+<span class="env-item"><a href="/?file=/new/custom-render.ts">/new/custom-render.ts</a></span>
+<span class="env-item"><a href="/?file=/new/index.ts">/new/index.ts</a></span>
+<span class="env-item"><a href="/?file=/new/router.ts">/new/router.ts</a></span>
+<span class="env-item"><a href="/?file=/new/ssr.ts">/new/ssr.ts</a></span>
+<span class="env-item"><a href="/?file=/rfc.ts">/rfc.ts</a></span>
+<span class="env-item"><a href="/?file=/router/index.ts">/router/index.ts</a></span>
+<span class="env-item"><a href="/?file=/shallow.ts">/shallow.ts</a></span>
+<span class="env-item"><a href="/?file=/short.ts">/short.ts</a></span>
+<span class="env-item"><a href="/?file=/slot-default-manay.ts">/slot-default-manay.ts</a></span>
+<span class="env-item"><a href="/?file=/ssr/comp.ts">/ssr/comp.ts</a></span>
+<span class="env-item"><a href="/?file=/ssr/index.ts">/ssr/index.ts</a></span>
+<span class="env-item"><a href="/?file=/test-cleardep.ts">/test-cleardep.ts</a></span>
+<span class="env-item"><a href="/?file=/test.ts">/test.ts</a></span></div>
+    <script>
+        // 获取 query.file
+        const query = window.location.search;
+        const file = query.match(/file=(.*)/)[1];
+        const script = document.createElement('script');
+        script.src = `./demo${file}`;
+        script.type = 'module';
+        document.head.appendChild(script);
+    </script>
+    <div id="app"></div>
+    <div id="jx-app"></div>
     <script type="module" src="./demo/index.ts"></script>
-
-    
 </body>
 </html>

@@ -36,8 +36,15 @@ export class Marker {
         this._clearSelf = clearSelf;
     }
 
+    destroy () {
+        // @ts-ignore
+        this.start.remove();
+        // @ts-ignore
+        this.end?.remove();
+    }
+
     // 清除marker中间的内容
-    clear () {
+    clear (includeEnd = false) {
         if (!this.start.parentNode) {
             throw new Error('parent is null');
         }
@@ -64,6 +71,9 @@ export class Marker {
             if (next?.__marker) {
                 break;
             }
+        }
+        if (includeEnd && this.end) {
+            list.push(this.end);
         }
         return list;
     }

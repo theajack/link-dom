@@ -1,13 +1,12 @@
 
-import type { Ref } from 'link-dom-reactive';
-import { readonly } from 'link-dom-reactive';
-import type { IController } from './controller';
+import type { IReactiveLike, Ref } from 'link-dom-reactive';
+import { readonly, read } from 'link-dom-reactive';
+import type { IController } from '../controller';
 import type { Dom, IChild } from './element';
-import { read, LinkDomType, assignDefault } from './utils';
+import { LinkDomType, assignDefault } from '../utils';
 import { mount, type IMountParent } from './mount';
 import { frag, type Comment, type Frag, type Text } from './text';
-import type { IReactiveLike } from './type';
-import { handleIfLinkChildren } from './controller/if';
+import { handleIfLinkChildren } from '../controller/if';
 import { getAncestorProvide } from './lifes';
 import { KEY_IS_NAME_USE, KEY_LD_TYPE, KEY_SCOPE, KEY_SLOT_NAME, KEY_USE_STORE } from 'link-dom-shared';
 // import { createLifeScope, LifeScopeType } from './lifes';
@@ -52,40 +51,40 @@ export function componentRefs <E extends IComponentProxy = IComponentProxy, T ex
 
 export type IComponentProxy<
     Props extends IProps = IProps,
-    Emits extends IEmits = IEmits,
     Slots extends ISlots = ISlots,
+    Emits extends IEmits = IEmits,
     Exposes extends IExposes = IExposes,
     SlotKey extends keyof Slots = keyof Slots,
     PropKey extends keyof Props = keyof Props,
 > = {
-    (...slots: ISlot[]): IComponentProxy<Props, Emits, Slots, Exposes>;
-    prop<K extends PropKey>(key: K, prop: Props[K]): IComponentProxy<Props, Emits, Slots, Exposes>;
-    props(props: Props): IComponentProxy<Props, Emits, Slots, Exposes>;
-    slots(slots: Slots): IComponentProxy<Props, Emits, Slots, Exposes>;
+    (...slots: ISlot[]): IComponentProxy<Props, Slots, Emits, Exposes>;
+    prop<K extends PropKey>(key: K, prop: Props[K]): IComponentProxy<Props, Slots, Emits, Exposes>;
+    props(props: Props): IComponentProxy<Props, Slots, Emits, Exposes>;
+    slots(slots: Slots): IComponentProxy<Props, Slots, Emits, Exposes>;
     slot: {
-        <Key extends SlotKey>(slot: Slots[Key]): IComponentProxy<Props, Emits, Slots, Exposes>;
-        <Key extends SlotKey>(key: Key, slot: Slots[Key]): IComponentProxy<Props, Emits, Slots, Exposes>;
+        <Key extends SlotKey>(slot: Slots[Key]): IComponentProxy<Props, Slots, Emits, Exposes>;
+        <Key extends SlotKey>(key: Key, slot: Slots[Key]): IComponentProxy<Props, Slots, Emits, Exposes>;
     } & {
-        [Key in SlotKey]: (slot: Slots[Key]) => IComponentProxy<Props, Emits, Slots, Exposes>;
+        [Key in SlotKey]: (slot: Slots[Key]) => IComponentProxy<Props, Slots, Emits, Exposes>;
     };
     getProp<K extends PropKey>(key: K): Props[K];
     getSlot<K extends SlotKey>(key: K): Slots[K];
     on: {
-        <K extends keyof Emits>(key: K, fn: Emits[K]): IComponentProxy<Props, Emits, Slots, Exposes>;
+        <K extends keyof Emits>(key: K, fn: Emits[K]): IComponentProxy<Props, Slots, Emits, Exposes>;
     } & {
-        [Key in keyof Emits]: (fn: Emits[Key]) => IComponentProxy<Props, Emits, Slots, Exposes>;
+        [Key in keyof Emits]: (fn: Emits[Key]) => IComponentProxy<Props, Slots, Emits, Exposes>;
     },
     expose: Exposes,
-    ref: (v: IComponentProxy|Ref) => IComponentProxy<Props, Emits, Slots, Exposes>;
-    mount: (parent: IMountParent) => IComponentProxy<Props, Emits, Slots, Exposes>;
+    ref: (v: IComponentProxy|Ref) => IComponentProxy<Props, Slots, Emits, Exposes>;
+    mount: (parent: IMountParent) => IComponentProxy<Props, Slots, Emits, Exposes>;
 } & {
     [Key in PropKey]: (
         Props[Key] extends (boolean|IReactiveLike<boolean>|(()=>boolean)) ?
-            ((prop?: Props[Key]) => IComponentProxy<Props, Emits, Slots, Exposes>):
-            ((prop: Props[Key]) => IComponentProxy<Props, Emits, Slots, Exposes>)
+            ((prop?: Props[Key]) => IComponentProxy<Props, Slots, Emits, Exposes>):
+            ((prop: Props[Key]) => IComponentProxy<Props, Slots, Emits, Exposes>)
     )
 } & {
-    [Key in ILifeKeys]: (fn: ()=>void) => IComponentProxy<Props, Emits, Slots, Exposes>
+    [Key in ILifeKeys]: (fn: ()=>(void|Promise<void>)) => IComponentProxy<Props, Slots, Emits, Exposes>
 }
 
 type IProvide<T extends Record<string, any>, K extends keyof T = keyof T> = (key: K, value: T[K])=>void
@@ -93,11 +92,11 @@ type IProvide<T extends Record<string, any>, K extends keyof T = keyof T> = (key
 
 interface IComponentArgs<
     Props extends IProps = IProps,
-    Emits extends IEmits = IEmits,
     Slots extends ISlots = ISlots,
+    Emits extends IEmits = IEmits,
     Exposes extends IExposes = IExposes,
-    Provides extends Record<string, any> = Record<string, any>,
-> extends Record<ILifeKeys, (fn: ()=>void) => void> {
+    Provides extends Record<string|symbol, any> = Record<string|symbol, any>,
+> extends Record<ILifeKeys, (fn: ()=>(void|Promise<void>)) => void> {
     // 组件内部使用的
     slots: Slots;
     props: Props;
@@ -108,15 +107,15 @@ interface IComponentArgs<
     }
     expose: Exposes,
     provide: IProvide<Provides>,
-    inject: <T>(key: string)=>T,
+    inject: <T>(key: string|symbol, def?: T)=>T,
 }
 
 export type IComponent<
     Props extends IProps = IProps,
-    Emits extends IEmits = IEmits,
     Slots extends ISlots = ISlots,
+    Emits extends IEmits = IEmits,
     Exposes extends IExposes = IExposes,
-> = (args: IComponentArgs<Props, Emits, Slots, Exposes>) => IChild;
+> = (args: IComponentArgs<Props, Slots, Emits, Exposes>) => IChild;
 
 // const FnKeys = new Set([ 'call', 'apply' ]); // 是否需要不代理这些key，代理会导致打包后可能导致错误
 const FnKeys = new Set([ 'apply' ]); // 是否需要不代理这些key，代理会导致打包后可能导致错误
@@ -234,7 +233,7 @@ function createScope (flow = true) {
 
     const _store: any = {};
 
-    const store = (key: string, value?: any) => {
+    const store = (key: string|symbol, value?: any) => {
         if (typeof key === 'undefined') return _store;
         // console.log('useStore', key, value);
         if (typeof value === 'undefined') return _store[key];
@@ -249,8 +248,8 @@ function createScope (flow = true) {
         store(key, value);
     };
 
-    const inject = (key: string) => {
-        return getAncestorProvide(getp(), key);
+    const inject = (key: string|symbol, def?: any) => {
+        return getAncestorProvide(getp(), key) ?? def;
     };
 
     // ! 给组件外部调用的
@@ -321,10 +320,10 @@ export function slot (key: string|ISlot, slot?: ISlot): ISlot {
 
 export function defineComponent<
     Props extends IProps = IProps,
-    Emits extends IEmits = IEmits,
     Slots extends ISlots = ISlots,
+    Emits extends IEmits = IEmits,
     Exposes extends IExposes = IExposes
-> (fn: IComponent<Props, Emits, Slots, Exposes>, {
+> (fn: IComponent<Props, Slots, Emits, Exposes>, {
     flow = true,
     name = Math.random().toString(36).substring(2),
     defaultProps,
@@ -332,7 +331,7 @@ export function defineComponent<
     flow?: boolean,
     name?: string,
     defaultProps?: Partial<Props>
-} = {}): IComponentProxy<Props, Emits, Slots, Exposes> {
+} = {}): IComponentProxy<Props, Slots, Emits, Exposes> {
     const target = (...slots: ISlot[]) => {
         // console.log('component createTarget', name);
         let result: any = null;
@@ -393,4 +392,8 @@ export function defineComponent<
             return comp[key];
         }
     }) as any;
+}
+
+export function isComponent (v: any): v is IComponentProxy {
+    return v?.[KEY_LD_TYPE] === LinkDomType.Component;
 }

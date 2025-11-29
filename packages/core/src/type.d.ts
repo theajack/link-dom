@@ -4,9 +4,8 @@
  * @Description: Coding something
  */
 
-import type { IReactive } from 'link-dom-reactive';
-import type { Dom, IChild } from './element';
-import type { Join } from './join';
+import type { IReactiveLike } from 'link-dom-reactive';
+import type { Dom, IChild } from './element/element';
 
 type TCssCommonValue = 'inherit' | 'initial' | 'unset' | 'revert' | 'none' | 'auto';
 
@@ -106,10 +105,6 @@ export type IAttrKey = 'accesskey' | 'alt' | 'async' | 'autoplay' | 'checked' | 
     'placeholder' | 'spellcheck' | 'autocomplete' | 'min' | 'max' | 'step' | 'pattern' | 'accept' | 'multiple' | 'accept-charset' | 'rel' | 'hreflang' | 'media' | 'sizes' | 'download' | 'referrerpolicy' |
     'target' | 'method' | 'action' | 'autofocus' | 'capture' | 'form' | 'formaction' | 'formenctype' | 'formmethod' | 'formtarget' | 'list';
 
-
-// Reactive
-
-export type IReactiveLike<T=any> = IReactive<T> | T | Join;
 
 export interface IControlLink {
     __fc_api_link: 'if' | 'elif' | 'else' | 'case' | 'default',

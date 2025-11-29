@@ -2,10 +2,10 @@
 
 import { KEY_LD_TYPE, KEY_SCOPE, KEY_USE_STORE, SharedStatus } from 'link-dom-shared';
 import { type IComponentProxy } from './component';
-import type { AwaitClass } from './controller/await';
-import type { ForClass } from './controller/for/for';
-import type { IfClass } from './controller/if';
-import { LinkDomType } from './utils';
+import type { AwaitClass } from '../controller/await';
+import type { ForClass } from '../controller/for/for';
+import type { IfClass } from '../controller/if';
+import { LinkDomType } from '../utils';
 
 /*
 mounted 触发时机
@@ -143,7 +143,7 @@ export function onExitScope () {
     CurrentScope = LifeScopeLink[LifeScopeLink.length - 1] || null;
 }
 
-export function getAncestorProvide (comp: IComponentProxy, key: string) {
+export function getAncestorProvide (comp: IComponentProxy, key: string|symbol) {
     const scope = comp[KEY_SCOPE] as any;
     let parent = scope.parent;
     // console.log('findAllParentComp', comp.name, comp.__aaa, scope, parent);

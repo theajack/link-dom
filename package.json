@@ -3,7 +3,7 @@
     "private": true,
     "version": "0.1.6",
     "scripts": {
-        "dev": "vite -m=dev",
+        "dev": "tsx ./build/dev-util.ts && vite -m=dev",
         "build:demo": "vite build -m=demo",
         "build": "tsx ./build/build-packages.ts",
         "publish": "tsx ./build/publish.ts",

@@ -3,13 +3,14 @@
  * @Date: 2025-09-05 22:26:21
  * @Description: Coding something
  */
-import type { IControlLink, IReactiveLike } from '../type.d';
+import type { IControlLink } from '../type.d';
 import { IfClass } from './if';
-import { read } from '../utils';
-import type { IChild } from '../element';
+import type { IChild } from '../element/element';
 import { LinkDomType } from '../utils';
-import { frag, type Frag } from '../text';
+import { frag, type Frag } from '../element/text';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE } from 'link-dom-shared';
+import type { IReactiveLike } from 'link-dom-reactive';
+import { read } from 'link-dom-reactive';
 export class SwitchClass {
     [KEY_LD_TYPE] = LinkDomType.Switch;
     private if: IfClass;

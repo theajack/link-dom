@@ -3,16 +3,11 @@
  * @Date: 2024-12-13 11:33:49
  * @Description: Coding something
  */
-import type {
-    IComputed,
-    Ref
-} from 'link-dom-reactive';
 import {
     DepUtil, observe, isReactive, type IReactive
 } from 'link-dom-reactive';
-import type { Dom } from './element';
-import { type Join } from './join';
-import { KEY_LD_TYPE } from 'link-dom-shared';
+import type { Dom } from './element/element';
+import { KEY_LD_TYPE, LD_TYPE_REF } from 'link-dom-shared';
 export enum LinkDomType {
     Dom,
     Text,
@@ -31,7 +26,7 @@ export enum LinkDomType {
     Component,
     Root, // ! 虚拟节点，用来作为scope根节点
 
-    Ref = 1000,
+    Ref = LD_TYPE_REF,
 }
 
 
@@ -110,53 +105,6 @@ function parseVType (el: Dom<HTMLElement>, value: any): {
         else if (typeof value === 'boolean') type = 'boolean';
     }
     return { type, isChecked };
-}
-
-export function useReactive (
-    v: any|IReactive<any>,
-    apply: (v:any, isInit: boolean)=>void,
-) {
-    if (isReactive(v)) {
-        const origin = v;
-        v = () => origin.value;
-    } else if (isJoin(v)) {
-        v = (v as Join).toFn();
-    }
-    if (typeof (v) === 'function') {
-        return observe(v, v => { apply(v, false); }, v => { apply(v, true); });
-    } else {
-        apply(v, true);
-        return null;
-    }
-}
-
-export function read<T extends any> (v: T|IReactive<T>): T {
-    if (isReactive(v)) {
-        return v.value;
-    } else if (isJoin(v)) {
-        return (v as Join).toFn() as T;
-    } else if (typeof v === 'function') {
-        // @ts-ignore
-        return v() as T;
-    } else {
-        return v as T;
-    }
-}
-
-export function toggle (v: IComputed<boolean>|Ref<boolean>) {
-    return () => {v.value = !v.value;};
-}
-
-export function isJoin (v: any): v is Join {
-    return v?.__is_join === true;
-}
-
-export function isPureFunc (v: any) {
-    return typeof v === 'function' && typeof v[KEY_LD_TYPE] !== 'number';
-}
-
-export function parseFuncWrap (v: any) {
-    return (isPureFunc(v)) ? v() : v;
 }
 
 export function toLinkDomLink<T extends any> (v: T, el?: ()=>any): T & {

@@ -4,9 +4,9 @@
  * @Date: 2025-09-11 20:56:49
  * @Description: Coding something
  */
-import { LifeScopeType, onEnterScope, onExitScope, setCurrentScope } from '../../lifes';
-import type { Dom } from '../../element';
-import { Frag } from '../../text';
+import { LifeScopeType, onEnterScope, onExitScope, setCurrentScope } from '../../element/lifes';
+import type { Dom } from '../../element/element';
+import { Frag } from '../../element/text';
 import { LinkDomType } from '../../utils';
 import { Marker, createMarkerNode } from '../marker';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';

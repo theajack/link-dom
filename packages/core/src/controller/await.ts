@@ -5,11 +5,12 @@
  */
 import { LinkDomType } from '../utils';
 import { createMarkerNode, removeBetween } from './marker';
-import { Frag } from '../text';
-import type { IChild } from '../element';
+import { Frag } from '../element/text';
+import type { IChild } from '../element/element';
 import { KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
-import type { LifeScope } from '../lifes';
-import { setCurrentScope } from '../lifes';
+import type { LifeScope } from '../element/lifes';
+import { setCurrentScope } from '../element/lifes';
+import { isComponent, type IComponentProxy } from '../element/component';
 
 export class AwaitClass {
     [KEY_LD_TYPE] = LinkDomType.Await;
@@ -30,11 +31,15 @@ export class AwaitClass {
         return this.start;
     }
     constructor (
-        _promise: Promise<any>,
+        _promise: Promise<any>|IComponentProxy,
         _generator: (data: any)=>IChild,
     ) {
         this.start = createMarkerNode();
         if (!SharedStatus.isSSR) {
+            if (isComponent(_promise)) {
+                // @ts-ignore
+                _promise = _promise.el;
+            }
             _promise.then(data => {
                 const scope = this[KEY_SCOPE];
                 if (this.end) {

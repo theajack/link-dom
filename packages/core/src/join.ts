@@ -4,12 +4,12 @@
  * @Description: Coding something
  */
 
-import type { IReactive } from 'link-dom-reactive';
-import { Frag, Text } from './text';
-import { LinkDomType, read } from './utils';
+import type { IJoin } from 'link-dom-reactive';
+import { read, type IReactive } from 'link-dom-reactive';
+import { Frag, Text } from './element/text';
+import { LinkDomType } from './utils';
 import { KEY_LD_TYPE } from 'link-dom-shared';
-
-export class Join {
+export class Join implements IJoin<Frag> {
     __is_join = true;
     [KEY_LD_TYPE] = LinkDomType.Join;
 
