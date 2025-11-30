@@ -86,6 +86,7 @@ const router = createRouter({
     ]
 });
 
+
 const App = () => {
     return dom.div.children(
         dom.div.style({ display: 'flex', gap: '10px' }).children(

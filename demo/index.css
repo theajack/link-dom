@@ -1,0 +1,11 @@
+.ld-enter-active,
+.ld-appear-active,
+.ld-leave-active {
+  transition: opacity 2s linear;
+}
+
+.ld-enter-from,
+.ld-appear-from,
+.ld-leave-to {
+  opacity: 0;
+}

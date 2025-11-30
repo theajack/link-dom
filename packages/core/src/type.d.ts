@@ -112,3 +112,5 @@ export interface IControlLink {
     __ld_type: number,
     readonly el: IChild,
 }
+
+export type UnpackReactiveLike<T> = T extends IReactiveLike<infer U> ? U : T;

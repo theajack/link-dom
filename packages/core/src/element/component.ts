@@ -2,8 +2,8 @@
 import type { IReactiveLike, Ref } from 'link-dom-reactive';
 import { readonly, read } from 'link-dom-reactive';
 import type { IController, IDirective } from '../controller';
-import type { Dom, IChild } from './element';
-import { CtrlLinkApiSet, LinkDomType, assignDefault } from '../utils';
+import type { Dom } from './element';
+import { CtrlLinkApiSet, LinkDomType, assignDefault, isDomFrag } from '../utils';
 import { mount, type IMountParent } from './mount';
 import { frag, type Comment, type Frag, type Text } from './text';
 import { handleIfLinkChildren } from '../controller/if';
@@ -85,9 +85,9 @@ export type IComponentProxy<
 } & {
     if: (ref: IReactiveLike) => IComponentProxy<Props, Slots, Emits, Exposes>;
     elif: (ref: IReactiveLike) => IComponentProxy<Props, Slots, Emits, Exposes>;
-    else: (...args: IChild[]) => IComponentProxy<Props, Slots, Emits, Exposes>;
+    else: (...args: any[]) => IComponentProxy<Props, Slots, Emits, Exposes>;
     case: (cond: any|(any[])|(()=>any)) => IComponentProxy<Props, Slots, Emits, Exposes>;
-    default: (...args: IChild[]) => IComponentProxy<Props, Slots, Emits, Exposes>;
+    default: (...args: any[]) => IComponentProxy<Props, Slots, Emits, Exposes>;
 } & {
     [Key in PropKey]: (
         Props[Key] extends (boolean|IReactiveLike<boolean>|(()=>boolean)) ?
@@ -96,7 +96,7 @@ export type IComponentProxy<
     )
 } & {
     [Key in ILifeKeys]: (fn: ILifeFn) => IComponentProxy<Props, Slots, Emits, Exposes>
-}
+};
 
 type IProvide<T extends Record<string, any>, K extends keyof T = keyof T> = (key: K, value: T[K])=>void
 
@@ -126,7 +126,7 @@ export type IComponent<
     Slots extends ISlots = ISlots,
     Emits extends IEmits = IEmits,
     Exposes extends IExposes = IExposes,
-> = (args: IComponentArgs<Props, Slots, Emits, Exposes>) => IChild;
+> = (args: IComponentArgs<Props, Slots, Emits, Exposes>) => any;
 
 // const FnKeys = new Set([ 'call', 'apply' ]); // 是否需要不代理这些key，代理会导致打包后可能导致错误
 const FnKeys = new Set([ 'apply' ]); // 是否需要不代理这些key，代理会导致打包后可能导致错误
@@ -333,6 +333,7 @@ function createScope (flow = true) {
                 }
             });
             for (let item of slots) {
+                if (!item) continue;
                 // ! 处理数组逻辑
                 if (Array.isArray(item)) {
                     item = frag(...item);
@@ -358,7 +359,7 @@ export function defineComponent<
     Props extends IProps = IProps,
     Slots extends ISlots = ISlots,
     Emits extends IEmits = IEmits,
-    Exposes extends IExposes = IExposes
+    Exposes extends IExposes = IExposes,
 > (fn: IComponent<Props, Slots, Emits, Exposes>, {
     flow = true,
     name = Math.random().toString(36).substring(2),
@@ -366,7 +367,7 @@ export function defineComponent<
 }: {
     flow?: boolean,
     name?: string,
-    defaultProps?: Partial<Props>
+    defaultProps?: Partial<Props>,
 } = {}): IComponentProxy<Props, Slots, Emits, Exposes> {
     const target = (...slots: ISlot[]) => {
         // console.trace();
@@ -417,9 +418,9 @@ export function defineComponent<
             }
         });
         setProxy(p);
-        window.a = window.a || [];
-        window.a.push(p);
-        console.log('createComponent', p);
+        // window.a = window.a || [];
+        // window.a.push(p);
+        // console.log('createComponent', p);
         return p;
     };
 
@@ -451,7 +452,7 @@ export function isComponent (v: any): v is IComponentProxy {
 
 export function addDomsToComponent (dom: any, node: any) {
     if (!node) return;
-    if (node.nodeType === 11) {
+    if (isDomFrag(node)) {
         dom.__doms.push(...node.childNodes);
     } else {
         dom.__doms.push(node);

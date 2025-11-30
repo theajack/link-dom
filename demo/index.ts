@@ -3,7 +3,7 @@
  * @Date: 2024-08-12 17:51:34
  * @Description: Coding something
  */
-
+import './index.css';
 import {
     dom, mount, computed, watch, ref, style, collectRef, join, ctrl, reactive, link,
     deepAssign, deepClone, raw,

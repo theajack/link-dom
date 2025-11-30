@@ -6,13 +6,16 @@
  */
 import type { IChild } from '../element/element';
 import { frag, Frag } from '../element/text';
+import { filterElement, TransStatus } from '../utils';
 import { LinkDomType } from '../utils';
 import type { IReactiveLike } from 'link-dom-reactive';
 import { watch, read } from 'link-dom-reactive';
 import { Marker } from './marker';
 import type { IControlLink } from '../type.d';
-import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE, parseFuncWrap, SharedStatus } from 'link-dom-shared';
+import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE, parseFuncWrap, SharedStatus, watiNextFrame } from 'link-dom-shared';
 import { updateIfScopeBranch, type LifeScope, IsFcApiKeys } from '../element/lifes';
+import { TransitionProxy, type ITransCall } from '../components/trans-base';
+import type { ITransScope } from '../components';
 // import { CurrentScope, LifeScope, LifeScopeType } from '../lifes';
 
 // let id = 0;
@@ -119,6 +122,17 @@ export class IfClass {
         this._addCond(true, gene);
         return this;
     }
+
+    private transition: TransitionProxy;
+    async onSwitchDoms (fn: ITransCall, trans: ITransScope, showAppear = false) {
+        if (!this.transition) { this.transition = new TransitionProxy(trans); }
+        this.transition.onSwitchDoms(fn);
+        if (showAppear) {
+            const doms = filterElement(this.marker.pick(false, true));
+            await this.transition.trigger(doms, TransStatus.EnterFrom, true);
+            await this.transition.trigger(doms, TransStatus.EnterActive, true);
+        }
+    }
     private _clearWatch: ()=>void;
     __mounted () {
         // this.scopes.forEach(scope => {
@@ -143,20 +157,52 @@ export class IfClass {
         return this[KEY_SCOPE] || this.__ifProxy?.[KEY_SCOPE];
     }
 
-    private _initElements () {
+    private async _initElements () {
         if (SharedStatus.isSSR || !this._renderered) return;
-        let list: Node[];
+        let list: HTMLElement[] = [];
         if (this.activeIndex === -1) {
+            if (this.transition) {
+                const doms = this.marker.pick(false, true) as HTMLElement[];
+                await this.transition.trigger(doms, TransStatus.LeaveFrom);
+                console.warn('_initElements 1');
+            }
+            this.transition.done();
             list = this.marker.clear();
         } else {
             const life = updateIfScopeBranch(this._lifeScope, this.prevIndex, this.activeIndex);
             life.beforeUnmount();
-            list = this.marker.clear();
-            life.unmounted();
-            const frag = this.scopes[this.activeIndex].toFrag();
-            frag.__mounted();
-            this.marker.replace(frag.el);
-            life.mounted();
+            if (this.transition) {
+                list = this.marker.pick(false, false) as HTMLElement[];
+                const remove = async () => {
+                    console.warn('_initElements leave from start');
+                    await this.transition.trigger(filterElement(list), TransStatus.LeaveFrom);
+                    console.warn('_initElements leave from end');
+                    list.forEach(item => item.remove());
+                    life.unmounted();
+                };
+                const add = async () => {
+                    const frag = this.scopes[this.activeIndex].toFrag();
+                    const doms = Array.from(frag.el.children);
+                    await this.transition.trigger(doms, TransStatus.EnterFrom);
+                    console.warn('_initElements enter from');
+                    frag.__mounted();
+                    this.marker.replace(frag.el);
+                    life.mounted();
+                    console.warn('_initElements enter action start');
+                    await this.transition.trigger(doms, TransStatus.EnterActive);
+                    console.warn('_initElements enter action end');
+                };
+                await this.transition.callSwitchFn(add, remove);
+                this.transition.done();
+                console.log('resolve all done');
+            } else {
+                list = this.marker.clear();
+                life.unmounted();
+                const frag = this.scopes[this.activeIndex].toFrag();
+                frag.__mounted();
+                this.marker.replace(frag.el);
+                life.mounted();
+            }
         }
         this.scopes[this.prevIndex]?.store(list);
     }
@@ -166,16 +212,22 @@ export class IfClass {
         this.__mountedFn = v;
         return this;
     }
+    private _initReady: Promise<void> = Promise.resolve();
     private _initChildren () {
         if (this._el) return;
-        this._clearWatch = watch(() => this.scopes.map(item => read(item.ref)), () => {
+        this._clearWatch = watch(() => this.scopes.map(item => read(item.ref)), async () => {
+            if (this.transition) {
+                this.transition.cancel();
+                await this._initReady;
+                console.log('_initReady');
+            }
             const index = this.switchCase();
             // console.log('test:if switch', index, this.activeIndex);
-            // console.log('if switch', index);
+            console.log('if switch', index);
             if (index !== this.activeIndex) {
                 this.prevIndex = this.activeIndex;
                 this.activeIndex = index;
-                this._initElements();
+                this._initReady = this._initElements();
             }
         });
         // ! 优化静态if中不生成marker node
@@ -186,8 +238,15 @@ export class IfClass {
         // console.log('test:if switch1', index, this.activeIndex);
         this.activeIndex = index;
         if (index >= 0) {
+            const f = this.scopes[index].toFrag();
+            // debugger; // todo 这里好像执行不到可以删除
+            if (this.transition) {
+                const doms = Array.from(f.el.children);
+                this.transition.trigger(doms, TransStatus.EnterFrom, true);
+                this.transition.trigger(doms, TransStatus.EnterActive, true);
+            }
             // ! 初始化if加载
-            this.frag.append(this.scopes[index].toFrag());
+            this.frag.append(f);
         }
         if (!isStatic) this.frag.append(this.marker.end!);
         this._el = this.frag.el;
@@ -220,9 +279,9 @@ export type IfShortUseFn = {
 export function IfInner (ref: IReactiveLike): IfShortUseFn {
     const fn: any = ((...args: IChild[]) => {
         return {
+            [KEY_LD_TYPE]: LinkDomType.Dom,
             [KEY_FC_API_LINK]: 'if',
             [KEY_FC_API_VALUE]: ref,
-            [KEY_LD_TYPE]: LinkDomType.Dom,
             get el () {return frag(...args).el;}
         } as IControlLink;
     });

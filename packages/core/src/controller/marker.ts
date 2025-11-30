@@ -43,8 +43,33 @@ export class Marker {
         this.end?.remove();
     }
 
+    pick (includeEnd = false, onlyElement = false): HTMLElement[] {
+        if (!this.start.parentNode) {
+            return [];
+        }
+        let next = this._clearSelf ? this.start : this.start.nextSibling;
+        const list: Node[] = [];
+        while (next) {
+            if (next.nodeType === Node.COMMENT_NODE) {
+                if (next as Element === this.end) break;
+            }
+            if (!onlyElement || next.nodeType === Node.ELEMENT_NODE) {
+                list.push(next);
+            }
+            next = next.nextSibling;
+            // @ts-ignore
+            if (next?.__marker) {
+                break;
+            }
+        }
+        if (includeEnd && this.end) {
+            list.push(this.end);
+        }
+        return list as HTMLElement[];
+    }
+
     // 清除marker中间的内容
-    clear (includeEnd = false) {
+    clear (includeEnd = false): HTMLElement[] {
         if (!this.start.parentNode) {
             throw new Error('parent is null');
         }
@@ -75,7 +100,7 @@ export class Marker {
         if (includeEnd && this.end) {
             list.push(this.end);
         }
-        return list;
+        return list as HTMLElement[];
     }
 
     replace (frag: DocumentFragment) {

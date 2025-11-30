@@ -27,6 +27,10 @@ export class RouterView {
 
     if: IfClass;
 
+    onSwitchDoms (fn: (v: any[], old: any[]|null)=>void, appear?: boolean) {
+        this.if?.onSwitchDoms(fn, appear);
+    }
+
     // id: number;
 
     path: Ref<string>;
@@ -49,6 +53,10 @@ export class RouterView {
     }
 
     get el () {
+        if (!this.if) {
+            console.warn('Declares some routers before use');
+            return null;
+        }
         return this.if.el;
     }
 
@@ -98,6 +106,9 @@ export class RouterView {
 }
 export function routerView () {
     if (!RouterCurrentComp) {
+        if (RouterView.Root === null) {
+            console.warn('createRouter before use routerView');
+        }
         // debugger;
         return RouterView.Root;
     };

@@ -7,3 +7,4 @@ export * from './teleport';
 export * from './suspense';
 
 export * from './dynamic';
+export * from './transition';

@@ -22,12 +22,15 @@ export class ForChild<T=any> {
     private _frag: Frag|Dom;
 
     private _start: any = null;
+    originEl: any;
 
     get frag () {
         if (!this._frag) {
             setCurrentScope(this.parent[KEY_SCOPE]);
             onEnterScope(LifeScopeType.ForChild, this, this.index.value);
             const el = this.parent._generator(this.data as any, this.index);
+            // debugger;
+            this.parent.inheritSwitchDomsFns(el); // ! 集成父for的switchDomsFns
             if (typeof el[KEY_LD_TYPE] !== 'number' || el[KEY_LD_TYPE] === LinkDomType.Component) {
                 this._frag = new Frag().append(el);
             } else {
@@ -100,7 +103,8 @@ export class ForChild<T=any> {
 
     destroy () {
         if (this.removed) return false;
-        this.marker.clear();
+        const list = this.marker.clear();
+        this.parent._triggerSwitch([], list.filter(item => item.nodeType === Node.ELEMENT_NODE));
         this.removed = true;
         return true;
     }

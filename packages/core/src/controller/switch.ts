@@ -56,6 +56,10 @@ export class SwitchClass {
     destroy () {
         this.if?.destroy();
     }
+
+    onSwitchDoms (fn: (v: any[], old: any[]|null)=>void, appear?: boolean) {
+        this.if?.onSwitchDoms(fn, appear);
+    }
 }
 
 export function Case (cond: any|(any[])|(()=>any)) {

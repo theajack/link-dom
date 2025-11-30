@@ -29,4 +29,6 @@ export const Suspense = defineComponent<ISuspenseProps, ISuspenseSlots>((
         target.default(() => parseFuncWrap(slots.fallback));
     }
     return target;
+}, {
+    name: 'ld-suspense',
 });

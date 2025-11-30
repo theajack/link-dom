@@ -5,8 +5,8 @@
  * @Description: Coding something
  */
 import type  { IChild } from '../../element/element';
-import { Frag } from '../../element/text';
-import { LinkDomType } from '../../utils';
+import { Frag, frag } from '../../element/text';
+import { isDomFrag, LinkDomType } from '../../utils';
 import { createMarkerNode, removeBetween } from '../marker';
 import { checkHydrateMarker, getTarget, KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
 import type { Ref } from 'link-dom-reactive';
@@ -81,6 +81,7 @@ export class ForClass <T=any> {
     };
 
     private newChild (data: T, index: number) {
+        debugger;
         const child = new ForChild(this, data, index);
 
         // 处理简单值类型 ref set和原始数据同步
@@ -127,7 +128,19 @@ export class ForClass <T=any> {
         const parent = marker.parentNode!;
         // @ts-ignore
         child.frag.__mounted?.();
-        parent.insertBefore(child.frag.el, marker);
+
+        // ! for 下面直接是if等元素 需要使用一个frga包裹一下
+        const el = frag(child.frag).el;
+        this._triggerSwitch(Array.from(el.children), []);
+        parent.insertBefore(el, marker);
+
+        // const el = child.frag.el;
+        // debugger;
+
+        // const list = isDomFrag(el) ? Array.from(el.children) : [ el ];
+        // this._triggerSwitch(list, []);
+
+        // parent.insertBefore(el, marker);
         // console.log('insertChildNode end', index, data);
         // console.timeEnd();
     }
@@ -151,6 +164,9 @@ export class ForClass <T=any> {
         const size = list.length;
         for (let i = 0; i < size; i++) {
             const child = this.newChild(list[i], i);
+            const el = child.frag.el;
+            const nodes = isDomFrag(el) ? Array.from(el.children) : [ el ];
+            this._triggerSwitch(nodes, null);
             frag.append(child.frag);
         }
         frag.append(this.end);
@@ -251,6 +267,27 @@ export class ForClass <T=any> {
         }
         // @ts-ignore
         this.end.remove();
+    }
+
+    private __list?: (ITransCall)[];
+    _triggerSwitch (v: any[], old: any[]|null) {
+        this.__list?.forEach(fn => fn(v, old));
+    }
+    onSwitchDoms (fn: ITransCall, showAppear = false) {
+        if (!this.__list) this.__list = [];
+        this.__list.push(fn);
+
+        if (showAppear) {
+            this.children.forEach(child => {
+                this._triggerSwitch(child.marker.pick(true), null);
+            });
+        }
+    }
+
+    inheritSwitchDomsFns (el: any) {
+        if (el.onSwitchDoms && this.__list) {
+            this.__list.forEach(fn => el.onSwitchDoms(fn));
+        }
     }
 }
 

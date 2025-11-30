@@ -110,3 +110,24 @@ export enum RendererType {
 export function isDomNode (v: any) {
     return typeof v?.nodeName === 'string' && typeof v?.nodeType === 'number';
 }
+
+export function withResolve <T=any> () {
+    let resolve: (v?: T)=>void = () => {};
+    let reject: (e: any)=>void = () => {};
+    const ready = new Promise<T>((r, j) => {
+        // @ts-ignore
+        resolve = r;
+        reject = j;
+    });
+    return {
+        ready,
+        resolve,
+        reject,
+    };
+}
+
+export function watiNextFrame () {
+    return new Promise(resolve => {
+        requestAnimationFrame(resolve);
+    });
+}

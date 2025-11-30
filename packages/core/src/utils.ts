@@ -143,3 +143,17 @@ export function parseNodeList (v: any) {
 
 const CtrlLinkApi = [ 'if', 'elif', 'else', 'case', 'default' ] as const;
 export const CtrlLinkApiSet = new Set(CtrlLinkApi);
+
+export function isDomFrag (v: any) {
+    return v?.nodeType === 11;
+}
+
+export function filterElement (list: any[]|null): HTMLElement[]|null {
+    return list?.filter(item => item.nodeType === Node.ELEMENT_NODE) || null;
+}
+
+export enum TransStatus {
+    EnterFrom, // 元素还不存在
+    EnterActive, // 元素已存在
+    LeaveFrom, // 元素还存在
+}
