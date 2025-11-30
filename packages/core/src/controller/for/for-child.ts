@@ -7,7 +7,7 @@
 import { LifeScopeType, onEnterScope, onExitScope, setCurrentScope } from '../../element/lifes';
 import type { Dom } from '../../element/element';
 import { Frag } from '../../element/text';
-import { LinkDomType } from '../../utils';
+import { LinkDomType, TransStatus } from '../../utils';
 import { Marker, createMarkerNode } from '../marker';
 import { DepUtil, ref, type Ref } from 'link-dom-reactive';
 import { KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
@@ -24,13 +24,14 @@ export class ForChild<T=any> {
     private _start: any = null;
     originEl: any;
 
+    transitionEl = null as any;
+
     get frag () {
         if (!this._frag) {
             setCurrentScope(this.parent[KEY_SCOPE]);
             onEnterScope(LifeScopeType.ForChild, this, this.index.value);
             const el = this.parent._generator(this.data as any, this.index);
-            // debugger;
-            this.parent.inheritSwitchDomsFns(el); // ! 集成父for的switchDomsFns
+            this.transitionEl = el; // ! 透传父for的switchDomsFns
             if (typeof el[KEY_LD_TYPE] !== 'number' || el[KEY_LD_TYPE] === LinkDomType.Component) {
                 this._frag = new Frag().append(el);
             } else {
@@ -101,10 +102,14 @@ export class ForChild<T=any> {
         return this._marker;
     }
 
-    destroy () {
+    async destroy () {
         if (this.removed) return false;
-        const list = this.marker.clear();
-        this.parent._triggerSwitch([], list.filter(item => item.nodeType === Node.ELEMENT_NODE));
+        if (this.parent.transition) {
+            const list = this.marker.pick(false, true);
+            await this.parent.transition.trigger(list, TransStatus.LeaveFrom);
+        }
+        console.log('for child clear');
+        this.marker.clear();
         this.removed = true;
         return true;
     }

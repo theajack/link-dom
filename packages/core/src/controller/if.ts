@@ -12,7 +12,10 @@ import type { IReactiveLike } from 'link-dom-reactive';
 import { watch, read } from 'link-dom-reactive';
 import { Marker } from './marker';
 import type { IControlLink } from '../type.d';
-import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE, parseFuncWrap, SharedStatus, watiNextFrame } from 'link-dom-shared';
+import {
+    KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE,
+    parseFuncWrap, SharedStatus
+} from 'link-dom-shared';
 import { updateIfScopeBranch, type LifeScope, IsFcApiKeys } from '../element/lifes';
 import { TransitionProxy, type ITransCall } from '../components/trans-base';
 import type { ITransScope } from '../components';
@@ -128,7 +131,7 @@ export class IfClass {
         if (!this.transition) { this.transition = new TransitionProxy(trans); }
         this.transition.onSwitchDoms(fn);
         if (showAppear) {
-            const doms = filterElement(this.marker.pick(false, true));
+            const doms = this.marker.pick(false, true);
             await this.transition.trigger(doms, TransStatus.EnterFrom, true);
             await this.transition.trigger(doms, TransStatus.EnterActive, true);
         }
@@ -172,6 +175,7 @@ export class IfClass {
             const life = updateIfScopeBranch(this._lifeScope, this.prevIndex, this.activeIndex);
             life.beforeUnmount();
             if (this.transition) {
+                // ! 此处必须要不包含element，因为需要remove掉所有元素
                 list = this.marker.pick(false, false) as HTMLElement[];
                 const remove = async () => {
                     console.warn('_initElements leave from start');
@@ -239,12 +243,12 @@ export class IfClass {
         this.activeIndex = index;
         if (index >= 0) {
             const f = this.scopes[index].toFrag();
-            // debugger; // todo 这里好像执行不到可以删除
-            if (this.transition) {
-                const doms = Array.from(f.el.children);
-                this.transition.trigger(doms, TransStatus.EnterFrom, true);
-                this.transition.trigger(doms, TransStatus.EnterActive, true);
-            }
+            // // debugger; // todo 这里好像执行不到可以删除
+            // if (this.transition) {
+            //     const doms = Array.from(f.el.children);
+            //     this.transition.trigger(doms, TransStatus.EnterFrom, true);
+            //     this.transition.trigger(doms, TransStatus.EnterActive, true);
+            // }
             // ! 初始化if加载
             this.frag.append(f);
         }

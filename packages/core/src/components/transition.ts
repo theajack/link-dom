@@ -248,7 +248,6 @@ export const Transition = defineComponent<ITransitionProps, ISlots>((
 }, {
     name: 'ld-transition',
     defaultProps: {
-        appear: true,
         name: 'ld',
         mode: 'default',
         css: true,
@@ -256,7 +255,7 @@ export const Transition = defineComponent<ITransitionProps, ISlots>((
 });
 
 
-function commonProcess (el: any, props: ITransitionProps, addCount: ()=>void, clearClass: ()=>void) {
+function commonProcess (el: HTMLElement, props: ITransitionProps, addCount: ()=>void, clearClass: ()=>void) {
     const clear: any[] = [ clearClass ];
     const type = read(props.type);
 
@@ -267,7 +266,10 @@ function commonProcess (el: any, props: ITransitionProps, addCount: ()=>void, cl
     };
 
     let count = 0;
-    const size = !type ? 2 : 1;
+    let size = 0;
+    const onStart = () => {
+        size++;
+    };
     const addEndCount = () => {
         count ++;
         if (count >= size) onEnd();
@@ -281,15 +283,19 @@ function commonProcess (el: any, props: ITransitionProps, addCount: ()=>void, cl
     const css = read(props.css);
     if (css) {
         if (type !== 'animation') {
+            el.addEventListener('transitionstart', onStart, { once: true });
             el.addEventListener('transitionend', addEndCount, { once: true });
             clear.push(() => {
                 el.removeEventListener('transitionend', addEndCount);
+                el.removeEventListener('transitionstart', onStart);
             });
         }
         if (type !== 'transition') {
+            el.addEventListener('animationstart', onStart, { once: true });
             el.addEventListener('animationend', addEndCount, { once: true });
             clear.push(() => {
                 el.removeEventListener('animationend', addEndCount);
+                el.removeEventListener('animationstart', onStart);
             });
         }
     }

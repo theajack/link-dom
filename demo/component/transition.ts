@@ -33,7 +33,7 @@ const App = defineComponent(() => {
             button.click(() => {list.value.push(list.value.length + 1);})('add'),
             button.click(() => list.value.splice(1, 1))('remove'),
         ),
-        Transition(
+        Transition.appear(true)(
             // div.if(flag)(1111),
             // Child.if(flag)(222),
             // div.else(333),
@@ -44,10 +44,14 @@ const App = defineComponent(() => {
             // If(flag)(111),
             // Else(222),
             // For(list, (item) => If(flag)(div(item))),
-            // For(list, (item) => div(item)),
+
+            For(list, (item) => div(item)),
+
+            If(flag, div(11)).else(div(22)),
+
+
             // routerView(),
 
-            If(flag, div(11)).else(div(22))
 
             // Dynamic.is(() => flag.value ? frag().append(
             //     div(11),

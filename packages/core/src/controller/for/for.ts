@@ -6,7 +6,7 @@
  */
 import type  { IChild } from '../../element/element';
 import { Frag, frag } from '../../element/text';
-import { isDomFrag, LinkDomType } from '../../utils';
+import { LinkDomType, TransStatus } from '../../utils';
 import { createMarkerNode, removeBetween } from '../marker';
 import { checkHydrateMarker, getTarget, KEY_LD_TYPE, KEY_SCOPE, SharedStatus } from 'link-dom-shared';
 import type { Ref } from 'link-dom-reactive';
@@ -14,6 +14,9 @@ import { isReactive, DepUtil, isDeepReactive } from 'link-dom-reactive';
 import { ForChild } from './for-child';
 import { ForGlobal } from './for-util';
 import { type LifeScope } from '../../element/lifes';
+import type { ITransCall } from '../../components/trans-base';
+import { TransitionProxy } from '../../components/trans-base';
+import type { ITransScope } from '../../components';
 
 // window._fl = [];
 export class ForClass <T=any> {
@@ -81,9 +84,7 @@ export class ForClass <T=any> {
     };
 
     private newChild (data: T, index: number) {
-        debugger;
         const child = new ForChild(this, data, index);
-
         // 处理简单值类型 ref set和原始数据同步
         if (this._itemRef && this._isDeep && typeof data !== 'object') {
             DepUtil.sub(child.data, 'value', (newValue) => {
@@ -119,7 +120,7 @@ export class ForClass <T=any> {
         this.insertChildNode(data, index, marker);
     }
 
-    private insertChildNode (data: T, index: number, marker: Node) {
+    private async insertChildNode (data: T, index: number, marker: Node) {
         // console.time();
         // const frag = new Frag();
         const child = this.newChild(data, index);
@@ -131,8 +132,15 @@ export class ForClass <T=any> {
 
         // ! for 下面直接是if等元素 需要使用一个frga包裹一下
         const el = frag(child.frag).el;
-        this._triggerSwitch(Array.from(el.children), []);
+        let doms: any[];
+        if (this.transition) {
+            doms = Array.from(el.children);
+            await this.transition.trigger(doms, TransStatus.EnterFrom);
+        }
         parent.insertBefore(el, marker);
+        if (this.transition) {
+            await this.transition.trigger(doms!, TransStatus.EnterActive);
+        }
 
         // const el = child.frag.el;
         // debugger;
@@ -164,9 +172,8 @@ export class ForClass <T=any> {
         const size = list.length;
         for (let i = 0; i < size; i++) {
             const child = this.newChild(list[i], i);
-            const el = child.frag.el;
-            const nodes = isDomFrag(el) ? Array.from(el.children) : [ el ];
-            this._triggerSwitch(nodes, null);
+            // const el = child.frag.el;
+            // const nodes = isDomFrag(el) ? Array.from(el.children) : [ el ];
             frag.append(child.frag);
         }
         frag.append(this.end);
@@ -246,10 +253,10 @@ export class ForClass <T=any> {
         this[KEY_SCOPE]?.children.splice(length);
     }
 
-    private _removeChildScope (child: ForChild, i: number) {
+    private async _removeChildScope (child: ForChild, i: number) {
         const scope = this[KEY_SCOPE]?.children[i];
         scope?.beforeUnmount();
-        if (child.destroy()) {
+        if (await child.destroy()) {
             scope?.unmounted();
         }
         DepUtil.clearDep(getTarget(this._list), (i).toString());
@@ -269,25 +276,20 @@ export class ForClass <T=any> {
         this.end.remove();
     }
 
-    private __list?: (ITransCall)[];
-    _triggerSwitch (v: any[], old: any[]|null) {
-        this.__list?.forEach(fn => fn(v, old));
-    }
-    onSwitchDoms (fn: ITransCall, showAppear = false) {
-        if (!this.__list) this.__list = [];
-        this.__list.push(fn);
+    transition: TransitionProxy;
 
-        if (showAppear) {
-            this.children.forEach(child => {
-                this._triggerSwitch(child.marker.pick(true), null);
-            });
-        }
-    }
-
-    inheritSwitchDomsFns (el: any) {
-        if (el.onSwitchDoms && this.__list) {
-            this.__list.forEach(fn => el.onSwitchDoms(fn));
-        }
+    async onSwitchDoms (fn: ITransCall, trans: ITransScope, showAppear = false) {
+        if (!this.transition) { this.transition = new TransitionProxy(trans); }
+        console.log('for onSwitchDoms', this.transition);
+        this.transition.onSwitchDoms(fn);
+        this.children.forEach(async child => {
+            if (showAppear) {
+                const doms = child.marker.pick(true, true);
+                await this.transition.trigger(doms, TransStatus.EnterFrom, true);
+                await this.transition.trigger(doms, TransStatus.EnterActive, true);
+            }
+            child.transitionEl?.onSwitchDoms?.(fn);
+        });
     }
 }
 
