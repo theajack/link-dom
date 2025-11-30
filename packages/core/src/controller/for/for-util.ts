@@ -116,7 +116,7 @@ const FnMap = {
                 start += min;
                 if (removeCount > addCount) {
                     removeCount -= addCount;
-                    console.log('debugfor _addDoms', start, removeCount, this);
+                    // console.log('debugfor _addDoms', start, removeCount, this);
                     fors?.forEach(item => item._removeDoms(start, removeCount));
                     // ! 需要最后splice
                     this.splice(start, removeCount);

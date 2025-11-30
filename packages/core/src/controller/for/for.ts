@@ -196,13 +196,11 @@ export class ForClass <T=any> {
 
     _removeDoms (start: number, count: number) {
         for (let i = start; i < start + count; i++) {
-            console.log('remove doms1', i, start, count);
             const child = this.children[i];
             if (child) {
                 this._removeChildScope(child, i);
             }
         }
-        console.log('remove doms2', start, count);
         this.children.splice(start, count);
         this[KEY_SCOPE]?.children.splice(start, count);
         this._updateIndex(start + count - 1);
@@ -284,7 +282,6 @@ export class ForClass <T=any> {
 
     onSwitchDoms (fn: ITransCall, trans: ITransScope, showAppear = false) {
         if (!this.transition) { this.transition = new TransitionProxy(trans); }
-        console.log('for onSwitchDoms', this.transition);
         this.transition.onSwitchDoms(fn);
         this.children.forEach(async child => {
             if (showAppear) {
