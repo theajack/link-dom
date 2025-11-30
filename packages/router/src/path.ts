@@ -1,5 +1,4 @@
 /*
-import { query } from '../../../old/src/dom';
  * @Author: chenzhongsheng
  * @Date: 2025-09-06 21:53:04
  * @Description: Coding something
@@ -15,22 +14,30 @@ export class RouterPath {
 
     fuzzyInfo: IFuzzyInfo | null;
 
+    private prevPathStr: any = null;
+
     constructor (
-        public path: string,
+        public path: string|(()=>string),
         public hasChildren = false
     ) {
     }
 
+    get pathStr () {
+        return typeof this.path === 'string' ? this.path : this.path();
+    }
+
     // 用于对路由path进行匹配
     match (path: string): {matched: boolean, param: Record<string, any>} {
-        if (typeof this.fuzzyInfo === 'undefined') {
-            this.fuzzyInfo = parseFuzzyRouteUrl(this.path);
+        const routePath = this.pathStr;
+        if (routePath !== this.prevPathStr) {
+            this.prevPathStr = routePath;
+            this.fuzzyInfo = parseFuzzyRouteUrl(routePath);
         }
         // 匹配失败
         if (!this.fuzzyInfo) {
-            let matched = path === this.path;
+            let matched = path === routePath;
             if (!matched && this.hasChildren) {
-                const head = (!this.path.endsWith('/')) ? `${this.path}/` : this.path;
+                const head = (!routePath.endsWith('/')) ? `${routePath}/` : routePath;
                 matched = path.startsWith(head);
             }
             return {
@@ -47,7 +54,7 @@ export class RouterPath {
     }
 
     is404 () {
-        return this.path.endsWith('/404');
+        return this.pathStr.endsWith('/404');
     }
 }
 

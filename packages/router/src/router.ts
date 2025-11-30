@@ -7,9 +7,12 @@
 import type { Dom } from 'link-dom';
 import { DepUtil, dom } from 'link-dom';
 import { RouterPath } from './path';
-import { formatUrl, queryToSearch, searchToQuery, applyParam } from './utils';
+import { formatUrl, queryToSearch, searchToQuery, applyParam, isRouteParam } from './utils';
 import { RouterView } from './router-view';
 import type { IRouteComponentArgs, IRouteOptions, IRouterInnerItem, IRouterItem, IRouterOptions } from './type';
+import type { IGuardReturn } from './router-life';
+import { GlobalRouterLife } from './router-life';
+import { watiNextFrame } from 'link-dom-shared';
 
 /**
  * 路由路径
@@ -28,8 +31,10 @@ import type { IRouteComponentArgs, IRouteOptions, IRouterInnerItem, IRouterItem,
 class RouterState {
     private _path: string;
     protected _setPath (path: string) {
+        const prev = this._path;
         this._path = path;
         DepUtil.trigger(this, 'path');
+        return () => {this._setPath(prev);};
     }
     get path () {
         DepUtil.add(this, 'path');
@@ -37,8 +42,10 @@ class RouterState {
     }
     private _query: Record<string, string> = {};
     protected _setQuery (query: Record<string, string>) {
+        const prev = this._query;
         this._query = query;
         DepUtil.trigger(this, 'query');
+        return () => {this._setQuery(prev);};
     }
     get query () {
         DepUtil.add(this, 'query');
@@ -46,8 +53,10 @@ class RouterState {
     }
     private _param: Record<string, string|number|boolean> = {};
     protected _setParam (param: Record<string, string|number|boolean>) {
+        const prev = this._param;
         this._param = param;
         DepUtil.trigger(this, 'param');
+        return () => {this._setParam(prev);};
     }
     get param () {
         DepUtil.add(this, 'param');
@@ -57,8 +66,10 @@ class RouterState {
     private _currentRoute: IRouterInnerItem;
 
     protected _setCurrentRoute (route: IRouterInnerItem) {
+        const prev = this._currentRoute;
         this._currentRoute = route;
         DepUtil.trigger(this, 'currentRoute');
+        return () => {this._setCurrentRoute(prev);};
     }
     get currentRoute () {
         DepUtil.add(this, 'currentRoute');
@@ -67,6 +78,8 @@ class RouterState {
 }
 
 export class Router extends RouterState {
+
+    private life: GlobalRouterLife;
 
     private rootRoute: IRouterInnerItem;
 
@@ -88,6 +101,7 @@ export class Router extends RouterState {
     }: IRouterOptions) {
         if (Router.instance) return Router.instance;
         super();
+        this.life = new GlobalRouterLife();
         Router.instance = this;
         const routerView = new RouterView();
         this.rootRoute = {
@@ -106,6 +120,9 @@ export class Router extends RouterState {
             const hasChildren = item.children && item.children?.length > 0;
             const route: IRouterInnerItem = {
                 component: item.component,
+                beforeEnter: item.beforeEnter,
+                beforeLeave: item.beforeLeave,
+                afterEnter: item.afterEnter,
                 // ! 如果需要支持动态路由此处需要修改
                 path: new RouterPath(item.path, hasChildren),
             };
@@ -133,24 +150,56 @@ export class Router extends RouterState {
             window.addEventListener('hashchange', (e) => {
                 // console.log('hashchange', e);
                 const { newURL } = e;
-                this._enterNewUrl(newURL);
+                this._enterWrap(newURL);
             });
-            this._enterNewUrl(location.href);
+            this._enterWrap(location.href);
         } else {
             console.warn('history mode not support now');
         }
     }
+    private async _enterWrap (url) {
+        try {
+            await this._enterNewUrl(url);
+        } catch (e) {
+            this.life.triggerError(e);
+        }
+    }
 
-
-    private _enterNewUrl (url: string) {
+    private async _enterNewUrl (url: string) {
         // console.log(`test:${url}`);
         const { path, search } = formatUrl(url);
         // list 为route的路径，param为route所有url match参数
         const { list, param, matchedPaths } = this._matchRoutes(path, [ this.rootRoute ]);
-        this.routeList = list;
-        this._setCurrentRoute(list[list.length - 1]);
-        this._setQuery(searchToQuery(search));
-        this._setParam(param);
+
+        const to = list[list.length - 1];
+        const from = this.currentRoute;
+
+        // 统一处理拦截逻辑
+        const checkValue = (v: (IGuardReturn), fn?: ()=>void) => {
+            if (v === false) {
+                fn?.();
+                console.warn('Route cancel', to);
+                return true;
+            } else if (isRouteParam(v)) {
+                this.route(v);
+                return true;
+            }
+        };
+
+        if (checkValue(await this.life.triggerEach(to, from))) return;
+
+        const resetList = [
+            this._setCurrentRoute(to),
+            this._setQuery(searchToQuery(search)),
+            this._setParam(param),
+            this._setPath(path),
+        ];
+        const reset = () => {resetList.forEach(fn => fn());};
+
+        if (checkValue(await this.life.triggerResolve(to, from), reset)) return;
+        if (checkValue(await to.beforeEnter?.(to, from), reset)) return;
+        await from?.beforeLeave?.(to, from);
+
         list.forEach((route, index) => {
             if (route.routerView) {
                 // console.log(`test:set id=${route.routerView.id}`, route.routerView.path.value, matchedPaths[index + 1]);
@@ -158,8 +207,10 @@ export class Router extends RouterState {
                 route.routerView.path.value = matchedPaths[index + 1];
             }
         });
-        this._setPath(path);
+        await watiNextFrame();
+        await to.afterEnter?.(to, from);
         // this.currentPath.value = path;
+        await this.life.triggerAfter(to, from);
     }
 
     private _matchRoutes (
@@ -178,7 +229,7 @@ export class Router extends RouterState {
             const { matched, param: p } = item.path.match(path);
             Object.assign(param, p);
             if (matched) {
-                matchedPaths.push(item.path.path);
+                matchedPaths.push(item.path.pathStr);
                 return true;
             }
             return false;
@@ -206,7 +257,7 @@ export class Router extends RouterState {
         if (name) {
             const route = this._flatMap[name];
             if (!route) throw new Error(`route not found: ${name}`);
-            finalPath = route.path.path;
+            finalPath = route.path.pathStr;
         } else {
             if (!path) throw new Error('path or name is required');
             finalPath = applyParam(path, param);
@@ -238,7 +289,6 @@ export class Router extends RouterState {
 
     _getRouteComponentArgs (): IRouteComponentArgs {
         const _this = this;
-        // debugger;
         return {
             get route () {return _this.currentRoute;},
             get query () {return _this.query;},

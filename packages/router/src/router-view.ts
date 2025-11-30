@@ -65,10 +65,10 @@ export class RouterView {
         let route404: IRouterInnerItem|null = null;
         for (const route of routes) {
             const cond = () => {
-                // console.trace(`test:rv cond id=${this.id}`, this.path.value, route.path.path);
-                // console.log(`test:rv cond id=${this.id}`, this.path.value, route.path.path);
-                // console.log(`test:rv cond`, this.path.value, route.path.path);
-                return this.path.value === route.path.path;
+                // console.trace(`test:rv cond id=${this.id}`, this.path.value, route.path.pathStr);
+                // console.log(`test:rv cond id=${this.id}`, this.path.value, route.path.pathStr);
+                // console.log(`test:rv cond`, this.path.value, route.path.pathStr);
+                return this.path.value === route.path.pathStr;
             };
             const comp = () => {
                 if (route?.routerView) {

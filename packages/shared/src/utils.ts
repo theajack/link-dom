@@ -5,7 +5,7 @@
  */
 
 import { KEY_LD_TYPE } from './const';
-import type { IRenderer } from './type';
+import type { IPromiseMayBe, IRenderer } from './type';
 
 function createSharedStatus () {
     return {
@@ -128,6 +128,15 @@ export function withResolve <T=any> () {
 
 export function watiNextFrame () {
     return new Promise(resolve => {
-        requestAnimationFrame(resolve);
+        if (requestAnimationFrame)
+            requestAnimationFrame(resolve);
+        else
+            setTimeout(resolve, 16);
     });
 }
+// export type UnpackPromiseMaybe<T> = T extends IPromiseMayBe<infer U> ? U : T;
+
+// export function unwrapPromiseMaybe<T extends IPromiseMayBe> (v: T): Promise<UnpackPromiseMaybe<T>> {
+//     // @ts-ignore
+//     return (v instanceof Promise) ? v : Promise.resolve(v);
+// }

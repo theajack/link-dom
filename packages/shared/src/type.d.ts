@@ -56,3 +56,5 @@ export interface IRenderer {
     createComment (text?: string): IComment,
     createFragment (): IFragment,
 }
+
+export type IPromiseMayBe<T = any> = T|Promise<T>;

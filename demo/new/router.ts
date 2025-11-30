@@ -17,11 +17,29 @@ const PageSub1 = () => dom.div.text('Sub Page1');
 const PageA = () => {
     return dom.div.text('PageA');
 };
+
+let a = 0;
+setInterval(() => {
+    a++;
+    console.log(a);
+}, 5000);
+
 const router = createRouter({
     routes: [
         {
             path: '/',
             component: () => dom.div.text('Page Index'),
+        },
+        {
+            path: '/guard',
+            component: () => dom.div.text('guard'),
+            beforeEnter: () => {
+                return '/sub';
+            }
+        },
+        {
+            path: () => `/${a}`,
+            component: () => dom.div.text('Page Index11111'),
         },
         {
             path: '/sub',

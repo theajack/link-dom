@@ -7,6 +7,7 @@
 import type { IChild } from 'link-dom';
 import type { RouterPath } from './path';
 import type { RouterView } from './router-view';
+import type { ILifeCall } from './router-life';
 
 
 export interface IRouteComponentArgs {
@@ -22,9 +23,12 @@ export interface IRouterItemBase<T = string> {
     component: (options: IRouteComponentArgs)=>IChild;
     name?: string;
     meta?: Record<string, any>;
+    beforeEnter?: ILifeCall;
+    afterEnter?: ILifeCall<void>;
+    beforeLeave?: ILifeCall<void>;
 }
 
-export interface IRouterItem extends IRouterItemBase<string> {
+export interface IRouterItem extends IRouterItemBase<string|(()=>string)> {
     children?: IRouterItem[];
 }
 
@@ -32,6 +36,7 @@ export interface IRouterInnerItem extends IRouterItemBase<RouterPath> {
     routerView?: RouterView;
     path: RouterPath;
     children?: IRouterItemBase<RouterPath>[];
+    __enterList?: ILifeCall[];
 }
 
 export interface IRouterOptions {

@@ -1,3 +1,6 @@
+import { isObject } from 'link-dom-shared';
+import type { IRouterInnerItem } from './type';
+
 /*
  * @Author: chenzhongsheng
  * @Date: 2025-09-06 23:03:43
@@ -84,4 +87,8 @@ export function applyParam (path: string, param?: Record<string, string>) {
         arr[i] = param![item];
     }
     return arr.join('/');
+}
+
+export function isRouteParam (v: any): v is string|IRouterInnerItem {
+    return typeof v === 'string' || isObject(v);
 }
