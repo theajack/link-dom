@@ -133,7 +133,6 @@ async function onActiveProcess (list: HTMLElement[], props: ITransitionProps, is
     return ready;
 }
 
-
 async function onLeaveProcess (list: HTMLElement[], props: ITransitionProps, scope: ITransScope) {
 
 

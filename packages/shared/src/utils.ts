@@ -5,7 +5,7 @@
  */
 
 import { KEY_LD_TYPE } from './const';
-import type { IPromiseMayBe, IRenderer } from './type';
+import type { IRenderer } from './type';
 
 function createSharedStatus () {
     return {

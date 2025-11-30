@@ -24,7 +24,6 @@ type IDynamicProps = {
 
 function getSlotContent (is: any, slot: any) {
     const value = read(is);
-
     if (typeof value === 'string' || isDomNode(value)) {
         return tag(value as any)(...slot);
     }
