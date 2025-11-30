@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import { li, tag } from '../element/short';
+import { tag } from '../element/short';
 import type { IComponentProxy, ISlots } from '../element/component';
 import { defineComponent, isComponent } from '../element/component';
 import { isDomNode, isPureFunc, SharedStatus } from 'link-dom-shared';
@@ -12,7 +12,7 @@ import { isReactiveLike, read, watch, type IReactiveLike } from 'link-dom-reacti
 import type { Dom } from '../element/element';
 import { Marker } from '../controller/marker';
 import { frag } from '../element/text';
-import { filterElement, isDomElement, isDomFrag, TransStatus } from '../utils';
+import { filterElement, isDomFrag, TransStatus } from '../utils';
 import type { ITransCall } from './trans-base';
 import { TransitionProxy } from './trans-base';
 import type { ITransScope } from './transition';

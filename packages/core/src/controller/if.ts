@@ -176,9 +176,7 @@ export class IfClass {
                 // ! 此处必须要不包含element，因为需要remove掉所有元素
                 list = this.marker.pick(false, false);
                 const remove = async () => {
-                    console.warn('_initElements leave from start');
                     await this.transition.trigger(filterElement(list), TransStatus.LeaveFrom);
-                    console.warn('_initElements leave from end');
                     list.forEach(item => item.remove());
                     life.unmounted();
                 };

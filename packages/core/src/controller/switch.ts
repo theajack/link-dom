@@ -11,6 +11,8 @@ import { frag, type Frag } from '../element/text';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE } from 'link-dom-shared';
 import type { IReactiveLike } from 'link-dom-reactive';
 import { read } from 'link-dom-reactive';
+import type { ITransScope } from '../components';
+import type { ITransCall } from '../components/trans-base';
 export class SwitchClass {
     [KEY_LD_TYPE] = LinkDomType.Switch;
     private if: IfClass;
@@ -57,8 +59,8 @@ export class SwitchClass {
         this.if?.destroy();
     }
 
-    onSwitchDoms (fn: (v: any[], old: any[]|null)=>void, appear?: boolean) {
-        this.if?.onSwitchDoms(fn, appear);
+    onSwitchDoms (fn: ITransCall, trans: ITransScope, showAppear = false) {
+        this.if?.onSwitchDoms(fn, trans, showAppear);
     }
 }
 

@@ -3,12 +3,33 @@
  * @Date: 2025-11-29 17:39:28
  * @Description: Coding something
  */
-import { a, button, defineComponent, div, Dynamic, Else, For, frag, If, LinkDomType, mount, ref, span, Switch, toggle, Transition } from 'link-dom';
+import { a, Await, button, defineComponent, div, Dynamic, Else, For, frag, If, LinkDomType, mount, ref, slot, span, Suspense, Switch, toggle, Transition } from 'link-dom';
 import { createRouter, routerLink, routerView } from '../../packages/router/src';
 
-const Child = defineComponent(() => {
-    return a('child');
+const mockFetch = (time = 1000) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(222);
+        }, time);
+    });
+};
+
+const AsyncComp = defineComponent(async () => {
+    const data = await mockFetch(1000);
+    return div(`hello1 ${data}`,
+        Suspense(Async2Comp()).slot('fallback', () => div('loading2')),
+    );
 });
+const Async2Comp = defineComponent(async () => {
+    const data = await mockFetch(2000);
+    return div(`hello2 ${data}`);
+});
+
+
+const Child = defineComponent(({ slots }) => {
+    return a('child', slots.default);
+});
+
 
 createRouter({
     routes: [ {
@@ -33,7 +54,7 @@ const App = defineComponent(() => {
             button.click(() => {list.value.push(list.value.length + 1);})('add'),
             button.click(() => list.value.splice(1, 1))('remove'),
         ),
-        Transition.appear(true)(
+        Transition.appear(false)(
             // div.if(flag)(1111),
             // Child.if(flag)(222),
             // div.else(333),
@@ -49,15 +70,32 @@ const App = defineComponent(() => {
 
             // If(flag, div(11)).else(div(22)),
 
+            // If(flag)(div(11)),
+            // Else(div(22)),
+
+            // div.if(flag)(1111),
+            // Child.else(span(22)),
+
+            // Child.if(flag)(222),
 
             // routerView(),
 
-            Dynamic.is(() => flag.value ? div(113) : span(22))(),
+            // Dynamic.is(() => flag.value ? div(113) : span(22))(),
 
             // Dynamic.is(() => flag.value ? frag().append(
             //     div(11),
             //     span(22)
             // ).el : 'span')('dynamic'),
+
+            // Await(mockFetch(), data => div(data)).default(div('loading')),
+
+            Suspense.resolve(() => {
+                console.log('done');
+            }).slot('fallback', () => div('loading1'))(
+                // AsyncComp(),
+                Async2Comp(),
+                div(111)
+            )
         ),
     );
 });

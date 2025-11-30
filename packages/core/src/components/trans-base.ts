@@ -27,6 +27,10 @@ export class TransitionProxy {
         this.scope.cancel();
     }
 
+    done () {
+        this.scope.done();
+    }
+
     async trigger (list: (Element)[]|null, status: TransStatus, isAppear = false) {
         if (!list?.length) return;
         await Promise.all(this.__ts_list!.map(fn => fn(list, status, isAppear)));

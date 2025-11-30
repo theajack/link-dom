@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 
-import type { Ref, IfClass } from 'link-dom';
+import type { Ref, IfClass, ITransScope } from 'link-dom';
 import { ctrl, ref, LinkDomType } from 'link-dom';
 import type { IRouterInnerItem } from './type.d';
 import { Router, useRouter } from './router';
@@ -27,8 +27,8 @@ export class RouterView {
 
     if: IfClass;
 
-    onSwitchDoms (fn: (v: any[], old: any[]|null)=>void, appear?: boolean) {
-        this.if?.onSwitchDoms(fn, appear);
+    onSwitchDoms (fn: any, trans: ITransScope, showAppear = false) {
+        this.if?.onSwitchDoms(fn, trans, showAppear);
     }
 
     // id: number;

@@ -21,6 +21,11 @@ export class Marker {
         return this.start.parentNode;
     }
 
+    initEnd (endText = '') {
+        if (!this.end)
+            this.end = createMarkerNode(endText);
+    }
+
     constructor ({
         start, end = true, clearSelf = false, startText = '', endText = ''
     }: {
@@ -29,7 +34,7 @@ export class Marker {
     } = {}) {
         this.start = start || createMarkerNode(startText);
         if (end) {
-            this.end = createMarkerNode(endText);
+            this.initEnd(endText);
         }
         checkHydrateMarker(this);
 
@@ -98,6 +103,8 @@ export class Marker {
             }
         }
         if (includeEnd && this.end) {
+            // @ts-ignore
+            this.end.remove();
             list.push(this.end);
         }
         return list as HTMLElement[];
