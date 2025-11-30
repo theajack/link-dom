@@ -11,7 +11,10 @@
     to.beforeEnter
     // ! 以上三个可以拦截
     from.beforeLeave
+    fromComponent.beforeRouteLeave
+    component.beforeRouteEnter
     // ! 触发 DOM 更新。
+    component.afterRouteEnter
     to.afterEnter
     global.afterEach
  */

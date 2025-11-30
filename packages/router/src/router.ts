@@ -201,6 +201,7 @@ export class Router extends RouterState {
         await from?.beforeLeave?.(to, from);
 
         list.forEach((route, index) => {
+            console.log('router debug', index, route, route.routerView);
             if (route.routerView) {
                 // console.log(`test:set id=${route.routerView.id}`, route.routerView.path.value, matchedPaths[index + 1]);
                 // console.log(`test:set`, route.routerView.path.value, matchedPaths[index + 1]);

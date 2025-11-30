@@ -36,7 +36,11 @@ export type IExposes<T extends string = string> = {
     [key in T]: IExpose;
 }
 
-const LifeKeys = [ 'created', 'beforeMount', 'mounted', 'beforeUnmount', 'unmounted', 'beforeHydrate', 'hydrated' ] as const;
+const LifeKeys = [
+    'created', 'beforeMount', 'mounted', 'beforeUnmount',
+    'unmounted', 'beforeHydrate', 'hydrated',
+    'beforeRouteLeave', 'beforeRouteEnter', 'AfterRouteEnter',
+] as const;
 
 export type ILifeKeys = (typeof LifeKeys)[number];
 

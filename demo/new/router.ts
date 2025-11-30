@@ -4,7 +4,11 @@
  * @Description: Coding something
  */
 import { createRouter, routerLink, routerView } from 'link-dom-router';
-import { dom, mount, watch } from 'link-dom';
+import { defineComponent, div, dom, mount, Transition, watch } from 'link-dom';
+
+const Child = defineComponent(() => {
+    return div(1);
+});
 
 const PageSub = () => {
     return [
@@ -29,6 +33,10 @@ const router = createRouter({
         {
             path: '/',
             component: () => dom.div.text('Page Index'),
+        },
+        {
+            path: '/comp',
+            component: Child,
         },
         {
             path: '/guard',
@@ -108,6 +116,8 @@ const router = createRouter({
 const App = () => {
     return dom.div.children(
         dom.div.style({ display: 'flex', gap: '10px' }).children(
+            routerLink('/guard'),
+            routerLink('/comp'),
             routerLink('/'),
             routerLink('/sub/s1'),
             routerLink('/sub/s1/s1'),
@@ -140,6 +150,8 @@ const App = () => {
                 router.route('/x/alice/18/true?a=3');
             })
         ),
+        // Transition(
+        // )
         routerView(),
     );
 };

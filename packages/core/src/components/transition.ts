@@ -220,6 +220,8 @@ export const Transition = defineComponent<ITransitionProps, ISlots>((
         return slots.default;
     }
 
+    if (!slots.default?.length) return [];
+
     const scope = createTransScope(props);
 
     const _frag = frag(...slots.default);

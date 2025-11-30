@@ -56,6 +56,15 @@ const App = defineComponent(() => {
             button.click(() => {list.value.push(list.value.length + 1);})('add'),
             button.click(() => list.value.splice(1, 1))('remove'),
         ),
+
+        div(
+            If(flag)(
+                Child(222),
+                div(222),
+            ),
+            Else(Child),
+        ),
+
         Transition.appear(false)(
             // div.if(flag)(1111),
             // Child.if(flag)(222),
@@ -91,13 +100,13 @@ const App = defineComponent(() => {
 
             // Await(mockFetch(), data => div(data)).default(div('loading')),
 
-            Suspense.resolve(() => {
-                console.log('done');
-            }).slot('fallback', () => div('loading1'))(
-                // AsyncComp(),
-                Async2Comp(),
-                div(111)
-            )
+            // Suspense.resolve(() => {
+            //     console.log('done');
+            // }).slot('fallback', () => div('loading1'))(
+            //     // AsyncComp(),
+            //     Async2Comp(),
+            //     div(111)
+            // )
         ),
     );
 });
