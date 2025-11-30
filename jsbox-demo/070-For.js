@@ -22,8 +22,11 @@ function ForApp () {
         { id: 'id-7', label: 'label-7' },
         { id: 'id-8', label: 'label-8' },
     ]);
+    // todo 还是有bug
+    // ! 复现： remove 0 remove 1 update 1 不起作用
+    // ForRef 没问题，For有问题
     // setInterval(() => {
-    //     console.log(list.value.length, JSON.stringify(list.value[0]));
+    //     console.log(JSON.stringify(list, null, 2));
     // }, 1000);
     let id = 8;
     return div(
@@ -39,7 +42,10 @@ function ForApp () {
             div(
                 span(join`${index}: ${link(item.id)}: ${() => (item.label)}`),
                 button('Remove').click(() => { list.value.splice(index.value, 1); }),
-                button('Update').click(() => { item.label += '!'; }),
+                button('Update').click(() => {
+                    item.label += '!';
+                    console.log(item.label);
+                }),
             )
         ),
     );
