@@ -12,23 +12,8 @@
 
 import { div, button, ref, mount, join, For, link, span } from 'link-dom';
 function ForApp () {
-    const list = ref([
-        { id: 'id-1', label: 'label-1' },
-        { id: 'id-2', label: 'label-2' },
-        { id: 'id-3', label: 'label-3' },
-        { id: 'id-4', label: 'label-4' },
-        { id: 'id-5', label: 'label-5' },
-        { id: 'id-6', label: 'label-6' },
-        { id: 'id-7', label: 'label-7' },
-        { id: 'id-8', label: 'label-8' },
-    ]);
-    // todo 还是有bug
-    // ! 复现： remove 0 remove 1 update 1 不起作用
-    // ForRef 没问题，For有问题
-    // setInterval(() => {
-    //     console.log(JSON.stringify(list, null, 2));
-    // }, 1000);
-    let id = 8;
+    const list = ref([]);
+    let id = 0;
     return div(
         div(
             button('Add Item').click(() => {

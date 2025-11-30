@@ -199,7 +199,7 @@ export class ForClass <T=any> {
             console.log('remove doms1', i, start, count);
             const child = this.children[i];
             if (child) {
-                this._removeChildScope(child, start + i);
+                this._removeChildScope(child, i);
             }
         }
         console.log('remove doms2', start, count);
