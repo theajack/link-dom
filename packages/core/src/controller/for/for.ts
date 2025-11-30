@@ -184,7 +184,7 @@ export class ForClass <T=any> {
         this._el = this.frag.el;
     }
 
-    _deleteItem (i: number) {
+    async _deleteItem (i: number) {
         // console.log('delete item', index);
         const child = this.children[i];
         if (child) {
@@ -220,11 +220,11 @@ export class ForClass <T=any> {
         if (j === i + 1) {
             iMarker = ci.marker.start;
         } else {
-            ci.marker.clear().forEach(node => {
+            ci.marker.clear(true).forEach(node => {
                 parent.insertBefore(node, cj.marker.start);
             });
         }
-        cj.marker.clear().forEach(node => {
+        cj.marker.clear(true).forEach(node => {
             parent.insertBefore(node, iMarker);
         });
         if (this._useIndex) {
@@ -247,16 +247,17 @@ export class ForClass <T=any> {
     _clearEmptyChildren (length: number) {
         if (length >= this.children.length) return;
         const start = length;
+        // const list = this.children.splice(length);
         this.children.splice(length).forEach((child, i) => {
             this._removeChildScope(child, start + i);
         });
         this[KEY_SCOPE]?.children.splice(length);
     }
 
-    private async _removeChildScope (child: ForChild, i: number) {
+    private _removeChildScope (child: ForChild, i: number) {
         const scope = this[KEY_SCOPE]?.children[i];
         scope?.beforeUnmount();
-        if (await child.destroy()) {
+        if (child.destroy()) {
             scope?.unmounted();
         }
         DepUtil.clearDep(getTarget(this._list), (i).toString());

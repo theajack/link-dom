@@ -8,7 +8,7 @@ import type { IComputedLike, IReactiveLike } from './type.d';
 import { type Ref } from './ref';
 import { DepUtil } from './dep';
 import { observe } from './reactive';
-import type { IComputed } from './computed';
+import type { IComputed, Link } from './computed';
 import { isPureFunc } from 'link-dom-shared';
 
 export function isReactiveLike (v: any): v is Ref<any>|IComputedLike {
@@ -87,7 +87,7 @@ export function isStatic (v: any) {
     return true;
 }
 
-export function toggle (v: IComputed<boolean>|Ref<boolean>) {
+export function toggle (v: IComputed<boolean>|Ref<boolean>|Link<boolean>) {
     return () => {v.value = !v.value;};
 }
 

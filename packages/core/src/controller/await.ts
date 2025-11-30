@@ -21,6 +21,7 @@ export class AwaitClass {
     [KEY_SCOPE]: LifeScope;
     _frag: Frag;
     _default: IChild[] = [];
+    private hasDefault = false;
 
     marker: Marker;
 
@@ -65,7 +66,7 @@ export class AwaitClass {
                 await watiNextFrame(); // ! 首次append的元素 此处需要等待布局生效
                 await this.transition.trigger(doms, TransStatus.EnterActive);
             };
-            if (this.marker.end) {
+            if (this.hasDefault) {
                 const remove = async () => {
                     scope.beforeUnmount();
                     const list = this.marker.pick(false, false);
@@ -80,7 +81,7 @@ export class AwaitClass {
                 this.transition.done();
             }
         } else {
-            if (this.marker.end) {
+            if (this.hasDefault) {
                 scope.beforeUnmount();
                 this.marker.clear(true);
                 scope.unmounted();
@@ -98,6 +99,7 @@ export class AwaitClass {
     }
 
     default (...doms: IChild[]) {
+        this.hasDefault = true;
         this._default = doms;
         this.marker.initEnd();
         return this;

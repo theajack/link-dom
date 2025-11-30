@@ -77,7 +77,7 @@ const App = defineComponent(() => {
             // Else(222),
             // For(list, (item) => If(flag)(div(item))),
 
-            // For(list, (item) => div(item)),
+            For(list, (item) => div(item)),
 
             // If(flag, div(11)).else(div(22)),
 

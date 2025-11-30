@@ -41,9 +41,13 @@
     <script>
         // 获取 query.file
         const query = window.location.search;
-        const file = query.match(/file=(.*)/)[1];
+        let file = query.match(/file=(.*)/)[1];
         const script = document.createElement('script');
-        script.src = `./demo${file}`;
+        if(file.startsWith('/jsbox')) {
+            script.src = `.${file.replace('/jsbox', '/jsbox-demo')}`;
+        }else{
+            script.src = `./demo${file}`;
+        }
         script.type = 'module';
         document.head.appendChild(script);
     </script>

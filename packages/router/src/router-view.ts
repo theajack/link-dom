@@ -13,7 +13,7 @@ import { KEY_LD_TYPE } from 'link-dom-shared';
 // 按照执行顺序来确立
 
 // window._rvs = [] as any[];
-// let id = 0;
+let id = 0;
 
 let RouterCurrentComp: any = null;
 const RouterMap = new WeakMap<Function, RouterView>();
@@ -21,6 +21,8 @@ const RouterMap = new WeakMap<Function, RouterView>();
 export class RouterView {
 
     [KEY_LD_TYPE] = LinkDomType.RouterView;
+
+    id = id++;
 
     // nextView: RouterView | null = null;
     static Root: RouterView | null = null;
@@ -97,8 +99,8 @@ export class RouterView {
             };
             this.if.else(() => route404!.component(useRouter()._getRouteComponentArgs()));
         }
-    }
 
+    }
 
     __mounted () {
         this.if.__mounted();

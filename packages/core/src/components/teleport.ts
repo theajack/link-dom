@@ -37,7 +37,7 @@ export const Teleport = defineComponent<ITeleportProps, ISlots>(({
     console.log('isStatic Teleport', _isStatic);
     const frag = new Frag();
 
-    const marker = new Marker({ clearSelf: true });
+    const marker = new Marker();
     const origin = createMarkerNode('origin');
     frag.append(...marker.wrapContent(slots.default), origin);
     if (SharedStatus.isSSR) {
@@ -66,7 +66,6 @@ export const Teleport = defineComponent<ITeleportProps, ISlots>(({
             }
         };
         watch(readFn(props.disabled), (v) => {
-            console.log('log');
             if (v) {
                 moveBack();
             } else {

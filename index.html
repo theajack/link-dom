@@ -56,6 +56,7 @@
 <span class="env-item"><a href="/?file=/lifes.ts">/lifes.ts</a></span>
 <span class="env-item"><a href="/?file=/new/basic.ts">/new/basic.ts</a></span>
 <span class="env-item"><a href="/?file=/new/custom-render.ts">/new/custom-render.ts</a></span>
+<span class="env-item"><a href="/?file=/new/deep-if.ts">/new/deep-if.ts</a></span>
 <span class="env-item"><a href="/?file=/new/directive.ts">/new/directive.ts</a></span>
 <span class="env-item"><a href="/?file=/new/index.ts">/new/index.ts</a></span>
 <span class="env-item"><a href="/?file=/new/router.ts">/new/router.ts</a></span>
@@ -68,13 +69,41 @@
 <span class="env-item"><a href="/?file=/ssr/comp.ts">/ssr/comp.ts</a></span>
 <span class="env-item"><a href="/?file=/ssr/index.ts">/ssr/index.ts</a></span>
 <span class="env-item"><a href="/?file=/test-cleardep.ts">/test-cleardep.ts</a></span>
-<span class="env-item"><a href="/?file=/test.ts">/test.ts</a></span></div>
+<span class="env-item"><a href="/?file=/test.ts">/test.ts</a></span>
+<span class="env-item"><a href="/?file=/jsbox/010-Ref.js">/jsbox/010-Ref.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/011-Reactive Link.js">/jsbox/011-Reactive Link.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/012-CollectRef.js">/jsbox/012-CollectRef.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/013-Counter.js">/jsbox/013-Counter.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/014-Flow.js">/jsbox/014-Flow.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/015-Flow Component.js">/jsbox/015-Flow Component.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/016-Computed & Watch.js">/jsbox/016-Computed & Watch.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/017-Reactive Utils.js">/jsbox/017-Reactive Utils.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/018-Special Node.js">/jsbox/018-Special Node.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/020-Style.js">/jsbox/020-Style.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/030-Style Link.js">/jsbox/030-Style Link.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/040-Global Style.js">/jsbox/040-Global Style.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/070-For.js">/jsbox/070-For.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/080-ForRef.js">/jsbox/080-ForRef.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/081-ForStatic.js">/jsbox/081-ForStatic.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/090-If.js">/jsbox/090-If.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/100-Switch.js">/jsbox/100-Switch.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/110-Show.js">/jsbox/110-Show.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/120-Await.js">/jsbox/120-Await.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/130-Log Render.js">/jsbox/130-Log Render.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/140-Canvas Render.js">/jsbox/140-Canvas Render.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/150-Full Custom.js">/jsbox/150-Full Custom.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/160-Router.js">/jsbox/160-Router.js</a></span>
+<span class="env-item"><a href="/?file=/jsbox/170-SSR.js">/jsbox/170-SSR.js</a></span></div>
     <script>
         // 获取 query.file
         const query = window.location.search;
-        const file = query.match(/file=(.*)/)[1];
+        let file = query.match(/file=(.*)/)[1];
         const script = document.createElement('script');
-        script.src = `./demo${file}`;
+        if(file.startsWith('/jsbox')) {
+            script.src = `.${file.replace('/jsbox', '/jsbox-demo')}`;
+        }else{
+            script.src = `./demo${file}`;
+        }
         script.type = 'module';
         document.head.appendChild(script);
     </script>

@@ -13,7 +13,7 @@ import path from 'path';
  * @param fileList - 文件列表
  * @returns .ts 文件路径数组
  */
-export function readTsFiles (dir: string, fileList: string[] = []): string[] {
+export function readExeFiles (dir: string, fileList: string[] = []): string[] {
     const files = fs.readdirSync(dir);
 
     files.forEach((file) => {
@@ -22,8 +22,8 @@ export function readTsFiles (dir: string, fileList: string[] = []): string[] {
 
         if (stat.isDirectory()) {
             // 递归读取子目录
-            readTsFiles(filePath, fileList);
-        } else if (path.extname(file) === '.ts') {
+            readExeFiles(filePath, fileList);
+        } else if (path.extname(file) === '.ts' || path.extname(file) === '.js') {
             // 添加 .ts 文件
             fileList.push(filePath);
         }
@@ -37,10 +37,14 @@ export function readTsFiles (dir: string, fileList: string[] = []): string[] {
 export function main () {
     const demoDir = path.join(__dirname, '../demo');
     console.log('demoDir');
-    const tsFiles = readTsFiles(demoDir).map(file => file.replace(demoDir, ''));
+    const tsFiles = readExeFiles(demoDir).map(file => file.replace(demoDir, ''));
+
+
+    const jsxDemo = path.join(__dirname, '../jsbox-demo');
+    const jsFiles = readExeFiles(jsxDemo).map(file => file.replace(jsxDemo, '/jsbox'));
 
     const htmlContent = `<div class="env-choose">${
-        tsFiles.map(file => `<span class="env-item"><a href="/?file=${file}">${file}</a></span>`).join('\n')
+        [ ...tsFiles, ...jsFiles ].map(file => `<span class="env-item"><a href="/?file=${file}">${file}</a></span>`).join('\n')
     }</div>`;
 
     // 替换index.html 中的 envChoose

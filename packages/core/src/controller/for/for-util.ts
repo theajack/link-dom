@@ -31,10 +31,8 @@ setArrayListeners({
     },
     newItem (target: any[], index: number, data: any) {
         ForGlobal.Map.get(target)?.forEach(item => item._newItem(index, data));
-        // ForGlobal.Map.get(target)?._newItem(index, data);
     },
     clearEmpty (target: any[], length: number) {
-        // ForGlobal.Map.get(target)?._clearEmptyChildren(length);
         ForGlobal.Map.get(target)?.forEach(item => item._clearEmptyChildren(length));
     },
     updateItem (target: any[], index: number, data: any) {
@@ -118,7 +116,9 @@ const FnMap = {
                 start += min;
                 if (removeCount > addCount) {
                     removeCount -= addCount;
+                    console.log('debugfor _addDoms', start, removeCount);
                     fors?.forEach(item => item._removeDoms(start, removeCount));
+                    // ! 需要最后splice
                     this.splice(start, removeCount);
                 // 从for里面删除
                 } else {
