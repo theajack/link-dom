@@ -355,6 +355,8 @@ export function slot (key: string|ISlot, slot?: ISlot): ISlot {
     return slot as ISlot;
 }
 
+let currentComponentScope: any = null;
+
 export function defineComponent<
     Props extends IProps = IProps,
     Slots extends ISlots = ISlots,
@@ -378,7 +380,7 @@ export function defineComponent<
         // console.log('call target', name)
         assignSlots(slots); // ! 此处为首次调用组件
         const componentFn = (...slots: any[]) => {
-            assignSlots(slots); // ! 此处为先点调用属性之后调用组件
+            assignSlots(slots); // ! 此处为先 点调用属性之后调用组件
             return p;
         };
         const p = new Proxy(componentFn, {
@@ -402,7 +404,9 @@ export function defineComponent<
                     // ! 需要缓存组件元素
                     if (result) return result;
                     assignDefault(scope.props, defaultProps);
+                    currentComponentScope = scope;
                     result = fn(scope as any); // ! 最终组合返回值
+                    currentComponentScope = null;
                     utils.__created();
                     return result;
                 }
@@ -457,4 +461,15 @@ export function addDomsToComponent (dom: any, node: any) {
     } else {
         dom.__doms.push(node);
     }
+}
+
+export function getContext<
+    Props extends IProps = IProps,
+    Slots extends ISlots = ISlots,
+    Emits extends IEmits = IEmits,
+    Exposes extends IExposes = IExposes,
+    Provides extends Record<string|symbol, any> = Record<string|symbol, any>,
+> (): IComponentArgs<Props, Slots, Emits, Exposes, Provides> {
+    if (!currentComponentScope) throw new Error('getContext must be called in component');
+    return currentComponentScope as any;
 }

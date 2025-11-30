@@ -3,7 +3,7 @@
  * @Date: 2025-11-29 17:39:28
  * @Description: Coding something
  */
-import { a, Await, button, defineComponent, div, Dynamic, Else, For, frag, If, LinkDomType, mount, ref, slot, span, Suspense, Switch, toggle, Transition } from 'link-dom';
+import { a, Await, button, defineComponent, div, Dynamic, Else, For, frag, getContext, If, LinkDomType, mount, ref, slot, span, Suspense, Switch, toggle, Transition } from 'link-dom';
 import { createRouter, routerLink, routerView } from '../../packages/router/src';
 
 const mockFetch = (time = 1000) => {
@@ -42,6 +42,8 @@ createRouter({
 });
 
 const App = defineComponent(() => {
+    const { props } = getContext();
+
     const flag = ref(true);
     const list = ref([ 1, 2 ]);
     return div(
@@ -101,4 +103,4 @@ const App = defineComponent(() => {
 });
 
 
-mount(App, 'body');
+mount(App.prop('a', 1), 'body');

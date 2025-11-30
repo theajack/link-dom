@@ -146,8 +146,8 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] 内置组件 Suspense、Dynamic、Teleport
 - [x] 自定义指令
 - [x] Compontent 支持 .if 等
-- [ ] 内置组件 Transition
-- [ ] getContext API
-- [ ] Router 守卫
+- [x] 内置组件 Transition
+- [x] getContext API
 - [ ] Router 函数作为path
+- [ ] Router 守卫
 - [ ] router 支持 history 模式
