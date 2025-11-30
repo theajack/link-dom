@@ -185,7 +185,7 @@ export class ForClass <T=any> {
         this._el = this.frag.el;
     }
 
-    async _deleteItem (i: number) {
+    _deleteItem (i: number) {
         // console.log('delete item', index);
         const child = this.children[i];
         if (child) {
