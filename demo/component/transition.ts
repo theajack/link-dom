@@ -45,13 +45,14 @@ const App = defineComponent(() => {
             // Else(222),
             // For(list, (item) => If(flag)(div(item))),
 
-            For(list, (item) => div(item)),
+            // For(list, (item) => div(item)),
 
-            If(flag, div(11)).else(div(22)),
+            // If(flag, div(11)).else(div(22)),
 
 
             // routerView(),
 
+            Dynamic.is(() => flag.value ? div(113) : span(22))(),
 
             // Dynamic.is(() => flag.value ? frag().append(
             //     div(11),

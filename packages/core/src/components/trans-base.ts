@@ -1,4 +1,4 @@
-import type { TransStatus } from 'src/utils';
+import { TransStatus } from '../utils';
 import type { ITransScope } from './transition';
 
 /*
@@ -27,13 +27,20 @@ export class TransitionProxy {
         this.scope.cancel();
     }
 
-    done () {
-        this.scope.done();
-    }
-
     async trigger (list: (Element)[]|null, status: TransStatus, isAppear = false) {
         if (!list?.length) return;
         await Promise.all(this.__ts_list!.map(fn => fn(list, status, isAppear)));
+    }
+
+    async triggerDone (list: (Element)[]|null, status: TransStatus, isAppear = false) {
+        await this.trigger(list, status, isAppear);
+        this.scope.done();
+    }
+
+    async appear (doms: HTMLElement[]) {
+        await this.trigger(doms, TransStatus.EnterFrom, true);
+        await this.trigger(doms, TransStatus.EnterActive, true);
+        this.scope.done();
     }
 
     onSwitchDoms (fn: ITransCall) {
@@ -52,5 +59,6 @@ export class TransitionProxy {
             await remove();
             await add();
         }
+        this.scope.done();
     }
 }

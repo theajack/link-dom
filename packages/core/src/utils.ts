@@ -145,7 +145,10 @@ const CtrlLinkApi = [ 'if', 'elif', 'else', 'case', 'default' ] as const;
 export const CtrlLinkApiSet = new Set(CtrlLinkApi);
 
 export function isDomFrag (v: any) {
-    return v?.nodeType === 11;
+    return v?.nodeType === Node.DOCUMENT_FRAGMENT_NODE;
+}
+export function isDomElement (v: any) {
+    return v?.nodeType === LinkDomType.Dom;
 }
 
 export function filterElement (list: any[]|null): HTMLElement[]|null {

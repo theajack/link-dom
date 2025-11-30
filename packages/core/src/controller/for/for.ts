@@ -139,7 +139,7 @@ export class ForClass <T=any> {
         }
         parent.insertBefore(el, marker);
         if (this.transition) {
-            await this.transition.trigger(doms!, TransStatus.EnterActive);
+            await this.transition.triggerDone(doms!, TransStatus.EnterActive);
         }
 
         // const el = child.frag.el;
@@ -285,8 +285,7 @@ export class ForClass <T=any> {
         this.children.forEach(async child => {
             if (showAppear) {
                 const doms = child.marker.pick(true, true);
-                await this.transition.trigger(doms, TransStatus.EnterFrom, true);
-                await this.transition.trigger(doms, TransStatus.EnterActive, true);
+                await this.transition.appear(doms);
             }
             child.transitionEl?.onSwitchDoms?.(fn);
         });

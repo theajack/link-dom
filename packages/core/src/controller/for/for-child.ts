@@ -106,7 +106,7 @@ export class ForChild<T=any> {
         if (this.removed) return false;
         if (this.parent.transition) {
             const list = this.marker.pick(false, true);
-            await this.parent.transition.trigger(list, TransStatus.LeaveFrom);
+            await this.parent.transition.triggerDone(list, TransStatus.LeaveFrom);
         }
         console.log('for child clear');
         this.marker.clear();

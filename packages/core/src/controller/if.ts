@@ -132,8 +132,7 @@ export class IfClass {
         this.transition.onSwitchDoms(fn);
         if (showAppear) {
             const doms = this.marker.pick(false, true);
-            await this.transition.trigger(doms, TransStatus.EnterFrom, true);
-            await this.transition.trigger(doms, TransStatus.EnterActive, true);
+            await this.transition.appear(doms);
         }
     }
     private _clearWatch: ()=>void;
@@ -166,17 +165,16 @@ export class IfClass {
         if (this.activeIndex === -1) {
             if (this.transition) {
                 const doms = this.marker.pick(false, true) as HTMLElement[];
-                await this.transition.trigger(doms, TransStatus.LeaveFrom);
+                await this.transition.triggerDone(doms, TransStatus.LeaveFrom);
                 console.warn('_initElements 1');
             }
-            this.transition.done();
             list = this.marker.clear();
         } else {
             const life = updateIfScopeBranch(this._lifeScope, this.prevIndex, this.activeIndex);
             life.beforeUnmount();
             if (this.transition) {
                 // ! 此处必须要不包含element，因为需要remove掉所有元素
-                list = this.marker.pick(false, false) as HTMLElement[];
+                list = this.marker.pick(false, false);
                 const remove = async () => {
                     console.warn('_initElements leave from start');
                     await this.transition.trigger(filterElement(list), TransStatus.LeaveFrom);
@@ -197,7 +195,6 @@ export class IfClass {
                     console.warn('_initElements enter action end');
                 };
                 await this.transition.callSwitchFn(add, remove);
-                this.transition.done();
                 console.log('resolve all done');
             } else {
                 list = this.marker.clear();
