@@ -149,6 +149,8 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] 内置组件 Transition
 - [x] getContext API
 - [x] Router 函数作为path
-- [ ] Router 守卫
+- [x] Router 守卫
+- [x] component 路由守卫
+- [ ] 动态路由
 - [ ] router 支持 history 模式
 - [ ] store

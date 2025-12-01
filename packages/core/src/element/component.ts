@@ -10,6 +10,7 @@ import { handleIfLinkChildren } from '../controller/if';
 import { getAncestorProvide } from './lifes';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_IS_NAME_USE, KEY_LD_TYPE, KEY_SCOPE, KEY_SLOT_NAME, KEY_USE_STORE } from 'link-dom-shared';
 import { useDirectives } from '../controller/directive';
+import type { ILifeCall } from './component.d';
 // import { createLifeScope, LifeScopeType } from './lifes';
 
 type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController| (()=>ISlot);
@@ -39,10 +40,14 @@ export type IExposes<T extends string = string> = {
 const LifeKeys = [
     'created', 'beforeMount', 'mounted', 'beforeUnmount',
     'unmounted', 'beforeHydrate', 'hydrated',
-    'beforeRouteLeave', 'beforeRouteEnter', 'AfterRouteEnter',
+] as const;
+
+const RouterLifeKeys = [
+    'beforeRouteLeave', 'beforeRouteEnter', 'afterRouteEnter',
 ] as const;
 
 export type ILifeKeys = (typeof LifeKeys)[number];
+export type IRouterLifeKeys = (typeof RouterLifeKeys)[number];
 
 export function componentRefs <E extends IComponentProxy = IComponentProxy, T extends string[] = string[]> (...list: T): {
     [k in T[number]]: E
@@ -100,19 +105,21 @@ export type IComponentProxy<
     )
 } & {
     [Key in ILifeKeys]: (fn: ILifeFn) => IComponentProxy<Props, Slots, Emits, Exposes>
+} & {
+    [Key in IRouterLifeKeys]: (fn: ILifeCall) => IComponentProxy<Props, Slots, Emits, Exposes>
 };
 
 type IProvide<T extends Record<string, any>, K extends keyof T = keyof T> = (key: K, value: T[K])=>void
 
 
-interface IComponentArgs<
+// ! 组件内部使用的
+type IComponentArgs<
     Props extends IProps = IProps,
     Slots extends ISlots = ISlots,
     Emits extends IEmits = IEmits,
     Exposes extends IExposes = IExposes,
     Provides extends Record<string|symbol, any> = Record<string|symbol, any>,
-> extends Record<ILifeKeys, (fn: ILifeFn) => void> {
-    // ! 组件内部使用的
+> = {
     slots: Slots;
     props: Props;
     emit: {
@@ -123,6 +130,10 @@ interface IComponentArgs<
     expose: Exposes,
     provide: IProvide<Provides>,
     inject: <T>(key: string|symbol, def?: T)=>T,
+} & {
+    [K in ILifeKeys]: (fn: ILifeFn) => void;
+} & {
+    [K in IRouterLifeKeys]: (fn: ILifeCall) => void;
 }
 
 export type IComponent<
@@ -138,7 +149,7 @@ const FnKeys = new Set([ 'apply' ]); // 是否需要不代理这些key，代理�
 
 function createLifes (getp: () => any, getds: ()=>any[]) {
     const result = {
-        lifes: {} as Record<ILifeKeys, any>,
+        lifes: {} as Record<ILifeKeys|IRouterLifeKeys, any>,
         triggers: {} as any,
     };
 
@@ -162,6 +173,23 @@ function createLifes (getp: () => any, getds: ()=>any[]) {
             }
             // console.log(`trigger life ${key} ${a}`);
         };
+    }
+
+    for (const key of RouterLifeKeys) {
+        const list: any[] = [];
+        console.log('debug comp route init');
+        result.lifes[key] = (fn: any) => {
+            console.log('debug comp route add ', key, fn);
+            list.push(fn);
+            return getp();
+        };
+        result.triggers[`__${key}`] = async (to: any, from: any) => {
+            console.log('debug comp route trigger', key, to, from, list.length);
+            for (const fn of list) {
+                fn(to, from);
+            }
+        };
+        result.triggers['__has__beforeRouteEnter'] = () => list.length > 0;
     }
 
     return result;

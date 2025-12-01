@@ -89,7 +89,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         let ldType = dom[KEY_LD_TYPE];
         let isScopeType = ScopeTypes.has(ldType);
         if (ldType === LinkDomType.Component && dom[KEY_IS_NAME_USE]) {
-            // ! 如果是直接使用组件名，需要先获取el，否则scope获取不到
+            // ! 如果是直接使用组件名，需要先获取执行，否则scope获取不到
             dom = dom();
         }
         let el: any = dom;

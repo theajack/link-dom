@@ -212,6 +212,16 @@ export class IfClass {
         return this;
     }
     private _initReady: Promise<void> = Promise.resolve();
+
+    private __osn_list: any[];
+    onSwitchNode (fn: any) {
+        if (!this.__osn_list) this.__osn_list = [];
+        this.__osn_list.push(fn);
+    }
+    private triggerSwitchNode (i: number) {
+        this.__osn_list?.forEach(fn => fn(i));
+    }
+
     private _initChildren () {
         if (this._el) return;
         this._clearWatch = watch(() => this.scopes.map(item => read(item.ref)), async () => {
@@ -221,6 +231,7 @@ export class IfClass {
                 console.log('_initReady');
             }
             const index = this.switchCase();
+            this.triggerSwitchNode(index);
             // console.log('test:if switch', index, this.activeIndex);
             console.log('if switch', index);
             if (index !== this.activeIndex) {

@@ -45,7 +45,7 @@ export class GlobalRouterLife {
     }
 
     private async _triggerCommon (list: ILifeCall[], to: IRouterInnerItem, from: IRouterInnerItem) {
-        for (const fn of this.__re_listeners) {
+        for (const fn of list) {
             const v = await fn(to, from);
             if (v === false) {
                 return false;

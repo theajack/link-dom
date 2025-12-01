@@ -6,7 +6,17 @@
 import { createRouter, routerLink, routerView } from 'link-dom-router';
 import { defineComponent, div, dom, mount, Transition, watch } from 'link-dom';
 
-const Child = defineComponent(() => {
+const Child = defineComponent(({ beforeRouteEnter, afterRouteEnter, beforeRouteLeave }) => {
+    console.log('debug comp route 1111111');
+    beforeRouteEnter((to, from) => {
+        console.warn('debug comp route Child beforeRouteEnter', to, from);
+    });
+    afterRouteEnter((to, from) => {
+        console.warn('debug comp route Child afterRouteEnter', to, from);
+    });
+    beforeRouteLeave((to, from) => {
+        console.warn('debug comp route Child beforeRouteLeave', to, from);
+    });
     return div(1);
 });
 
@@ -111,7 +121,10 @@ const router = createRouter({
         },
     ]
 });
-
+debugger;
+router.beforeEach((to, from) => {
+    console.log('router event beforeEach', to, from);
+});
 
 const App = () => {
     return dom.div.children(

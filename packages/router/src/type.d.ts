@@ -43,6 +43,10 @@ export interface IRouterOptions {
     routes: IRouterItem[];
     base?: string;
     mode?: 'hash'|'history';
+    beforeEach?: ILifeCall
+    beforeResolve?: ILifeCall<void>
+    afterEach?: ILifeCall<void>
+    onError?: (e: any)=>void
 }
 
 export interface IRouteOptions {

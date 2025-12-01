@@ -10,7 +10,7 @@ import { RouterPath } from './path';
 import { formatUrl, queryToSearch, searchToQuery, applyParam, isRouteParam } from './utils';
 import { RouterView } from './router-view';
 import type { IRouteComponentArgs, IRouteOptions, IRouterInnerItem, IRouterItem, IRouterOptions } from './type';
-import type { IGuardReturn } from './router-life';
+import type { IGuardReturn, ILifeCall } from './router-life';
 import { GlobalRouterLife } from './router-life';
 import { watiNextFrame } from 'link-dom-shared';
 
@@ -98,7 +98,11 @@ export class Router extends RouterState {
     constructor ({
         routes,
         base = '',
-        mode = 'hash'
+        mode = 'hash',
+        beforeEach,
+        beforeResolve,
+        afterEach,
+        onError,
     }: IRouterOptions) {
         if (Router.instance) return Router.instance;
         super();
@@ -114,6 +118,10 @@ export class Router extends RouterState {
         this.base = base;
         this.mode = mode;
         this._initEvents();
+        if (beforeEach) this.life.beforeEach(beforeEach);
+        if (beforeResolve) this.life.beforeResolve(beforeResolve);
+        if (afterEach) this.life.afterEach(afterEach);
+        if (onError) this.life.onError(onError);
     }
 
     private _initRoutes (routes: IRouterItem[], routerView: RouterView): IRouterInnerItem[] {
@@ -153,7 +161,11 @@ export class Router extends RouterState {
                 const { newURL } = e;
                 this._enterWrap(newURL);
             });
-            this._enterWrap(location.href);
+            console.time();
+            Promise.resolve().then(() => {
+                console.timeEnd();
+                this._enterWrap(location.href);
+            });
         } else {
             console.warn('history mode not support now');
         }
@@ -176,6 +188,8 @@ export class Router extends RouterState {
         const to = list[list.length - 1];
         const from = this.currentRoute;
 
+        debugger;
+
         // 统一处理拦截逻辑
         const checkValue = (v: (IGuardReturn), fn?: ()=>void) => {
             if (v === false) {
@@ -187,7 +201,7 @@ export class Router extends RouterState {
                 return true;
             }
         };
-
+        console.log('router change');
         if (checkValue(await this.life.triggerEach(to, from))) return;
 
         const resetList = [
@@ -197,39 +211,16 @@ export class Router extends RouterState {
             this._setPath(path),
         ];
         const reset = () => {resetList.forEach(fn => fn());};
-
+        list.forEach(route => route.routerView?._initRouterInfo(to, from));
         if (checkValue(await this.life.triggerResolve(to, from), reset)) return;
         if (checkValue(await to.beforeEnter?.(to, from), reset)) return;
         await from?.beforeLeave?.(to, from);
-
-        // this.routeList.forEach((route) => {
-        //     if (route.routerView) {
-        //         route.routerView.path.value = '';
-        //     }
-        // });
         console.log('router debug info', this.routeList, list, this.routeList.length, list.length);
-        list.forEach((route, index) => {
-            console.log('router debug', index, route, route.routerView?.id);
-            if (route.routerView) {
-                // console.log(`test:set id=${route.routerView.id}`, route.routerView.path.value, matchedPaths[index + 1]);
-                // console.log(`test:set`, route.routerView.path.value, matchedPaths[index + 1]);
-                route.routerView.path.value = matchedPaths[index + 1];
-            }
-            // const i = this.routeList.indexOf(route);
-            // if (i !== -1) {
-            //     this.routeList.splice(i, 1);
-            // }
-        });
+        list.forEach((route, index) => route.routerView?._setPath(matchedPaths[index + 1]));
         console.log('router debug info', this.routeList, list, this.routeList.length, list.length);
-
-        // this.routeList.forEach((route) => {
-        //     console.log('router debug remove', route, route.routerView?.id);
-        //     if (route.routerView) {
-        //         route.routerView.path.value = '';
-        //     }
-        // });
         this.routeList = list;
         await watiNextFrame();
+        list.forEach(route => route.routerView?._afterEnter(to, from));
         await to.afterEnter?.(to, from);
         // this.currentPath.value = path;
         await this.life.triggerAfter(to, from);
@@ -318,6 +309,18 @@ export class Router extends RouterState {
             get path () {return _this.path;},
             get meta () {return _this.currentRoute.meta;},
         };
+    }
+    beforeEach (fn: ILifeCall) {
+        return this.life.beforeEach(fn);
+    }
+    beforeResolve (fn: ILifeCall) {
+        return this.life.beforeResolve(fn);
+    }
+    afterEach (fn: ILifeCall<void>) {
+        return this.life.afterEach(fn);
+    }
+    onError (fn: (e: any)=>void) {
+        return this.life.onError(fn);
     }
 }
 
