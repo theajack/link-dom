@@ -151,6 +151,7 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] Router 函数作为path
 - [x] Router 守卫
 - [x] component 路由守卫
-- [ ] 动态路由
+- [x] 动态if、动态路由
+- [x] store
+- [x] 测试工具
 - [ ] router 支持 history 模式
-- [ ] store

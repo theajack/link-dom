@@ -35,7 +35,7 @@ export interface IRouterItem extends IRouterItemBase<string|(()=>string)> {
 export interface IRouterInnerItem extends IRouterItemBase<RouterPath> {
     routerView?: RouterView;
     path: RouterPath;
-    children?: IRouterItemBase<RouterPath>[];
+    children?: IRouterInnerItem[];
     __enterList?: ILifeCall[];
 }
 

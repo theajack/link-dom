@@ -12,3 +12,5 @@ export * from './type.d';
 export { DepUtil, Dep } from './dep';
 export * from './utils';
 export { readonly } from './readonly';
+
+export * from './store';

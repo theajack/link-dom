@@ -140,3 +140,9 @@ export function watiNextFrame () {
 //     // @ts-ignore
 //     return (v instanceof Promise) ? v : Promise.resolve(v);
 // }
+
+export function assignApi (target: any, origin: any, list: string[]) {
+    for (const key of list) {
+        target[key] = origin[key].bind(origin);
+    }
+}

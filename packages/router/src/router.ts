@@ -124,7 +124,7 @@ export class Router extends RouterState {
         if (onError) this.life.onError(onError);
     }
 
-    private _initRoutes (routes: IRouterItem[], routerView: RouterView): IRouterInnerItem[] {
+    private _initRoutes (routes: IRouterItem[], routerView: RouterView, add = false): IRouterInnerItem[] {
         const innerRouters = routes.map(item => {
             const hasChildren = item.children && item.children?.length > 0;
             const route: IRouterInnerItem = {
@@ -150,7 +150,7 @@ export class Router extends RouterState {
             }
             return route;
         });
-        routerView.initRoutes(innerRouters);
+        add ? routerView.addRoutes(innerRouters) : routerView.initRoutes(innerRouters);
         return innerRouters;
     }
 
@@ -187,8 +187,6 @@ export class Router extends RouterState {
 
         const to = list[list.length - 1];
         const from = this.currentRoute;
-
-        debugger;
 
         // 统一处理拦截逻辑
         const checkValue = (v: (IGuardReturn), fn?: ()=>void) => {
@@ -321,6 +319,30 @@ export class Router extends RouterState {
     }
     onError (fn: (e: any)=>void) {
         return this.life.onError(fn);
+    }
+
+    getRoute (indexes?: number[]) {
+        let route = this.rootRoute;
+
+        if (indexes) {
+            try {
+                while (indexes.length) {
+                    const index = indexes.shift()!;
+                    route = route.children![index];
+                }
+            } catch (e) {
+                console.warn('路径不存在');
+                return null;
+            }
+        }
+        return route;
+    }
+
+    addRoutes (routes: IRouterItem[], indexes?: number[]) {
+        const route = this.getRoute(indexes);
+        const rv = route?.routerView;
+        if (!rv) return;
+        this._initRoutes(routes, rv, true);
     }
 }
 

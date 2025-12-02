@@ -13,6 +13,7 @@ import { watch, read } from 'link-dom-reactive';
 import { Marker } from './marker';
 import type { IControlLink } from '../type.d';
 import {
+    assignApi,
     KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_LD_TYPE, KEY_SCOPE,
     parseFuncWrap, SharedStatus
 } from 'link-dom-shared';
@@ -36,6 +37,7 @@ class IfScope {
     constructor (
         public ref: IReactiveLike,
         private gene: (()=>IChild)|IChild,
+        public isElse: boolean,
     ) {
         // console.log('debug', 'new if scope', ref);
         // this.lifeScope = new LifeScope(LifeScopeType.If);
@@ -73,12 +75,20 @@ class IfScope {
 }
 
 
-let id = 0;
+// let id = 0;
 export class IfClass {
 
     [KEY_LD_TYPE] = LinkDomType.If;
     [KEY_SCOPE]: LifeScope;
-    id = id++;
+    // id = id++;
+
+    get branchSize () {
+        return this.scopes.length;
+    }
+
+    get hasElse () {
+        return !!this.scopes[this.scopes.length - 1]?.isElse;
+    }
 
     __ifProxy?: any; // 是否是代理Switch
 
@@ -109,6 +119,7 @@ export class IfClass {
         ref: IReactiveLike<any>,
         gene: (()=>IChild)|IChild,
     ) {
+        // window.ii = this;
         // console.log('debug', 'new if', this.id, ref);
         this._addCond(ref, gene);
         this.marker = new Marker();
@@ -117,12 +128,68 @@ export class IfClass {
     elif (ref: IReactiveLike<any>, gene: (()=>IChild)|IChild) {
         return this._addCond(ref, gene);
     }
-    private _addCond (ref: IReactiveLike<any>, gene: (()=>IChild)|IChild) {
-        this.scopes.push(new IfScope(ref, gene));
+    private _addCond (ref: IReactiveLike<any>, gene: (()=>IChild)|IChild, isElse = false) {
+        this.scopes.push(new IfScope(ref, gene, isElse));
         return this;
     }
     else (gene: (()=>IChild)|IChild) {
-        this._addCond(true, gene);
+        this._addCond(true, gene, true);
+        return this;
+    }
+
+    async replaceElse (generator: (()=>IChild)|IChild) {
+        await this.addCase({ ref: true, generator });
+        return this;
+    }
+
+    async addCase ({
+        ref, generator, index = -1
+    }: {
+        ref?: IReactiveLike<any>, generator: (()=>IChild)|IChild, index?: number,
+    }) {
+        const isElse = typeof ref === 'undefined';
+        const scope = new IfScope(isElse ? true : ref, generator, isElse);
+        const last = this.scopes[this.scopes.length - 1];
+
+        const hasElse = last.isElse;
+        let needRefresh = false;
+
+        const len = this.scopes.length;
+        if (isElse) {
+            if (len === 0) {
+                throw new Error('else must be after if');
+            }
+            if (hasElse) {
+                this.scopes[len - 1] = scope;
+                if (this.activeIndex === len - 1) {
+                    needRefresh = true;
+                }
+            } else {
+                this.scopes.push(scope);
+                if (this.activeIndex === -1) {
+                    needRefresh = true;
+                }
+            }
+        } else {
+            if (index === -1) {
+                if (hasElse) {
+                    index = len - 1;
+                    this.scopes.splice(len - 1, 0, scope);
+                } else {
+                    index = len;
+                    this.scopes.push(scope);
+                }
+            } else {
+                this.scopes.splice(index, 0, scope);
+            }
+            if (this.activeIndex === -1 || this.activeIndex >= index) {
+                needRefresh = true;
+            }
+        }
+        if (needRefresh) {
+            console.log('debug', 'needRefresh');
+            await this._reinitCase(true);
+        }
         return this;
     }
 
@@ -214,31 +281,35 @@ export class IfClass {
     private _initReady: Promise<void> = Promise.resolve();
 
     private __osn_list: any[];
-    onSwitchNode (fn: any) {
+    onSwitchNode (fn: (i:number, prev: number, isElse: boolean)=>void) {
         if (!this.__osn_list) this.__osn_list = [];
         this.__osn_list.push(fn);
     }
-    private triggerSwitchNode (i: number) {
-        this.__osn_list?.forEach(fn => fn(i));
+    private triggerSwitchNode (i: number, pi: number) {
+        this.__osn_list?.forEach(fn => fn(i, pi, !!this.scopes[i]?.isElse));
+    }
+
+    private async _reinitCase (force = false) {
+        if (this.transition) {
+            this.transition.cancel();
+            await this._initReady;
+            console.log('_initReady');
+        }
+        const index = this.switchCase();
+        this.triggerSwitchNode(index, this.prevIndex);
+        // console.log('test:if switch', index, this.activeIndex);
+        console.log('if switch', index);
+        if (force || index !== this.activeIndex) {
+            this.prevIndex = this.activeIndex;
+            this.activeIndex = index;
+            this._initReady = this._initElements();
+        }
     }
 
     private _initChildren () {
         if (this._el) return;
         this._clearWatch = watch(() => this.scopes.map(item => read(item.ref)), async () => {
-            if (this.transition) {
-                this.transition.cancel();
-                await this._initReady;
-                console.log('_initReady');
-            }
-            const index = this.switchCase();
-            this.triggerSwitchNode(index);
-            // console.log('test:if switch', index, this.activeIndex);
-            console.log('if switch', index);
-            if (index !== this.activeIndex) {
-                this.prevIndex = this.activeIndex;
-                this.activeIndex = index;
-                this._initReady = this._initElements();
-            }
+            await this._reinitCase();
         });
         // ! 优化静态if中不生成marker node
         const isStatic: boolean = (this._clearWatch as any).static;
@@ -320,7 +391,6 @@ export function Else (...args: IChild[]) {
     } as IControlLink;
 }
 
-
 // ! 处理if链式调用逻辑
 export function handleIfLinkChildren (el: any, list: any[], start: number = 0) {
     if (el?.[KEY_FC_API_LINK] && IsFcApiKeys.has(el[KEY_FC_API_LINK])) {
@@ -328,9 +398,11 @@ export function handleIfLinkChildren (el: any, list: any[], start: number = 0) {
             const type = el[KEY_FC_API_LINK] as 'if'|'elif'|'else';
             if (type === 'if') {
                 const ifEl = new IfClass(el[KEY_FC_API_VALUE], el);
+                assignApi(el, ifEl, [ 'addCase', 'destroy', 'onSwitchNode' ]);
                 let count = 0;
                 for (let i = start + 1; i < list.length; i++) {
                     const cur = list[i];
+
                     if (!cur[KEY_FC_API_LINK]) break;
                     if (cur[KEY_FC_API_LINK] === 'elif') {
                         cur[KEY_IF_LINK_DONE] = true;

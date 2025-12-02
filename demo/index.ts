@@ -145,7 +145,7 @@ function Counter () {
 
 // window.dom = dom;
 
-// const store = createStore({
+// const store = defineStore({
 //     count: 0,
 // });
 

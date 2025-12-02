@@ -101,7 +101,7 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
                 ldType = dom[KEY_LD_TYPE];
                 isScopeType = ScopeTypes.has(ldType);
             }
-        };
+        }
 
         if (isScopeType && !isSSR) {
             onEnterScope(ldType, dom);
