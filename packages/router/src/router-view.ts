@@ -79,12 +79,12 @@ export class RouterView {
 
     private _routeSwitch (component: any) {
         if (component === this._prevComponent) return;
-        console.log('debug comp route route.component component', component);
+        // console.log('debug comp route route.component component', component);
         this._prevComponent?.__beforeRouteLeave(this._to, this._from);
         if (component?.__is_route_componnet) {
             // @ts-ignore
             component.__beforeRouteEnter(this._to, this._from);
-            console.log('debug comp route route.component component', component);
+            // console.log('debug comp route route.component component', component);
             this._prevComponent = component;
         } else {
             this._prevComponent = null;
@@ -134,12 +134,12 @@ export class RouterView {
             }
             const routeInfo = useRouter()._getRouteComponentArgs();
             if (isPureFunc(component)) {
-                console.log('route.component pure func', component);
+                // console.log('route.component pure func', component);
                 component = component(routeInfo);
             }
             if (isComponent(component)) {
                 if (component[KEY_IS_NAME_USE]) {
-                    console.log('debug comp route route.component component KEY_IS_NAME_USE');
+                    // console.log('debug comp route route.component component KEY_IS_NAME_USE');
                     // ! 如果是直接使用组件名，需要先执行
                     component = component();
                 }
@@ -150,7 +150,7 @@ export class RouterView {
                 this._compnentList[index] = component; // ! 缓存组件
                 this._routeSwitch(component);
             } else {
-                console.log('route.component default', component);
+                // console.log('route.component default', component);
                 this._prevComponent = null;
             }
             return component;
@@ -202,7 +202,7 @@ export class RouterView {
 export function routerView () {
     if (!RouterCurrentComp) {
         if (RouterView.Root === null) {
-            console.warn('createRouter before use routerView');
+            console.warn('Please defineRouter before use routerView');
         }
         // debugger;
         return RouterView.Root;

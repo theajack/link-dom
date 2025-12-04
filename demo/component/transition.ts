@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import { a, Await, button, defineComponent, div, Dynamic, Else, For, frag, getContext, If, LinkDomType, mount, ref, slot, span, Suspense, Switch, toggle, Transition } from 'link-dom';
-import { createRouter, routerLink, routerView } from '../../packages/router/src';
+import { defineRouter, routerLink, routerView } from '../../packages/router/src';
 
 const mockFetch = (time = 1000) => {
     return new Promise((resolve) => {
@@ -31,7 +31,7 @@ const Child = defineComponent(({ slots }) => {
 });
 
 
-createRouter({
+defineRouter({
     routes: [ {
         path: '/',
         component: () => div('index'),

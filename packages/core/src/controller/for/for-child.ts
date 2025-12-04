@@ -50,7 +50,7 @@ export class ForChild<T=any> {
 
     destroy () {
         if (this.removed) return false;
-        console.log('for child clear');
+        // console.log('for child clear');
         if (this.parent.transition) {
             const list = this.marker.pick(false);
             this.parent.transition.triggerDone(filterElement(list), TransStatus.LeaveFrom).then(() => {

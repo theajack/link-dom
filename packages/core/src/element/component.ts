@@ -10,7 +10,7 @@ import { handleIfLinkChildren } from '../controller/if';
 import { getAncestorProvide } from './lifes';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_IF_LINK_DONE, KEY_IS_NAME_USE, KEY_LD_TYPE, KEY_SCOPE, KEY_SLOT_NAME, KEY_USE_STORE } from 'link-dom-shared';
 import { useDirectives } from '../controller/directive';
-import type { ILifeCall } from './component.d';
+import type { ILifeCall } from './component-router.d';
 // import { createLifeScope, LifeScopeType } from './lifes';
 
 type ISlotBase = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController| (()=>ISlot);
@@ -177,14 +177,14 @@ function createLifes (getp: () => any, getds: ()=>any[]) {
 
     for (const key of RouterLifeKeys) {
         const list: any[] = [];
-        console.log('debug comp route init');
+        // console.log('debug comp route init');
         result.lifes[key] = (fn: any) => {
-            console.log('debug comp route add ', key, fn);
+            // console.log('debug comp route add ', key, fn);
             list.push(fn);
             return getp();
         };
         result.triggers[`__${key}`] = async (to: any, from: any) => {
-            console.log('debug comp route trigger', key, to, from, list.length);
+            // console.log('debug comp route trigger', key, to, from, list.length);
             for (const fn of list) {
                 fn(to, from);
             }

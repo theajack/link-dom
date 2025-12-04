@@ -84,9 +84,9 @@ export const Dynamic = defineComponent<IDynamicProps, ISlots>((
                 const doms = Array.from(f.el.children);
                 await transition!.trigger(doms, TransStatus.EnterFrom);
                 marker.replace(f.el);
-                console.warn('_initElements enter action start');
+                // console.warn('_initElements enter action start');
                 await transition!.trigger(doms, TransStatus.EnterActive);
-                console.warn('_initElements enter action end');
+                // console.warn('_initElements enter action end');
             };
             await transition!.callSwitchFn(add, remove);
         } else {
@@ -102,7 +102,7 @@ export const Dynamic = defineComponent<IDynamicProps, ISlots>((
         if (transition) {
             transition.cancel();
             await switchReady;
-            console.log('_initReady');
+            // console.log('_initReady');
         }
         switchReady = switchElement();
     });

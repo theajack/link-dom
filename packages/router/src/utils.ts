@@ -13,24 +13,25 @@ export interface IRouteInfo {
     param?: Record<string, string>,
 }
 
-export function parseUrl (url: string): IRouteInfo|null {
-    if (!url) return null;
+// export function parseUrl (url: string): IRouteInfo|null {
+//     if (!url) return null;
 
-    const { path, search } = formatUrl(url);
+//     const { path, search } = formatUrl(url);
 
-    const param = new URLSearchParams(search);
-    const query: Record<string, string> = {};
-    // @ts-ignore
-    for (const item of param) {
-        query[item[0]] = item[1];
-    }
-    return { path, query };
-}
+//     const param = new URLSearchParams(search);
+//     const query: Record<string, string> = {};
+//     // @ts-ignore
+//     for (const item of param) {
+//         query[item[0]] = item[1];
+//     }
+//     return { path, query };
+// }
 
-export function formatUrl (url: string): {path: string, search: string} {
+export function formatUrl (url: string, base?: string): {path: string, search: string} {
     if (!URL.canParse(url)) {
         return { path: url, search: '' };
     }
+
     const Url = new URL(url);
     let search = '', path = '';
     if (Url.hash) {
@@ -45,6 +46,9 @@ export function formatUrl (url: string): {path: string, search: string} {
     } else {
         search = Url.search;
         path = Url.pathname;
+    }
+    if (base) {
+        path = path.replace(base, '');
     }
     return { search, path };
 }

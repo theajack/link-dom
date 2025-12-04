@@ -39,81 +39,20 @@ setInterval(() => {
 }, 5000);
 
 const router = defineRouter({
+    mode: 'history',
+    base: '/demo/test-history-router',
     routes: [
         {
-            path: '/',
-            component: () => dom.div.text('Page Index'),
+            path: '/index',
+            component: () => dom.div.text('index'),
         },
         {
-            path: '/comp',
-            component: Child,
+            path: '/a1',
+            component: () => dom.div.text('a1'),
         },
         {
-            path: '/guard',
-            component: () => dom.div.text('guard'),
-            beforeEnter: () => {
-                return '/sub';
-            }
-        },
-        {
-            path: () => `/${a}`,
-            component: () => dom.div.text('Page Index11111'),
-        },
-        {
-            path: '/sub',
-            component: PageSub,
-            children: [
-                {
-                    path: '/sub',
-                    component: () => dom.div.text('Sub Index')
-                },
-                {
-                    path: '/sub/s1',
-                    component: PageSub1,
-                },
-                {
-                    path: '/sub/s1/s1',
-                    component: () => dom.div.text('Sub Page1/s1')
-                },
-                {
-                    path: '/sub/s2/s2',
-                    component: () => dom.div.text('Sub Page2/s2')
-                },
-                {
-                    path: '/sub/404',
-                    component: () => dom.div.text('Sub 404'),
-                },
-            ]
-        },
-        {
-            path: '/a',
-            component: PageA,
-        },
-        {
-            path: '/b',
-            component: () => dom.div.text('PageB')
-        },
-        {
-            path: '/c',
-            component: () => dom.div.text('CompC'),
-        },
-        {
-            // test param
-            path: '/x/:name/:#age/:!male',
-            meta: { test: 'x' },
-            component: (data) => {
-                console.log(`test:query`, data.query);
-                console.log(`test:param`, data.param);
-                console.log(`test:meta`, data.meta);
-                console.log(`test:route`, data.route);
-                console.log(`test:path`, data.path);
-                return dom.div.text('CompX').children(
-                    dom.div.text(() => `query: ${JSON.stringify(data.query)}`),
-                    dom.div.text(() => `param: ${JSON.stringify(data.param)}`),
-                    dom.div.text(() => `meta: ${JSON.stringify(data.meta)}`),
-                    dom.div.text(() => `query.a: ${JSON.stringify(data.query.a)}`),
-                );
-            },
+            path: '/a2',
+            component: () => dom.div.text('a2'),
         },
         {
             path: '/404',
@@ -128,18 +67,10 @@ router.beforeEach((to, from) => {
 const App = () => {
     return dom.div.children(
         dom.div.style({ display: 'flex', gap: '10px' }).children(
-            routerLink('/guard'),
-            routerLink('/comp'),
-            routerLink('/'),
-            routerLink('/sub/s1'),
-            routerLink('/sub/s1/s1'),
-            routerLink('/sub/s2/s2'),
-            routerLink('/sub/s3'),
-            routerLink('/a'),
-            routerLink('/b'),
-            routerLink('/c'),
-            routerLink('/x/tack/31/true?a=1'),
-            routerLink('/x/123/456/false?name=zs&age=18&male=true'),
+            routerLink('/index'),
+            routerLink('/a1'),
+            routerLink('/a2'),
+            routerLink('/a3'),
             routerLink.back(),
             routerLink.forward(),
             routerLink.go(-2),

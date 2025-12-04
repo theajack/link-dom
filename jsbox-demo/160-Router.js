@@ -4,7 +4,7 @@
 // @dep=link-dom,link-dom-router
 // @title=Router
 
-import { createRouter, routerLink, routerView } from 'link-dom-router';
+import { defineRouter, routerLink, routerView } from 'link-dom-router';
 import { button, div, mount, watch } from 'link-dom';
 
 function PageSub () {
@@ -16,7 +16,7 @@ function PageSub () {
 };
 const PageSub1 = () => div('Sub Page1');
 
-const router = createRouter({
+const router = defineRouter({
     routes: [
         {
             path: '/',

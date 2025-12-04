@@ -7,6 +7,6 @@ export * from './type.d';
 
 export { routerView, RouterView } from './router-view';
 
-export { Router, createRouter, routerLink } from './router';
+export { Router, defineRouter, routerLink } from './router';
 
 export { version } from 'link-dom';

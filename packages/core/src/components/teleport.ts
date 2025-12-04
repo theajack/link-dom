@@ -34,7 +34,7 @@ export const Teleport = defineComponent<ITeleportProps, ISlots>(({
 }) => {
 
     const _isStatic: boolean = isStatic(props.disabled);
-    console.log('isStatic Teleport', _isStatic);
+    // console.log('isStatic Teleport', _isStatic);
     const frag = new Frag();
 
     const marker = new Marker();

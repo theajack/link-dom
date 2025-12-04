@@ -10,15 +10,14 @@ type IGetter<State extends Record<string, any>> =
     Record<string, (this: IStore<State, any, any>, store: IStore<State, any, any>)=>any>;
 
 export type IStore<
-    State extends Record<string, any>,
-    Action = IAction<State>,
-    Getter = IGetter<State>,
+    State extends Record<string, any> = Record<string, any>,
+    Action extends Record<string, (...args: any)=>any> = IAction<State>,
+    Getter extends Record<string, (...args: any)=>any> = IGetter<State>,
 > = {
     [key in keyof State]: State[key];
 } & {
     [key in keyof Action]: Action[key];
 } & {
-    // @ts-ignore
     [key in keyof Getter]: ReturnType<Getter[key]>;
 } & {
     $watch<T extends keyof State>(T: (keyof State), listener: (nv: State[T], ov: State[T])=>void): void;
@@ -31,15 +30,19 @@ let storeId = 0;
 
 const storeMap: Record<string, IStore<Record<string, any>>> = {};
 
-export function getStore<T extends Record<string, any> = any, A = any, G = any> (id: string): IStore<T, A, G>|null {
+export function getStore<
+    State extends Record<string, any> = Record<string, any>,
+    Action extends Record<string, (...args: any)=>any> = IAction<State>,
+    Getter extends Record<string, (...args: any)=>any> = IGetter<State>,
+> (id: string): IStore<State, Action, Getter>|null {
     // @ts-ignore
     return storeMap[id] || null;
 }
 
 export interface IStoreOptions<
     State extends Record<string, any> = Record<string, any>,
-    Action = IAction<State>,
-    Getter = IGetter<State>,
+    Action extends Record<string, (...args: any)=>any> = IAction<State>,
+    Getter extends Record<string, (...args: any)=>any> = IGetter<State>,
 > {
     id?: string;
     state: ()=>State;
@@ -47,9 +50,9 @@ export interface IStoreOptions<
     getters?: Getter;
 }
 export function defineStore<
-    State extends Record<string, any>,
-    Action = IAction<State>,
-    Getter = IGetter<State>,
+    State extends Record<string, any> = Record<string, any>,
+    Action extends Record<string, (...args: any)=>any> = IAction<State>,
+    Getter extends Record<string, (...args: any)=>any> = IGetter<State>,
     Store extends IStore<State, any, any> = IStore<State, Action, Getter>,
 > ({
     id,

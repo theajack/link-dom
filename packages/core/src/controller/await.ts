@@ -75,7 +75,7 @@ export class AwaitClass {
                     scope.unmounted();
                 };
                 await this.transition.callSwitchFn(add, remove);
-                console.log('resolve all done');
+                // console.log('resolve all done');
             } else {
                 await add();
                 this.transition.done();

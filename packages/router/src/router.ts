@@ -92,7 +92,7 @@ export class Router extends RouterState {
         return this.rootRoute.children!;
     }
     // private routeList: IRouterInnerItem[] = [];
-    base = '';
+    base = ''; // only work in history mode
     mode: 'hash'|'history';
     static instance: Router;
     constructor ({
@@ -115,7 +115,11 @@ export class Router extends RouterState {
             children: this._initRoutes(routes, routerView),
             routerView,
         };
-        this.base = base;
+        if (mode === 'history') {
+            this.base = base;
+        } else {
+            console.warn('hash mode not support base');
+        }
         this.mode = mode;
         this._initEvents();
         if (beforeEach) this.life.beforeEach(beforeEach);
@@ -161,16 +165,13 @@ export class Router extends RouterState {
                 const { newURL } = e;
                 this._enterWrap(newURL);
             });
-            console.time();
-            Promise.resolve().then(() => {
-                console.timeEnd();
-                this._enterWrap(location.href);
-            });
-        } else {
-            console.warn('history mode not support now');
         }
+        // ! 这里必须要在异步里面做 ！
+        Promise.resolve().then(() => {
+            this._enterWrap(location.href);
+        });
     }
-    private async _enterWrap (url) {
+    private async _enterWrap (url: string) {
         try {
             await this._enterNewUrl(url);
         } catch (e) {
@@ -181,7 +182,8 @@ export class Router extends RouterState {
 
     private async _enterNewUrl (url: string) {
         // console.log(`test:${url}`);
-        const { path, search } = formatUrl(url);
+        const { path, search } = formatUrl(url, this.base);
+
         // list 为route的路径，param为route所有url match参数
         const { list, param, matchedPaths } = this._matchRoutes(path, [ this.rootRoute ]);
 
@@ -192,14 +194,14 @@ export class Router extends RouterState {
         const checkValue = (v: (IGuardReturn), fn?: ()=>void) => {
             if (v === false) {
                 fn?.();
-                console.warn('Route cancel', to);
+                // console.warn('Route cancel', to);
                 return true;
             } else if (isRouteParam(v)) {
                 this.route(v);
                 return true;
             }
         };
-        console.log('router change');
+        // console.log('router change');
         if (checkValue(await this.life.triggerEach(to, from))) return;
 
         const resetList = [
@@ -213,9 +215,9 @@ export class Router extends RouterState {
         if (checkValue(await this.life.triggerResolve(to, from), reset)) return;
         if (checkValue(await to.beforeEnter?.(to, from), reset)) return;
         await from?.beforeLeave?.(to, from);
-        console.log('router debug info', this.routeList, list, this.routeList.length, list.length);
+        // console.log('router debug info', this.routeList, list, this.routeList.length, list.length);
         list.forEach((route, index) => route.routerView?._setPath(matchedPaths[index + 1]));
-        console.log('router debug info', this.routeList, list, this.routeList.length, list.length);
+        // console.log('router debug info', this.routeList, list, this.routeList.length, list.length);
         this.routeList = list;
         await watiNextFrame();
         list.forEach(route => route.routerView?._afterEnter(to, from));
@@ -273,20 +275,20 @@ export class Router extends RouterState {
             if (!path) throw new Error('path or name is required');
             finalPath = applyParam(path, param);
         }
-        finalPath = `${this.base}${finalPath}${queryToSearch(query!)}`;
+        finalPath = `${finalPath}${queryToSearch(query!)}`;
         if (this.mode === 'hash') {
             finalPath = `#${finalPath}`;
         }
         return { data, url: finalPath };
     }
     private _routeToUrl (url: string, state?: Record<string, any>, mode?: 'push'|'replace') {
-        if (this.mode === 'hash') {
-            // location.href = finalPath;
-            location.hash = url;
-        } else {
-            location.href = url;
+        if (this.mode === 'history') {
+            url = this.base + url;
         }
         history[mode === 'replace' ? 'replaceState' : 'pushState'](state || {}, '', url);
+        if (this.mode === 'history') {
+            this._enterWrap(location.href);
+        }
     }
     back () {
         return history.back();
@@ -331,7 +333,7 @@ export class Router extends RouterState {
                     route = route.children![index];
                 }
             } catch (e) {
-                console.warn('路径不存在');
+                console.warn('Router path not found');
                 return null;
             }
         }
@@ -346,7 +348,7 @@ export class Router extends RouterState {
     }
 }
 
-export function createRouter (options: IRouterOptions) {
+export function defineRouter (options: IRouterOptions) {
     return new Router(options);
 }
 
@@ -357,7 +359,13 @@ export const routerLink: {
     go: (delta: number) => Dom<HTMLAnchorElement>;
 } = Object.assign((arg: string | IRouteOptions) => {
     const { url } = Router.instance._parseRouteInfo(arg);
-    return dom.a.attr('href', url).text(url);
+    if (Router.instance.mode === 'hash') {
+        return dom.a.attr('href', url).text(url);
+    }
+    return dom.a.attr('href', '#').text(url).click((e) => {
+        e.preventDefault();
+        Router.instance.route(url);
+    });
 }, (() => {
     const gene = (type: 'back' | 'forward' | 'go') => {
         return (i?: number) => dom.a.attr('href', 'javascript:void(0)')

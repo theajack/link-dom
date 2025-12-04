@@ -17,7 +17,7 @@ import { ShowClass } from './show';
 import { AwaitClass } from './await';
 import { KEY_FC_API_LINK, KEY_FC_API_VALUE, KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
-import type { IComponentProxy } from 'src/element/component';
+import type { IComponentProxy } from '../element/component';
 
 export { Elif, Else, type IfClass } from './if';
 export { Default, Case, type SwitchClass } from './switch';

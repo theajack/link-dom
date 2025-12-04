@@ -21,6 +21,7 @@ export function readExeFiles (dir: string, fileList: string[] = []): string[] {
         const stat = fs.statSync(filePath);
 
         if (stat.isDirectory()) {
+            if (file === 'test-history-router') return;
             // 递归读取子目录
             readExeFiles(filePath, fileList);
         } else if (path.extname(file) === '.ts' || path.extname(file) === '.js') {

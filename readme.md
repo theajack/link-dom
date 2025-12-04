@@ -535,7 +535,7 @@ npm i link-dom-router
 ```
 
 ```js
-import { createRouter, routerLink, routerView } from 'link-dom-router';
+import { defineRouter, routerLink, routerView } from 'link-dom-router';
 import { button, div, mount, watch } from 'link-dom';
 
 const PageSub = () => {
@@ -549,7 +549,7 @@ const PageSub1 = () => div('Sub Page1');
 const PageA = () => {
     return div('PageA');
 };
-const router = createRouter({
+const router = defineRouter({
     routes: [
         {
             path: '/',

@@ -7,7 +7,7 @@
 
 import type { IProps } from 'link-dom';
 import { a, Await, button, Case, collectRef, componentRef, Default, defineComponent, div, Elif, Else, For, ForRef, frag, If, input, join, mount, p, reactive, ref, slot, span, Switch, toggle } from 'link-dom';
-import { createRouter, routerLink, routerView } from 'link-dom-router';
+import { defineRouter, routerLink, routerView } from 'link-dom-router';
 
 const Child1 = defineComponent(({ slots, props, inject }) => {
     console.log('Child2 slots', slots, props);
@@ -261,7 +261,7 @@ window.root = root;
 // const root = mount(App, '#app');
 // console.log(root, root.component);
 
-const router = createRouter({
+const router = defineRouter({
     routes: [
         {
             path: '/',

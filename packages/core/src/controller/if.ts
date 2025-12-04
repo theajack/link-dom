@@ -187,7 +187,7 @@ export class IfClass {
             }
         }
         if (needRefresh) {
-            console.log('debug', 'needRefresh');
+            // console.log('debug', 'needRefresh');
             await this._reinitCase(true);
         }
         return this;
@@ -233,7 +233,7 @@ export class IfClass {
             if (this.transition) {
                 const doms = this.marker.pick(false, true) as HTMLElement[];
                 await this.transition.triggerDone(doms, TransStatus.LeaveFrom);
-                console.warn('_initElements 1');
+                // console.warn('_initElements 1');
             }
             list = this.marker.clear();
         } else {
@@ -251,16 +251,16 @@ export class IfClass {
                     const frag = this.scopes[this.activeIndex].toFrag();
                     const doms = Array.from(frag.el.children);
                     await this.transition.trigger(doms, TransStatus.EnterFrom);
-                    console.warn('_initElements enter from');
+                    // console.warn('_initElements enter from');
                     frag.__mounted();
                     this.marker.replace(frag.el);
                     life.mounted();
-                    console.warn('_initElements enter action start');
+                    // console.warn('_initElements enter action start');
                     await this.transition.trigger(doms, TransStatus.EnterActive);
-                    console.warn('_initElements enter action end');
+                    // console.warn('_initElements enter action end');
                 };
                 await this.transition.callSwitchFn(add, remove);
-                console.log('resolve all done');
+                // console.log('resolve all done');
             } else {
                 list = this.marker.clear();
                 life.unmounted();
@@ -293,12 +293,12 @@ export class IfClass {
         if (this.transition) {
             this.transition.cancel();
             await this._initReady;
-            console.log('_initReady');
+            // console.log('_initReady');
         }
         const index = this.switchCase();
         this.triggerSwitchNode(index, this.prevIndex);
         // console.log('test:if switch', index, this.activeIndex);
-        console.log('if switch', index);
+        // console.log('if switch', index);
         if (force || index !== this.activeIndex) {
             this.prevIndex = this.activeIndex;
             this.activeIndex = index;

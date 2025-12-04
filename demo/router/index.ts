@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import type { IRouteComponentArgs } from 'link-dom-router';
-import { createRouter, routerLink, routerView } from 'link-dom-router';
+import { defineRouter, routerLink, routerView } from 'link-dom-router';
 import { dom, mount, reactive, watch } from 'link-dom';
 import { ref } from 'link-dom';
 
@@ -33,7 +33,7 @@ const CompB = () => {
     return dom.div.text('CompB');
 };
 
-const router = createRouter({
+const router = defineRouter({
     routes: [
         {
             path: '/',

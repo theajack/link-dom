@@ -111,7 +111,7 @@ async function onActiveProcess (list: HTMLElement[], props: ITransitionProps, is
         if (count >= size) {
             onAfter?.();
             resolve();
-            console.warn('resolve onActive');
+            // console.warn('resolve onActive');
         }
     };
 
@@ -152,7 +152,7 @@ async function onLeaveProcess (list: HTMLElement[], props: ITransitionProps, sco
         if (count >= size) {
             onAfter?.();
             resolve();
-            console.warn('resolve onLeave');
+            // console.warn('resolve onLeave');
         }
     };
 
@@ -188,11 +188,11 @@ export function createTransScope (props: ITransitionProps) {
             this.__list.push(fn);
         },
         cancel () {
-            console.log('resolve cance', this.__list.length);
+            // console.log('resolve cance', this.__list.length);
             this.__list.forEach(fn => fn());
             this.__list = [];
             set.forEach(key => {
-                console.warn('resolve canceled', key);
+                // console.warn('resolve canceled', key);
                 props[key]?.();
             });
         },
@@ -228,7 +228,7 @@ export const Transition = defineComponent<ITransitionProps, ISlots>((
     const children = _frag.children as any[];
     for (const item of children) {
         item.onSwitchDoms?.(async (list: HTMLElement[]|null, status: TransStatus, isAppear: boolean) => {
-            console.log('onSwitchDoms', list, status, isAppear);
+            // console.log('onSwitchDoms', list, status, isAppear);
             // const isAppear = !prevList;
             if (!list?.length) return;
             if (status === TransStatus.EnterFrom) {
@@ -263,7 +263,7 @@ function commonProcess (el: HTMLElement, props: ITransitionProps, addCount: ()=>
     const onEnd = () => {
         clear.forEach(fn => fn());
         addCount();
-        console.warn('onEnd');
+        // console.warn('onEnd');
     };
 
     let count = 0;
