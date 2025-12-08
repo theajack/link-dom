@@ -154,4 +154,10 @@ mounted 未生效 bind.on 会报错 【DONE】
 - [x] 动态if、动态路由
 - [x] store
 - [x] 测试工具
-- [ ] router 支持 history 模式
+- [x] router 支持 history 模式
+- [x] 修复 新版本if 场景的ssr问题
+- [ ] 增加 onmousedown 等方法【成本很高 onmousedown.stop 等方案成本很高】
+  - [ ] 最简单的方案是直接在dom原型链上加
+- [ ] div().xx()(); // 目前不支持这种模式调用，评估是否需要支持
+- [ ] 对接alins的编译器
+- [ ] 待完善文档，基于vitepress

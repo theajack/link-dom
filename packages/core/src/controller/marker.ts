@@ -6,7 +6,7 @@
 import { checkHydrateMarker, KEY_LD_TYPE, SharedStatus } from 'link-dom-shared';
 import { LinkDomType } from '../utils';
 
-let id = 0;
+// let id = 0;
 export class Marker {
 
     // static GlobalMarkerMap = new WeakMap<any, Set<Marker>>();
@@ -122,7 +122,7 @@ export class Marker {
 }
 
 export function createMarkerNode (text = ''): Comment {
-    return SharedStatus.Renderer.createComment(text + (id++)) as any;
+    return SharedStatus.Renderer.createComment(text) as any;
     // const node = SharedStatus.Renderer.createComment(text + (id++)) as any;
     // // @ts-ignore
     // node.__marker = true;

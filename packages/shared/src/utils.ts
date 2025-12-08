@@ -13,6 +13,9 @@ function createSharedStatus () {
         ProxyTarget: Symbol('pt'),
         isSSR: false,
         isHydrating: false,
+        get isWebRender () {
+            return !this.isHydrating && !this.isSSR;
+        },
         // @ts-ignore
         Renderer: null as IRenderer,
     };

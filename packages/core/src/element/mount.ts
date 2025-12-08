@@ -134,6 +134,10 @@ export function traverseChildren (doms: IChild[], onChild: (child: Node, origin:
         } else if (!(dom instanceof Node) && !(dom?.__is_ssr)) {
             el = SharedStatus.Renderer.createTextNode(`${dom}`);
         }
+        if (SharedStatus.isWebRender && el.__is_ssr) {
+            // console.log('SharedStatus', SharedStatus.isSSR, SharedStatus.isHydrating);
+            el = el.toDom().el;
+        }
         onChild(el, dom);
         if (isScopeType && !isSSR) {
             onExitScope();

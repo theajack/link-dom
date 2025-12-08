@@ -28,6 +28,9 @@ export class SSRElement extends SSRContainer<Dom> implements IElement {
     }
     toHtml (): string {
         if (this._outerHTML) return this._outerHTML;
+        if (this.tagName === 'br') { // ! br 标签不需要闭合 否则会产生两个
+            return '<br/>';
+        }
         let html = `<${this.tagName}${this.classList.toString()}`;
         const map = this.style;
         const keys = Object.keys(map);

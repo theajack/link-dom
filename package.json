@@ -1,7 +1,7 @@
 {
     "name": "link-dom-repository",
     "private": true,
-    "version": "0.1.6",
+    "version": "0.1.7",
     "scripts": {
         "dev": "tsx ./build/dev-util.ts && vite -m=dev",
         "build:demo": "vite build -m=demo",
@@ -24,15 +24,16 @@
         "fs-extra": "^11.2.0",
         "jsbox-cmd": "^0.0.3",
         "link-dom": "workspace:*",
-        "link-dom-render": "workspace:*",
         "link-dom-reactive": "workspace:*",
-        "link-dom-shared": "workspace:*",
+        "link-dom-render": "workspace:*",
         "link-dom-router": "workspace:*",
+        "link-dom-shared": "workspace:*",
         "link-dom-ssr": "workspace:*",
         "tslib": "^2.7.0",
         "tsx": "^4.19.1",
         "typescript": "^5.0.2",
         "typescript-eslint": "0.0.1-alpha.0",
+        "ui-test-lib": "^0.0.3",
         "vite": "^5.0.6",
         "vite-plugin-css-injected-by-js": "^3.5.1",
         "vitest": "^2.1.2"

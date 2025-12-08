@@ -29,19 +29,20 @@ export abstract class SSRBase<T extends Comment|Text|Dom|Frag = any> {
         }
     }
     hydrate (el: any) {
-        // console.log('hydrate', el);
+        console.log('hydrate', el);
         // 部分text这里没有dom
         if (!this.dom) {
             return;
         }
         // @ts-ignore
-        // if (this.dom.el.__marker) {
-        //     console.log('inhe marker2', el);
-        // }
+        if (this.dom.el.__marker) {
+            console.log('inhe marker2', el);
+        }
         // 指定真实的dom节点: 将SSRElement替换为真实dom节点
+        console.log('base hydrate', this.nodeType, this.dom, el, this.toHtml());
         this.dom.el = el;
         if (this.__for_child) {
-            el.__marker = true;
+            // el.__marker = true;
             this.__for_child._start = el;
         }
     }
@@ -91,7 +92,7 @@ export class SSRContainer<T extends Dom|Frag = Frag> extends SSRBase<T> {
         // debugger;
 
         if (childNodes.length !== len) {
-            throw new Error('hydrate error');
+            throw new Error(`hydrate error len not match ${childNodes.length} !== ${len}`);
             // debugger;
         }
         for (let i = 0; i < len; i++) {
@@ -259,6 +260,7 @@ export class SSRComment extends SSRBase<Comment> implements IComment {
     nodeType = NodeType.COMMENT_NODE;
     markerType: ''|'start'|'end';
     hydrate (el: any): void {
+        // debugger;
         // 部分text这里没有dom
         if (!this.markerType) {
             // console.log('not dom', this);
@@ -266,7 +268,8 @@ export class SSRComment extends SSRBase<Comment> implements IComment {
             // throw new Error('dom is not set');
             return;
         }
-        el.__marker = true; // ! 重要
+        // el.__marker = true; // ! 重要
+        // debugger;
         // 指定真实的dom节点
         this.dom[this.markerType] = el;
     }

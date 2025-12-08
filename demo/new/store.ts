@@ -3,8 +3,7 @@
  * @Date: 2025-12-03 01:04:01
  * @Description: Coding something
  */
-import { withResolve } from 'link-dom-shared';
-import { ut } from '../test-util';
+import { ut } from 'ui-test-lib';
 import { defineStore, watch } from 'link-dom-reactive';
 
 const useStore = defineStore({
@@ -25,6 +24,9 @@ const useStore = defineStore({
 const store = useStore();
 
 ut.test(
+    ut.setUp(() => {
+        store.count = 1;
+    }),
     ut.true(() => store.count === 1),
     ut.true(() => store.doubleCount === 2),
     ut.run(() => {

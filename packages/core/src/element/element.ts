@@ -18,8 +18,8 @@ export const TextTagKeys = new Set([ 'style', 'script' ] as const);
 export const DKeys = [ 'prevent', 'stop', 'capture', 'once', 'self' ];
 
 export type IChild = Dom|Text|Frag|Comment|string|number|HTMLElement|Node|IReactiveLike|IController|IChild[]|IComponentProxy;
-interface IClick<T  extends HTMLElement = HTMLElement> {
-    (value: IEventObject<DocumentEventMap['click'], Dom<T>>): ITagCreator<T> & Dom<T>;
+interface IEventSingle<K extends IEventKey, T  extends HTMLElement = HTMLElement, > {
+    (value: IEventObject<DocumentEventMap[K], Dom<T>>): ITagCreator<T> & Dom<T>;
 }
 interface IEvent<T extends HTMLElement = HTMLElement> {
     <K extends IEventKey>(name: K, value?: IEventObject<DocumentEventMap[K], Dom<T>>): ITagCreator<T> & Dom<T>;
@@ -40,11 +40,13 @@ export function classPrefix (...prefixs: string[]) {
 export class Dom<T extends HTMLElement = HTMLElement> extends BaseNode<T> {
     [KEY_LD_TYPE] = LinkDomType.Dom;
 
-    click: IClick<T> & {
-        [K in IEventDecorator]: IClick<T>;
+    click: IEventSingle<'click', T> & {
+        [K in IEventDecorator]: IEventSingle<'click', T>;
     };
     on: IEvent<T> & {
         [K in IEventDecorator]: IEvent<T>
+    // } & {
+    //     [K in IEventKey]: IEventSingle<K, T>
     };
 
     private _tag: string;

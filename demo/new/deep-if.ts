@@ -3,7 +3,7 @@
  * @Date: 2025-11-30 23:51:44
  * @Description: Coding something
  */
-import { utils } from '../test-util';
+import { ut } from 'ui-test-lib';
 import { button, div, Else, If, link, mount, reactive, toggle } from 'link-dom';
 
 const App = () => {
@@ -39,20 +39,16 @@ const App = () => {
 
 mount(App(), document.body);
 
-utils.runTest(
-    utils.setUpValue(() => {
-        const result = document.getElementById('result')!;
-        return () => result.textContent;
-    }),
-    utils.expect('b1'),
-    utils.click('b1'),
-    utils.expect('b2b222'),
-    utils.click('b2'),
-    utils.expect('b3'),
-    utils.click('b1'),
-    utils.expect('b1'),
-    utils.click([ 'b1', 'b3' ]),
-    utils.expect(''),
-    utils.click('b3'),
-    utils.expect('b3'),
+ut.test(
+    ut.expect('b1'),
+    ut.click('#b1'),
+    ut.expect('b2b222'),
+    ut.click('#b2'),
+    ut.expect('b3'),
+    ut.click('#b1'),
+    ut.expect('b1'),
+    ut.click('#b1', '#b3'),
+    ut.expect(''),
+    ut.click('#b3'),
+    ut.expect('b3'),
 );

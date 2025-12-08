@@ -4,7 +4,7 @@
  * @Description: Coding something
  */
 import { watiNextFrame } from 'link-dom-shared';
-import { ut } from '../test-util';
+import { ut } from 'ui-test-lib';
 import type { IfClass } from 'link-dom';
 import { button, div, Elif, Else, If, link, mount, reactive, ref, toggle } from 'link-dom';
 
@@ -14,11 +14,7 @@ const App = () => {
 
     let vif: IfClass;
 
-    ut.runTest(
-        ut.setUpValue(() => {
-            const result = document.getElementById('result')!;
-            return () => result.textContent;
-        }),
+    ut.test(
         ut.expect('else'),
         ut.run(() => {
             vif.addCase({ generator: () => div('newElse') });
@@ -34,7 +30,9 @@ const App = () => {
             });
         }),
         ut.expect('>3'),
-    );
+    ).then((d) => {
+        console.log(d);
+    });
 
     return div(
         div.id('result')(
